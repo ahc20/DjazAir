@@ -1,17 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test API DjazAir</title>
+    <title>Test API DjazAir - Version Complète</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        .flight { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; }
+        .djazair { background: #d4edda; border-left: 4px solid #28a745; }
+        .direct { background: #fff3cd; border-left: 4px solid #ffc107; }
+    </style>
 </head>
 <body>
-    <h1>Test API DjazAir</h1>
-    <button onclick="testAPI()">Tester l'API</button>
+    <h1>🧪 Test API DjazAir - Version Complète</h1>
+    <p>Ce test va vérifier si l'API retourne les options DjazAir via Alger</p>
+    
+    <button onclick="testAPI()">🚀 Tester l'API DjazAir</button>
+    
     <div id="result"></div>
 
     <script>
         async function testAPI() {
             const testData = {
-                origin: 'ORY',
+                origin: 'CDG',
                 destination: 'DXB',
                 departureDate: '2025-09-17',
                 returnDate: '2025-09-24',
@@ -21,6 +35,7 @@
             };
 
             console.log('📤 Données de test:', testData);
+            document.getElementById('result').innerHTML = '<div class="info">🔄 Test en cours...</div>';
 
             try {
                 const response = await fetch('https://djaz-air.vercel.app/api/unified-search', {
@@ -31,15 +46,57 @@
 
                 const data = await response.json();
                 
-                console.log('📥 Réponse:', data);
-                document.getElementById('result').innerHTML = `
-                    <h3>Statut: ${response.status}</h3>
-                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                console.log('📥 Réponse complète:', data);
+                
+                let resultHTML = `
+                    <div class="result ${response.ok ? 'success' : 'error'}">
+                        <h3>📊 Résultats du Test</h3>
+                        <p><strong>Statut:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Succès:</strong> ${data.success ? '✅ Oui' : '❌ Non'}</p>
+                        <p><strong>Total de vols:</strong> ${data.data?.allFlights?.length || 0}</p>
+                        <p><strong>Vols directs:</strong> ${data.data?.directFlights?.length || 0}</p>
+                        <p><strong>Options DjazAir:</strong> ${data.data?.viaAlgiersFlights?.length || 0}</p>
+                    </div>
                 `;
+
+                if (data.success && data.data?.allFlights) {
+                    resultHTML += '<h3>✈️ Détail des Vols</h3>';
+                    
+                    data.data.allFlights.forEach((flight, index) => {
+                        const isDjazAir = flight.viaAlgiers;
+                        const flightClass = isDjazAir ? 'djazair' : 'direct';
+                        const badge = isDjazAir ? '🚀 DjazAir' : '✈️ Direct';
+                        
+                        resultHTML += `
+                            <div class="flight ${flightClass}">
+                                <h4>${badge} - Vol ${index + 1}</h4>
+                                <p><strong>Compagnie:</strong> ${flight.airline} (${flight.airlineCode})</p>
+                                <p><strong>Prix:</strong> ${flight.price.amount} ${flight.price.currency}</p>
+                                <p><strong>Durée:</strong> ${flight.duration}</p>
+                                <p><strong>Escales:</strong> ${flight.stops}</p>
+                                <p><strong>Source:</strong> ${flight.searchSource}</p>
+                                ${isDjazAir ? `<p><strong>Économies:</strong> ${flight.savings?.amount || 0}€ (${flight.savings?.percentage || 0}%)</p>` : ''}
+                                ${flight.price?.originalDZD ? `<p><strong>Prix DZD:</strong> ${flight.price.originalDZD.toLocaleString()} DZD</p>` : ''}
+                            </div>
+                        `;
+                    });
+                }
+
+                if (data.error) {
+                    resultHTML += `<div class="error"><strong>❌ Erreur:</strong> ${data.error}</div>`;
+                }
+
+                document.getElementById('result').innerHTML = resultHTML;
 
             } catch (error) {
                 console.error('❌ Erreur:', error);
-                document.getElementById('result').innerHTML = `<h3>Erreur: ${error.message}</h3>`;
+                document.getElementById('result').innerHTML = `
+                    <div class="error">
+                        <h3>❌ Erreur de Connexion</h3>
+                        <p><strong>Message:</strong> ${error.message}</p>
+                        <p>Vérifiez que l'application est bien déployée sur Vercel.</p>
+                    </div>
+                `;
             }
         }
     </script>

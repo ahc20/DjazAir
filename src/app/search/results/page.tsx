@@ -17,7 +17,11 @@ interface FlightResult {
   departureTime: string;
   arrivalTime: string;
   duration: string;
-  price: { amount: number; currency: string };
+  price: { 
+    amount: number; 
+    currency: string;
+    originalDZD?: number;
+  };
   airline: string;
   flightNumber: string;
   stops: number;
@@ -29,9 +33,6 @@ interface FlightResult {
     airport: string;
     duration: number;
     flightNumber: string;
-  };
-  price?: {
-    originalDZD?: number;
   };
 }
 
@@ -316,7 +317,7 @@ export default function SearchResultsPage() {
                               <span>• Temps de connexion: {flight.connection.duration} min</span>
                               <span>• Vol de connexion: {flight.connection.flightNumber}</span>
                             </div>
-                            {flight.price?.originalDZD && (
+                            {flight.price.originalDZD && (
                               <div className="text-xs text-green-700 mt-1">
                                 Prix total: {flight.price.originalDZD.toLocaleString()} DZD (taux parallèle 260 DZD/€)
                               </div>
