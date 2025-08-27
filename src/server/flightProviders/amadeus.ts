@@ -32,7 +32,7 @@ export class AmadeusProvider implements FlightProvider {
   private async getAccessToken(): Promise<string> {
     // Vérifier si le token existe et n'est pas expiré
     if (this.token && Date.now() < this.token.expires_at) {
-      return this.token.access_token;
+      return this.token!.access_token;
     }
 
     try {
@@ -58,7 +58,7 @@ export class AmadeusProvider implements FlightProvider {
         expires_at: Date.now() + (tokenData.expires_in * 1000),
       };
 
-      return this.token.access_token;
+      return this.token!.access_token;
     } catch (error) {
       console.error('Erreur lors de l\'obtention du token Amadeus:', error);
       throw new Error('Impossible d\'obtenir l\'accès à l\'API Amadeus');
@@ -150,7 +150,7 @@ export class AmadeusProvider implements FlightProvider {
       if (params.destination !== 'ALG' && params.origin !== 'ALG') {
         try {
           const viaAlgiersResult = await this.searchViaAlgiers(params);
-          bestViaPrice = viaAlgiersResult.bestDirectPriceEUR;
+          bestViaPrice = viaAlgiersResult.bestDirectPriceEUR || undefined;
         } catch (error) {
           console.warn('Impossible de rechercher des vols via Alger:', error);
         }

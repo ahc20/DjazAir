@@ -1,8 +1,8 @@
 // Configuration globale pour Vitest
-import { beforeAll, afterAll } from 'vitest';
+import { beforeAll, afterAll, vi } from 'vitest';
 
 // Mock des variables d'environnement pour les tests
-process.env.NODE_ENV = 'test';
+Object.defineProperty(process.env, 'NODE_ENV', { value: 'test', writable: true });
 process.env.EXCHANGE_BASE_URL = 'https://api.exchangerate.host';
 process.env.NEXT_PUBLIC_DEFAULT_PARALLEL_RATE_DZD = '262';
 
@@ -12,8 +12,9 @@ global.fetch = vi.fn();
 // Configuration des mocks avant tous les tests
 beforeAll(() => {
   // Mock des réponses d'API
-  vi.mocked(fetch).mockImplementation((url: string) => {
-    if (url.includes('exchangerate.host')) {
+  vi.mocked(fetch).mockImplementation((url: string | URL | Request) => {
+    const urlString = typeof url === 'string' ? url : url.toString();
+    if (urlString.includes('exchangerate.host')) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({

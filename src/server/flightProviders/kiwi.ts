@@ -89,7 +89,7 @@ export class KiwiProvider implements FlightProvider {
       if (params.destination !== 'ALG' && params.origin !== 'ALG') {
         try {
           const viaAlgiersResult = await this.searchViaAlgiers(params);
-          bestViaPrice = viaAlgiersResult.bestDirectPriceEUR;
+          bestViaPrice = viaAlgiersResult.bestDirectPriceEUR || undefined;
         } catch (error) {
           console.warn('Impossible de rechercher des vols via Alger:', error);
         }
