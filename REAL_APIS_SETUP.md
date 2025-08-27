@@ -6,7 +6,8 @@ DjazAir est maintenant configuré pour utiliser de **vraies APIs de vols** au li
 
 1. **Google Flights API** - Pour les prix internationaux
 2. **Air Algérie Scraper** - Pour les prix en DZD avec conversion automatique
-3. **Service unifié** - Combinaison intelligente des deux sources
+3. **Amadeus API** - Pour une couverture étendue des vols
+4. **Service unifié** - Combinaison intelligente des trois sources
 
 ## 🔑 Configuration des APIs
 
@@ -60,13 +61,16 @@ SCRAPING_USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 3. Demandez l'accès à l'API
 4. Copiez la clé dans `SKYSCANNER_API_KEY`
 
-### 4. Amadeus API (Backup)
+### 4. Amadeus API (Intégrée)
 
-#### Obtenir des identifiants :
-1. Allez sur [Amadeus for Developers](https://developers.amadeus.com/)
-2. Créez un compte
-3. Créez une application
-4. Copiez `AMADEUS_CLIENT_ID` et `AMADEUS_CLIENT_SECRET`
+#### Identifiants déjà configurés :
+- **Client ID** : `yMsU11njTBLOlm6sEiLLexx27msJAlZX`
+- **Client Secret** : `aF0ekGKfe0H3QTfG`
+
+#### Limites :
+- Gratuit : 1000 requêtes/mois
+- Payant : Selon votre plan
+- Test API : Environnement de développement inclus
 
 ## 🎯 Utilisation
 
@@ -85,9 +89,10 @@ L'interface unifiée permet de rechercher des vols avec :
 Le système retourne automatiquement :
 
 - **Vols directs** : Via Google Flights (prix en EUR)
+- **Vols étendus** : Via Amadeus (couverture mondiale)
 - **Vols via Alger** : Via Air Algérie (prix DZD convertis en EUR)
 - **Calcul des économies** : Comparaison automatique
-- **Badges de source** : Indication de l'origine des données
+- **Badges de source** : Indication de l'origine des données (Google Flights, Amadeus, Air Algérie)
 
 ### 3. Conversion automatique des prix
 
@@ -115,7 +120,7 @@ src/components/
 ### Flux de recherche :
 
 1. **Validation** des paramètres de recherche
-2. **Recherche parallèle** Google Flights + Air Algérie
+2. **Recherche parallèle** Google Flights + Amadeus + Air Algérie
 3. **Traitement** et normalisation des résultats
 4. **Calcul des économies** pour les vols via Alger
 5. **Combinaison** et tri par prix
@@ -153,7 +158,7 @@ export const maxDuration = 30; // Timeout de 30 secondes
 
 - Google Flights : 50 req/jour (gratuit)
 - Skyscanner : Selon votre plan
-- Amadeus : 1000 req/mois (gratuit)
+- Amadeus : 1000 req/mois (gratuit) - **✅ Intégré et configuré**
 
 ## 🔒 Sécurité
 

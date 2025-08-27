@@ -59,7 +59,7 @@ interface FlightResult {
     amount: number;
     percentage: number;
   };
-  searchSource?: 'google' | 'airalgerie';
+  searchSource?: 'google' | 'airalgerie' | 'amadeus';
 }
 
 interface SearchParams {
@@ -186,6 +186,8 @@ export function UnifiedFlightSearch() {
       return <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Google Flights</span>;
     } else if (flight.searchSource === 'airalgerie') {
       return <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Air Algérie</span>;
+    } else if (flight.searchSource === 'amadeus') {
+      return <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">Amadeus</span>;
     }
     return null;
   };

@@ -1,6 +1,7 @@
 import { FlightSearchParams } from '../scrapers/types';
 import { GoogleFlightsAPI, GoogleFlightResult } from './googleFlightsAPI';
 import { AirAlgerieScraper, AirAlgerieFlightResult } from './airAlgerieScraper';
+import { AmadeusAPI, AmadeusFlightResult } from './amadeusAPI';
 
 export interface UnifiedFlightResult {
   id: string;
@@ -37,7 +38,7 @@ export interface UnifiedFlightResult {
     amount: number;
     percentage: number;
   };
-  searchSource: 'google' | 'airalgerie';
+  searchSource: 'google' | 'airalgerie' | 'amadeus';
 }
 
 export interface SearchResults {
@@ -57,10 +58,12 @@ export interface SearchResults {
 export class UnifiedFlightSearchService {
   private googleFlightsAPI: GoogleFlightsAPI;
   private airAlgerieScraper: AirAlgerieScraper;
+  private amadeusAPI: AmadeusAPI;
 
   constructor() {
     this.googleFlightsAPI = new GoogleFlightsAPI();
     this.airAlgerieScraper = new AirAlgerieScraper();
+    this.amadeusAPI = new AmadeusAPI();
   }
 
   /**
@@ -70,21 +73,23 @@ export class UnifiedFlightSearchService {
     console.log(`🚀 Recherche unifiée pour ${params.origin} → ${params.destination}`);
 
     try {
-      // Recherche parallèle des deux sources
-      const [googleResults, airAlgerieResults] = await Promise.allSettled([
+      // Recherche parallèle des trois sources
+      const [googleResults, airAlgerieResults, amadeusResults] = await Promise.allSettled([
         this.searchGoogleFlights(params),
-        this.searchAirAlgerieFlights(params)
+        this.searchAirAlgerieFlights(params),
+        this.searchAmadeusFlights(params)
       ]);
 
       // Traitement des résultats
       const directFlights = this.processGoogleResults(googleResults);
       const viaAlgiersFlights = this.processAirAlgerieResults(airAlgerieResults);
+      const amadeusFlights = this.processAmadeusResults(amadeusResults);
 
       // Calcul des économies pour les vols via Alger
       const viaAlgiersWithSavings = this.calculateSavings(viaAlgiersFlights, directFlights);
 
       // Combinaison et tri de tous les résultats
-      const allFlights = [...directFlights, ...viaAlgiersWithSavings]
+      const allFlights = [...directFlights, ...amadeusFlights, ...viaAlgiersWithSavings]
         .sort((a, b) => a.price.amount - b.price.amount);
 
       // Détermination des meilleures économies
@@ -144,6 +149,23 @@ export class UnifiedFlightSearchService {
   }
 
   /**
+   * Recherche Amadeus avec gestion d'erreur
+   */
+  private async searchAmadeusFlights(params: FlightSearchParams): Promise<AmadeusFlightResult[]> {
+    try {
+      if (this.amadeusAPI.isAvailable()) {
+        return await this.amadeusAPI.searchFlightsWithFallback(params);
+      } else {
+        console.warn('⚠️ API Amadeus non disponible');
+        return [];
+      }
+    } catch (error) {
+      console.warn('⚠️ Erreur Amadeus, utilisation du fallback:', error);
+      return this.amadeusAPI.getFallbackResults(params);
+    }
+  }
+
+  /**
    * Traite les résultats Google Flights
    */
   private processGoogleResults(result: PromiseSettledResult<GoogleFlightResult[]>): UnifiedFlightResult[] {
@@ -171,6 +193,22 @@ export class UnifiedFlightSearchService {
       }));
     } else {
       console.warn('❌ Air Algérie échoué:', result.reason);
+      return [];
+    }
+  }
+
+  /**
+   * Traite les résultats Amadeus
+   */
+  private processAmadeusResults(result: PromiseSettledResult<AmadeusFlightResult[]>): UnifiedFlightResult[] {
+    if (result.status === 'fulfilled') {
+      return result.value.map(flight => ({
+        ...flight,
+        searchSource: 'amadeus' as const,
+        viaAlgiers: false
+      }));
+    } else {
+      console.warn('❌ Amadeus échoué:', result.reason);
       return [];
     }
   }
