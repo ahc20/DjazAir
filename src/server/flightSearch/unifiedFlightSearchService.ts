@@ -79,12 +79,16 @@ export class UnifiedFlightSearchService {
       // Traitement des résultats Amadeus
       const allFlights = this.processAmadeusResults({ status: 'fulfilled', value: amadeusResults });
 
-      // TEMPORAIREMENT DÉSACTIVÉ : Recherche DjazAir simple
-      // const djazAirOption = await this.findSimpleDjazAirOption(params);
+      // Recherche DjazAir simple : 1 seule option via Alger
+      const djazAirOption = await this.findSimpleDjazAirOption(params);
       let viaAlgiersFlights: UnifiedFlightResult[] = [];
       
-      // TODO: Réactiver DjazAir une fois que l'API fonctionne
-      console.log('⚠️ DjazAir temporairement désactivé pour test de performance');
+      if (djazAirOption) {
+        viaAlgiersFlights = [djazAirOption];
+        console.log(`✅ Option DjazAir trouvée et ajoutée`);
+      } else {
+        console.log(`⚠️ Aucune option DjazAir trouvée`);
+      }
       
       // Calcul des économies pour l'option DjazAir
       const viaAlgiersWithSavings = this.calculateSavings(viaAlgiersFlights, allFlights);
@@ -106,7 +110,7 @@ export class UnifiedFlightSearchService {
         bestSavings
       };
 
-      console.log(`✅ Recherche terminée: ${results.totalResults} vols trouvés`);
+      console.log(`✅ Recherche terminée: ${results.totalResults} vols trouvés (${viaAlgiersFlights.length} DjazAir)`);
       return results;
 
     } catch (error) {
@@ -173,32 +177,31 @@ export class UnifiedFlightSearchService {
     console.log(`🔍 Recherche DjazAir simple via Alger pour ${params.origin} → ${params.destination}`);
     
     try {
-      // Recherche vol vers Alger (le moins cher)
-      const toAlgiersParams = {
-        ...params,
-        destination: 'ALG',
-        departureDate: params.departureDate
-      };
+      // Recherche parallèle des deux segments pour plus de rapidité
+      const [toAlgiersResults, fromAlgiersResults] = await Promise.all([
+        this.searchAmadeusFlights({
+          ...params,
+          destination: 'ALG',
+          departureDate: params.departureDate
+        }),
+        this.searchAmadeusFlights({
+          ...params,
+          origin: 'ALG',
+          departureDate: params.departureDate
+        })
+      ]);
       
-      const toAlgiersFlights = await this.searchAmadeusFlights(toAlgiersParams);
-      if (toAlgiersFlights.length === 0) return null;
-      
-      // Recherche vol depuis Alger vers destination finale (le moins cher)
-      const fromAlgiersParams = {
-        ...params,
-        origin: 'ALG',
-        departureDate: params.departureDate
-      };
-      
-      const fromAlgiersFlights = await this.searchAmadeusFlights(fromAlgiersParams);
-      if (fromAlgiersFlights.length === 0) return null;
+      if (toAlgiersResults.length === 0 || fromAlgiersResults.length === 0) {
+        console.log('⚠️ Segments Alger non disponibles');
+        return null;
+      }
       
       // Prendre le moins cher de chaque segment
-      const bestToAlgiers = toAlgiersFlights.reduce((best, current) => 
+      const bestToAlgiers = toAlgiersResults.reduce((best, current) => 
         current.price.amount < best.price.amount ? current : best
       );
       
-      const bestFromAlgiers = fromAlgiersFlights.reduce((best, current) => 
+      const bestFromAlgiers = fromAlgiersResults.reduce((best, current) => 
         current.price.amount < best.price.amount ? current : best
       );
       
