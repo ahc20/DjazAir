@@ -3,7 +3,7 @@
 import React from 'react';
 import { Plane, TrendingUp, Globe } from 'lucide-react';
 import { SearchForm } from '@/components/SearchForm';
-import { UnifiedFlightSearch } from '@/components/UnifiedFlightSearch';
+
 import { APP_NAME } from '@/lib/constants';
 import type { SearchFormData } from '@/lib/zod';
 
@@ -64,10 +64,7 @@ export default function HomePage() {
           <SearchForm onSubmit={handleSearch} />
         </div>
 
-        {/* Recherche Unifiée de Vols */}
-        <div className="mb-16">
-          <UnifiedFlightSearch />
-        </div>
+
 
         {/* Section des fonctionnalités */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
