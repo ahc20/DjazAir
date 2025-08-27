@@ -112,3 +112,4 @@ export async function GET(request: NextRequest) {
 // Test
 // Test redéploiement après correction clé Amadeus
 // Test: implémentation DjazAir via Alger
+// Redéploiement final DjazAir
