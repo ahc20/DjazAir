@@ -64,8 +64,8 @@ SCRAPING_USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 ### 4. Amadeus API (Intégrée)
 
 #### Identifiants déjà configurés :
-- **Client ID** : `yMsU11njTBLOlm6sEiLLexx27msJAlZX`
-- **Client Secret** : `aF0ekGKfe0H3QTfG`
+- **Client ID** : ``
+- **Client Secret** : ``
 
 #### Limites :
 - Gratuit : 1000 requêtes/mois

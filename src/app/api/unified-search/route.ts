@@ -15,6 +15,8 @@ const unifiedSearchRequestSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('📥 Données reçues par l\'API:', body);
+    
     const validatedData = unifiedSearchRequestSchema.parse(body);
 
     console.log(`🚀 Recherche unifiée pour ${validatedData.origin} → ${validatedData.destination}`);

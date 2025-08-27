@@ -50,18 +50,22 @@ export default function SearchResultsPage() {
         setIsLoading(true);
         setError(null);
         
+        const requestBody = {
+          origin,
+          destination,
+          departureDate: departDate,
+          returnDate,
+          passengers: adults + children + infants,
+          cabinClass: cabin,
+          currency: 'EUR'
+        };
+        
+        console.log('📤 Données envoyées à l\'API:', requestBody);
+        
         const response = await fetch('/api/unified-search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            origin,
-            destination,
-            departureDate: departDate,
-            returnDate,
-            passengers: adults + children + infants,
-            cabinClass: cabin,
-            currency: 'EUR'
-          })
+          body: JSON.stringify(requestBody)
         });
 
         const data = await response.json();
