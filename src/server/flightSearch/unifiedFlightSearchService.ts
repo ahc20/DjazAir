@@ -174,11 +174,26 @@ export class UnifiedFlightSearchService {
     try {
       const viaAlgiersFlights: UnifiedFlightResult[] = [];
       
-      // Pour chaque vol direct, chercher une alternative via Alger
-      for (const directFlight of directFlights.slice(0, 3)) { // Limiter à 3 pour éviter trop de requêtes
-        const viaAlgiersOption = await this.findViaAlgiersOption(params, directFlight);
-        if (viaAlgiersOption) {
-          viaAlgiersFlights.push(viaAlgiersOption);
+      // Limiter à 1 seul vol direct pour éviter les timeouts
+      const limitedDirectFlights = directFlights.slice(0, 1);
+      
+      for (const directFlight of limitedDirectFlights) {
+        try {
+          // Timeout de 5 secondes pour chaque recherche DjazAir
+          const viaAlgiersOption = await Promise.race([
+            this.findViaAlgiersOption(params, directFlight),
+            new Promise<null>((resolve) => 
+              setTimeout(() => resolve(null), 5000)
+            )
+          ]);
+          
+          if (viaAlgiersOption) {
+            viaAlgiersFlights.push(viaAlgiersOption);
+            break; // Arrêter après le premier succès
+          }
+        } catch (error) {
+          console.warn('⚠️ Erreur recherche option via Alger:', error);
+          continue;
         }
       }
       

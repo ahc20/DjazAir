@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { UnifiedFlightSearchService } from '@/server/flightSearch/unifiedFlightSearchService';
 import { z } from 'zod';
 
+// Instance du service de recherche
+const unifiedSearchService = new UnifiedFlightSearchService();
+
 const unifiedSearchRequestSchema = z.object({
   origin: z.string().length(3).toUpperCase(),
   destination: z.string().length(3).toUpperCase(),
@@ -12,43 +15,55 @@ const unifiedSearchRequestSchema = z.object({
   currency: z.string().default('EUR')
 });
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    console.log('📥 Données reçues par l\'API:', body);
-    
-    const validatedData = unifiedSearchRequestSchema.parse(body);
-
-    console.log(`🚀 Recherche unifiée pour ${validatedData.origin} → ${validatedData.destination}`);
-
-    const searchService = new UnifiedFlightSearchService();
-    const results = await searchService.searchFlights(validatedData);
-
-    // Ajout des statistiques de recherche
-    const stats = searchService.getSearchStats(results);
-
-    return NextResponse.json({
-      success: true,
-      data: results,
-      stats,
-      message: `Recherche terminée avec succès. ${results.totalResults} vols trouvés.`
+    // Timeout global de 8 secondes pour éviter les 504
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Timeout de la requête')), 8000);
     });
 
-  } catch (error) {
-    console.error('❌ Erreur API recherche unifiée:', error);
+    const bodyPromise = request.json();
     
-    if (error instanceof z.ZodError) {
+    const body = await Promise.race([bodyPromise, timeoutPromise]) as any;
+    console.log('📥 Données reçues par l\'API:', body);
+
+    // Validation des données
+    const validationResult = unifiedSearchRequestSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error('❌ Validation échouée:', validationResult.error);
       return NextResponse.json({
         success: false,
         error: 'Données de requête invalides',
-        details: error.errors
+        details: validationResult.error.errors
       }, { status: 400 });
+    }
+
+    const searchParams = validationResult.data;
+    console.log('✅ Paramètres validés:', searchParams);
+
+    // Recherche avec timeout
+    const searchPromise = unifiedSearchService.searchFlights(searchParams);
+    const searchResults = await Promise.race([searchPromise, timeoutPromise]);
+
+    console.log('✅ Recherche terminée avec succès');
+    return NextResponse.json({
+      success: true,
+      data: searchResults
+    });
+
+  } catch (error) {
+    console.error('❌ Erreur API:', error);
+    
+    if (error instanceof Error && error.message === 'Timeout de la requête') {
+      return NextResponse.json({
+        success: false,
+        error: 'La recherche prend trop de temps. Veuillez réessayer.'
+      }, { status: 504 });
     }
 
     return NextResponse.json({
       success: false,
-      error: 'Erreur interne du serveur',
-      details: error instanceof Error ? error.message : 'Erreur inconnue'
+      error: 'Erreur interne du serveur'
     }, { status: 500 });
   }
 }
@@ -116,3 +131,4 @@ export async function GET(request: NextRequest) {
 // Fix: correction interface FlightResult
 // Fix: correction type duration connection
 // Fix: correction calcul durée totale - types cohérents
+// Fix: optimisation timeouts et gestion d'erreur 504
