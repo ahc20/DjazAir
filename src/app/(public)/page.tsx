@@ -3,6 +3,7 @@
 import React from 'react';
 import { Plane, TrendingUp, Globe } from 'lucide-react';
 import { SearchForm } from '@/components/SearchForm';
+import { RealTimeSearch } from '@/components/RealTimeSearch';
 import { APP_NAME } from '@/lib/constants';
 import type { SearchFormData } from '@/lib/zod';
 
@@ -61,6 +62,11 @@ export default function HomePage() {
         {/* Formulaire de recherche */}
         <div className="mb-16">
           <SearchForm onSubmit={handleSearch} />
+        </div>
+
+        {/* Test de recherche en temps réel */}
+        <div className="mb-16">
+          <RealTimeSearch />
         </div>
 
         {/* Section des fonctionnalités */}

@@ -9,6 +9,7 @@ export const searchFormSchema = z.object({
   children: z.number().min(0).max(8, 'Entre 0 et 8 enfants'),
   infants: z.number().min(0).max(8, 'Entre 0 et 8 nourrissons'),
   cabin: z.enum(['ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST']).default('ECONOMY'),
+  currency: z.string().default('EUR'),
 }).refine((data) => {
   if (data.returnDate) {
     const depart = new Date(data.departDate);

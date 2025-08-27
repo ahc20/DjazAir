@@ -19,7 +19,7 @@ export class KiwiProvider implements FlightProvider {
     return 'Kiwi Tequila';
   }
 
-  isAvailable(): boolean {
+  async isAvailable(): Promise<boolean> {
     return !!this.apiKey;
   }
 
@@ -96,9 +96,10 @@ export class KiwiProvider implements FlightProvider {
       }
 
       return {
+        directFlights: options,
+        viaAlgiersFlights: [],
         bestDirectPriceEUR: bestDirectPrice,
-        bestViaPriceEUR: bestViaPrice,
-        options,
+        bestViaAlgiersPriceEUR: bestViaPrice,
         provider: this.getProviderName(),
       };
 
@@ -123,8 +124,10 @@ export class KiwiProvider implements FlightProvider {
     const totalViaPrice = toAlgiersPrice + fromAlgiersPrice;
 
     return {
+      directFlights: [],
+      viaAlgiersFlights: [],
       bestDirectPriceEUR: totalViaPrice > 0 ? totalViaPrice : null,
-      options: [],
+      bestViaAlgiersPriceEUR: totalViaPrice > 0 ? totalViaPrice : null,
       provider: this.getProviderName(),
     };
   }

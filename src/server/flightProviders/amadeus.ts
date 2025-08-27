@@ -25,7 +25,7 @@ export class AmadeusProvider implements FlightProvider {
     return 'Amadeus';
   }
 
-  isAvailable(): boolean {
+  async isAvailable(): Promise<boolean> {
     return !!(this.clientId && this.clientSecret);
   }
 
@@ -157,9 +157,10 @@ export class AmadeusProvider implements FlightProvider {
       }
 
       return {
+        directFlights: options,
+        viaAlgiersFlights: [],
         bestDirectPriceEUR: bestDirectPrice,
-        bestViaPriceEUR: bestViaPrice,
-        options,
+        bestViaAlgiersPriceEUR: bestViaPrice,
         provider: this.getProviderName(),
       };
 
@@ -184,8 +185,10 @@ export class AmadeusProvider implements FlightProvider {
     const totalViaPrice = toAlgiersPrice + fromAlgiersPrice;
 
     return {
+      directFlights: [],
+      viaAlgiersFlights: [],
       bestDirectPriceEUR: totalViaPrice > 0 ? totalViaPrice : null,
-      options: [],
+      bestViaAlgiersPriceEUR: totalViaPrice > 0 ? totalViaPrice : null,
       provider: this.getProviderName(),
     };
   }

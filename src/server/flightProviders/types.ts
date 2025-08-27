@@ -7,32 +7,43 @@ export interface FlightSearchParams {
   children?: number;
   infants?: number;
   cabin?: 'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST';
-  currency: 'EUR';
+  currency: string;
 }
 
 export interface FlightOption {
   carrier: string;
   priceEUR: number;
+  priceDZD?: number;
   duration: string;
   bookingUrl?: string;
   departureTime?: string;
   arrivalTime?: string;
   stops?: number;
   flightNumber?: string;
+  aircraft?: string;
+  cabin?: string;
+  provider?: string;
+  viaAlgiers?: boolean;
+  outboundFlight?: FlightOption;
+  inboundFlight?: FlightOption;
+  returnFlight?: FlightOption;
 }
 
 export interface FlightSearchResult {
+  directFlights: FlightOption[];
+  viaAlgiersFlights: FlightOption[];
   bestDirectPriceEUR: number | null;
-  bestViaPriceEUR?: number;
-  options: FlightOption[];
+  bestViaAlgiersPriceEUR?: number | null;
   provider: string;
+  searchParams?: FlightSearchParams;
+  timestamp?: string;
   searchId?: string;
 }
 
 export interface FlightProvider {
   searchRoundTrip(params: FlightSearchParams): Promise<FlightSearchResult>;
   getProviderName(): string;
-  isAvailable(): boolean;
+  isAvailable(): Promise<boolean>;
 }
 
 export interface AmadeusToken {

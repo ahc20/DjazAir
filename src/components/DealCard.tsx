@@ -12,6 +12,22 @@ interface DealCardProps {
   onBookDirect: () => void;
   onBookViaAlgiers: () => void;
   showViaAlgiers: boolean;
+  priceBreakdown?: {
+    direct: {
+      totalEUR: number;
+      totalDZD?: number;
+      breakdown: any[];
+    };
+    viaAlgiers: {
+      totalEUR: number;
+      totalDZD: number;
+      breakdown: {
+        outbound: any;
+        inbound: any;
+        total: number;
+      }[];
+    };
+  };
 }
 
 export function DealCard({ 
