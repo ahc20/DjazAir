@@ -5,6 +5,7 @@ import { Plane, TrendingUp, Globe } from 'lucide-react';
 import { SearchForm } from '@/components/SearchForm';
 import { RealTimeSearch } from '@/components/RealTimeSearch';
 import { AdvancedFlightSearch } from '@/components/AdvancedFlightSearch';
+import { ArbitrageCalculatorComponent } from '@/components/ArbitrageCalculator';
 import { APP_NAME } from '@/lib/constants';
 import type { SearchFormData } from '@/lib/zod';
 
@@ -73,6 +74,11 @@ export default function HomePage() {
         {/* Recherche avancée avec scraping */}
         <div className="mb-16">
           <AdvancedFlightSearch />
+        </div>
+
+        {/* Calculateur d'arbitrage */}
+        <div className="mb-16">
+          <ArbitrageCalculatorComponent />
         </div>
 
         {/* Section des fonctionnalités */}
