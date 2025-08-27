@@ -114,3 +114,4 @@ export async function GET(request: NextRequest) {
 // Test: implémentation DjazAir via Alger
 // Redéploiement final DjazAir
 // Fix: correction interface FlightResult
+// Fix: correction type duration connection

@@ -314,9 +314,9 @@ export class UnifiedFlightSearchService {
   private calculateConnectionTime(
     toAlgiers: AmadeusFlightResult,
     fromAlgiers: AmadeusFlightResult
-  ): number {
+  ): string {
     // Logique simple : 2h de connexion par défaut
-    return 120; // 2h en minutes
+    return "2h 00m"; // Retourne une string formatée
   }
 
   /**

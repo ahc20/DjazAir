@@ -314,7 +314,7 @@ export default function SearchResultsPage() {
                           <div className="mt-4 p-3 bg-green-100 rounded-lg">
                             <div className="flex items-center gap-2 text-sm text-green-800">
                               <span className="font-medium">🔄 Escale à Alger ({flight.connection.airport})</span>
-                              <span>• Temps de connexion: {flight.connection.duration} min</span>
+                              <span>• Temps de connexion: {flight.connection.duration}</span>
                               <span>• Vol de connexion: {flight.connection.flightNumber}</span>
                             </div>
                             {flight.price.originalDZD && (
