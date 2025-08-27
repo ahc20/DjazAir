@@ -18,10 +18,8 @@ import {
   MapPin,
   AlertCircle,
   Info,
-  Calendar,
   Users,
   Briefcase,
-  Euro,
   TrendingUp
 } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
@@ -40,7 +38,7 @@ interface FlightResult {
   price: {
     amount: number;
     currency: string;
-    originalDZD?: number; // Prix original en DZD si applicable
+    originalDZD?: number;
   };
   aircraft?: string;
   cabinClass: string;
@@ -61,6 +59,7 @@ interface FlightResult {
     amount: number;
     percentage: number;
   };
+  searchSource?: 'google' | 'airalgerie';
 }
 
 interface SearchParams {
@@ -99,173 +98,54 @@ export function UnifiedFlightSearch() {
     setSearchResults([]);
 
     try {
-      // Simulation de recherche avec vraies APIs (à remplacer)
-      const mockResults = await simulateRealSearch(searchParams);
-      setSearchResults(mockResults);
-      
-      console.log('✅ Résultats de recherche:', mockResults);
+      // Recherche réelle via l'API unifiée
+      const response = await fetch('/api/unified-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(searchParams),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Conversion des résultats vers le format attendu
+        const convertedResults = data.data.allFlights.map((flight: any) => ({
+          id: flight.id,
+          airline: flight.airline,
+          airlineCode: flight.airlineCode,
+          flightNumber: flight.flightNumber,
+          origin: flight.origin,
+          destination: flight.destination,
+          departureTime: flight.departureTime,
+          arrivalTime: flight.arrivalTime,
+          duration: flight.duration,
+          stops: flight.stops,
+          price: flight.price,
+          aircraft: flight.aircraft,
+          cabinClass: flight.cabinClass,
+          provider: flight.provider,
+          direct: flight.direct,
+          viaAlgiers: flight.viaAlgiers,
+          baggage: flight.baggage,
+          connection: flight.connection,
+          savings: flight.savings,
+          searchSource: flight.searchSource
+        }));
+
+        setSearchResults(convertedResults);
+        console.log('✅ Résultats de recherche réelle:', data);
+        console.log('📊 Statistiques:', data.stats);
+      } else {
+        setError(data.error || 'Erreur de recherche');
+      }
     } catch (err) {
-      setError('Erreur de recherche. Veuillez réessayer.');
+      setError('Erreur de connexion au serveur');
       console.error('❌ Erreur:', err);
     } finally {
       setIsSearching(false);
     }
-  };
-
-  // Simulation de recherche réelle (à remplacer par de vraies APIs)
-  const simulateRealSearch = async (params: SearchParams): Promise<FlightResult[]> => {
-    // Simuler un délai de recherche
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const basePrices: Record<string, number> = {
-      'CDG-DXB': 354,
-      'CDG-IST': 280,
-      'CDG-CAI': 350,
-      'CDG-BEY': 380,
-      'CDG-AMM': 420,
-      'ORY-DXB': 380,
-      'ORY-IST': 300,
-      'ORY-CAI': 370,
-      'ORY-BEY': 400,
-      'ORY-AMM': 440
-    };
-
-    const route = `${params.origin}-${params.destination}`;
-    const basePrice = basePrices[route] || 400;
-
-    // Vols directs internationaux
-    const directFlights: FlightResult[] = [
-      {
-        id: 'af-direct-1',
-        airline: 'Air France',
-        airlineCode: 'AF',
-        flightNumber: 'AF1001',
-        origin: params.origin,
-        destination: params.destination,
-        departureTime: `${params.departureDate}T08:00:00`,
-        arrivalTime: `${params.departureDate}T14:30:00`,
-        duration: '6h 30m',
-        stops: 0,
-        price: {
-          amount: basePrice,
-          currency: 'EUR'
-        },
-        aircraft: 'Airbus A350-900',
-        cabinClass: params.cabinClass,
-        provider: 'Air France',
-        direct: true,
-        baggage: {
-          included: true,
-          weight: '23kg',
-          details: 'Bagage en soute inclus'
-        }
-      },
-      {
-        id: 'ek-direct-1',
-        airline: 'Emirates',
-        airlineCode: 'EK',
-        flightNumber: 'EK2001',
-        origin: params.origin,
-        destination: params.destination,
-        departureTime: `${params.departureDate}T10:30:00`,
-        arrivalTime: `${params.departureDate}T17:15:00`,
-        duration: '6h 45m',
-        stops: 0,
-        price: {
-          amount: basePrice * 0.95,
-          currency: 'EUR'
-        },
-        aircraft: 'Boeing 777-300ER',
-        cabinClass: params.cabinClass,
-        provider: 'Emirates',
-        direct: true,
-        baggage: {
-          included: true,
-          weight: '30kg',
-          details: 'Bagage en soute + bagage à main inclus'
-        }
-      }
-    ];
-
-    // Vols via Alger (avec conversion automatique DZD → EUR au taux parallèle)
-    const viaAlgiersFlights: FlightResult[] = [
-      {
-        id: 'ah-via-alg-1',
-        airline: 'Air Algérie',
-        airlineCode: 'AH',
-        flightNumber: 'AH1001 + AH1002',
-        origin: params.origin,
-        destination: params.destination,
-        departureTime: `${params.departureDate}T08:00:00`,
-        arrivalTime: `${params.departureDate}T18:30:00`,
-        duration: '8h 30m',
-        stops: 1,
-        price: {
-          amount: 232.52, // Prix converti au taux parallèle (260 DZD/€)
-          currency: 'EUR',
-          originalDZD: 60455 // Prix original en DZD
-        },
-        aircraft: 'Airbus A330-200 + A320neo',
-        cabinClass: params.cabinClass,
-        provider: 'Air Algérie',
-        direct: false,
-        viaAlgiers: true,
-        baggage: {
-          included: true,
-          weight: '23kg',
-          details: 'Bagage en soute inclus'
-        },
-        connection: {
-          airport: 'ALG',
-          duration: '2h 15m',
-          flightNumber: 'AH1002'
-        },
-        savings: {
-          amount: basePrice - 232.52,
-          percentage: ((basePrice - 232.52) / basePrice) * 100
-        }
-      },
-      {
-        id: 'ah-via-alg-2',
-        airline: 'Air Algérie',
-        airlineCode: 'AH',
-        flightNumber: 'AH2001 + AH2002',
-        origin: params.origin,
-        destination: params.destination,
-        departureTime: `${params.departureDate}T22:05:00`,
-        arrivalTime: `${params.departureDate}T07:50:00`,
-        duration: '7h 45m',
-        stops: 1,
-        price: {
-          amount: 200.00,
-          currency: 'EUR',
-          originalDZD: 52000
-        },
-        aircraft: 'Airbus A320neo + A330-200',
-        cabinClass: params.cabinClass,
-        provider: 'Air Algérie',
-        direct: false,
-        viaAlgiers: true,
-        baggage: {
-          included: true,
-          weight: '20kg',
-          details: 'Bagage en soute inclus'
-        },
-        connection: {
-          airport: 'ALG',
-          duration: '1h 45m',
-          flightNumber: 'AH2002'
-        },
-        savings: {
-          amount: basePrice - 200.00,
-          percentage: ((basePrice - 200.00) / basePrice) * 100
-        }
-      }
-    ];
-
-    // Combiner et trier par prix
-    const allFlights = [...directFlights, ...viaAlgiersFlights];
-    return allFlights.sort((a, b) => a.price.amount - b.price.amount);
   };
 
   const formatDateTime = (dateTimeString: string) => {
@@ -299,6 +179,15 @@ export function UnifiedFlightSearch() {
     if (flight.viaAlgiers) return 'Via Alger';
     if (flight.direct) return 'Direct';
     return 'Avec Escale';
+  };
+
+  const getProviderBadge = (flight: FlightResult) => {
+    if (flight.searchSource === 'google') {
+      return <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Google Flights</span>;
+    } else if (flight.searchSource === 'airalgerie') {
+      return <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Air Algérie</span>;
+    }
+    return null;
   };
 
   return (
@@ -427,11 +316,14 @@ export function UnifiedFlightSearch() {
                         <div className="font-semibold text-lg">
                           {flight.airline} {flight.flightNumber}
                         </div>
-                        <div className="text-sm text-gray-600">
-                          {getFlightTypeLabel(flight)}
-                          {flight.viaAlgiers && (
-                            <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                              Économies: {flight.savings?.amount.toFixed(0)}€ ({flight.savings?.percentage.toFixed(1)}%)
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600">
+                            {getFlightTypeLabel(flight)}
+                          </span>
+                          {getProviderBadge(flight)}
+                          {flight.viaAlgiers && flight.savings && (
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                              Économies: {flight.savings.amount.toFixed(0)}€ ({flight.savings.percentage.toFixed(1)}%)
                             </span>
                           )}
                         </div>
@@ -486,16 +378,16 @@ export function UnifiedFlightSearch() {
 
                   {/* Informations supplémentaires */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                                         <div className="flex items-center gap-2">
-                       <Briefcase className="h-4 w-4 text-gray-500" />
-                       <div>
-                         <div className="text-sm text-gray-600">Bagages</div>
-                         <div className="font-medium">{flight.baggage.included ? 'Inclus' : 'Non inclus'}</div>
-                         {flight.baggage.weight && (
-                           <div className="text-xs text-gray-500">{flight.baggage.weight}</div>
-                         )}
-                       </div>
-                     </div>
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <div className="text-sm text-gray-600">Bagages</div>
+                        <div className="font-medium">{flight.baggage.included ? 'Inclus' : 'Non inclus'}</div>
+                        {flight.baggage.weight && (
+                          <div className="text-xs text-gray-500">{flight.baggage.weight}</div>
+                        )}
+                      </div>
+                    </div>
                     
                     <div className="flex items-center gap-2">
                       <Plane className="h-4 w-4 text-gray-500" />
