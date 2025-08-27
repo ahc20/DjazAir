@@ -67,41 +67,36 @@ export class UnifiedFlightSearchService {
   }
 
   /**
-   * Recherche unifiée de vols combinant Google Flights et Air Algérie
+   * Recherche unifiée de vols via Amadeus (source principale)
    */
   async searchFlights(params: FlightSearchParams): Promise<SearchResults> {
-    console.log(`🚀 Recherche unifiée pour ${params.origin} → ${params.destination}`);
+    console.log(`🚀 Recherche Amadeus pour ${params.origin} → ${params.destination}`);
 
     try {
-      // Recherche parallèle des trois sources
-      const [googleResults, airAlgerieResults, amadeusResults] = await Promise.allSettled([
-        this.searchGoogleFlights(params),
-        this.searchAirAlgerieFlights(params),
-        this.searchAmadeusFlights(params)
-      ]);
+      // Recherche principale via Amadeus
+      const amadeusResults = await this.searchAmadeusFlights(params);
+      
+      // Traitement des résultats Amadeus
+      const allFlights = this.processAmadeusResults({ status: 'fulfilled', value: amadeusResults });
 
-      // Traitement des résultats
-      const directFlights = this.processGoogleResults(googleResults);
-      const viaAlgiersFlights = this.processAirAlgerieResults(airAlgerieResults);
-      const amadeusFlights = this.processAmadeusResults(amadeusResults);
-
-      // Calcul des économies pour les vols via Alger
-      const viaAlgiersWithSavings = this.calculateSavings(viaAlgiersFlights, directFlights);
+      // Calcul des économies pour les vols via Alger (si disponibles)
+      const viaAlgiersFlights = this.processAirAlgerieResults({ status: 'fulfilled', value: [] });
+      const viaAlgiersWithSavings = this.calculateSavings(viaAlgiersFlights, allFlights);
 
       // Combinaison et tri de tous les résultats
-      const allFlights = [...directFlights, ...amadeusFlights, ...viaAlgiersWithSavings]
+      const combinedFlights = [...allFlights, ...viaAlgiersWithSavings]
         .sort((a, b) => a.price.amount - b.price.amount);
 
       // Détermination des meilleures économies
       const bestSavings = this.findBestSavings(viaAlgiersWithSavings);
 
       const results: SearchResults = {
-        directFlights,
+        directFlights: allFlights,
         viaAlgiersFlights: viaAlgiersWithSavings,
-        allFlights,
+        allFlights: combinedFlights,
         searchParams: params,
         searchTimestamp: new Date(),
-        totalResults: allFlights.length,
+        totalResults: combinedFlights.length,
         bestSavings
       };
 

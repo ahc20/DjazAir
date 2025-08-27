@@ -197,14 +197,14 @@ export function UnifiedFlightSearch() {
       {/* Formulaire de recherche */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Recherche de Vols avec Comparaison "Via Alger"
-          </CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+          <Search className="h-5 w-5" />
+          Recherche de Vols - Prix Réels
+        </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-gray-600">
-            Recherchez vos vols et découvrez automatiquement les opportunités d'économies via l'escale à Alger
+            Recherchez vos vols et obtenez les vrais prix en temps réel via Amadeus
           </p>
           
           <div className="grid grid-cols-2 gap-4">
@@ -438,23 +438,7 @@ export function UnifiedFlightSearch() {
         </Card>
       )}
 
-      {/* Note sur la conversion des prix */}
-      {searchResults.length > 0 && searchResults.some(f => f.viaAlgiers) && (
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-green-700">
-              <Info className="h-5 w-5" />
-              <div>
-                <div className="font-medium">Conversion automatique des prix DZD</div>
-                <div className="text-sm text-green-600">
-                  Les prix Air Algérie en DZD sont automatiquement convertis au taux parallèle (1€ = 260 DZD) 
-                  pour vous permettre de comparer facilement avec les prix internationaux en euros.
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
     </div>
   );
 }

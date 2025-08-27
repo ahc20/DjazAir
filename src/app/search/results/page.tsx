@@ -6,11 +6,11 @@ import { ArrowLeft, AlertTriangle, Info, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DealCard } from '@/components/DealCard';
-import { RateSelector } from '@/components/RateSelector';
+
 
 import { formatPrice, formatDate } from '@/lib/utils';
 import { getAirportName } from '@/lib/iata';
-import type { ArbitrageResult, ExchangeRateMode } from '@/types';
+import type { ArbitrageResult } from '@/types';
 
 // Mock des données pour la démonstration
 // En production, ces données viendraient des APIs et de la base de données
@@ -37,10 +37,7 @@ export default function SearchResultsPage() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [arbitrageResult, setArbitrageResult] = useState<ArbitrageResult | null>(null);
-  const [exchangeRateMode, setExchangeRateMode] = useState<ExchangeRateMode>('custom');
   const [showViaAlgiers, setShowViaAlgiers] = useState(true);
-  const [officialRate, setOfficialRate] = useState(150.5);
-  const [customRate, setCustomRate] = useState(262);
 
   // Récupérer les paramètres de recherche
   const origin = searchParams.get('origin') || '';
@@ -72,11 +69,7 @@ export default function SearchResultsPage() {
     window.open('https://www.google.com/travel/flights', '_blank');
   };
 
-  const handleRateModeChange = (mode: ExchangeRateMode) => {
-    setExchangeRateMode(mode);
-    // Ici, on recalculerait l'arbitrage avec le nouveau taux
-    // Pour l'instant, on utilise les données mockées
-  };
+
 
   if (isLoading) {
     return (
@@ -157,15 +150,7 @@ export default function SearchResultsPage() {
           </CardContent>
         </Card>
 
-        {/* Sélecteur de taux de change */}
-        <div className="mb-8">
-          <RateSelector
-            mode={exchangeRateMode}
-            onModeChange={handleRateModeChange}
-            officialRate={officialRate}
-            customRate={customRate}
-          />
-        </div>
+
 
         {/* Résultats d'arbitrage */}
         {arbitrageResult && (
