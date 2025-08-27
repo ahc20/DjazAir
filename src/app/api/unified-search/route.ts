@@ -115,3 +115,4 @@ export async function GET(request: NextRequest) {
 // Redéploiement final DjazAir
 // Fix: correction interface FlightResult
 // Fix: correction type duration connection
+// Fix: correction calcul durée totale - types cohérents

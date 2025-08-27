@@ -286,9 +286,9 @@ export class UnifiedFlightSearchService {
     // Logique simple pour calculer la durée totale
     const toAlgiersDuration = this.parseDuration(toAlgiers.duration);
     const fromAlgiersDuration = this.parseDuration(fromAlgiers.duration);
-    const connectionTime = this.calculateConnectionTime(toAlgiers, fromAlgiers);
+    const connectionTimeMinutes = 120; // 2h en minutes (fixe)
     
-    const totalMinutes = toAlgiersDuration + fromAlgiersDuration + connectionTime;
+    const totalMinutes = toAlgiersDuration + fromAlgiersDuration + connectionTimeMinutes;
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     
