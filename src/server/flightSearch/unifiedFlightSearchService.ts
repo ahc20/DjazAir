@@ -79,9 +79,11 @@ export class UnifiedFlightSearchService {
       // Traitement des résultats Amadeus
       const allFlights = this.processAmadeusResults({ status: 'fulfilled', value: amadeusResults });
 
-      // Calcul des économies pour les vols via Alger (si disponibles)
-      const viaAlgiersFlights = this.processAirAlgerieResults({ status: 'fulfilled', value: [] });
-      const viaAlgiersWithSavings = this.calculateSavings(viaAlgiersFlights, allFlights);
+      // Recherche DjazAir : vols via Alger pour économies
+      const djazAirResults = await this.searchDjazAirViaAlgiers(params, allFlights);
+      
+      // Calcul des économies pour les vols via Alger
+      const viaAlgiersWithSavings = this.calculateSavings(djazAirResults, allFlights);
 
       // Combinaison et tri de tous les résultats
       const combinedFlights = [...allFlights, ...viaAlgiersWithSavings]
@@ -158,6 +160,163 @@ export class UnifiedFlightSearchService {
       console.warn('⚠️ Erreur Amadeus, utilisation du fallback:', error);
       return this.amadeusAPI.getFallbackResults(params);
     }
+  }
+
+  /**
+   * Recherche DjazAir : vols via Alger pour économies
+   */
+  private async searchDjazAirViaAlgiers(
+    params: FlightSearchParams, 
+    directFlights: UnifiedFlightResult[]
+  ): Promise<UnifiedFlightResult[]> {
+    console.log(`🔍 Recherche DjazAir via Alger pour ${params.origin} → ${params.destination}`);
+    
+    try {
+      const viaAlgiersFlights: UnifiedFlightResult[] = [];
+      
+      // Pour chaque vol direct, chercher une alternative via Alger
+      for (const directFlight of directFlights.slice(0, 3)) { // Limiter à 3 pour éviter trop de requêtes
+        const viaAlgiersOption = await this.findViaAlgiersOption(params, directFlight);
+        if (viaAlgiersOption) {
+          viaAlgiersFlights.push(viaAlgiersOption);
+        }
+      }
+      
+      console.log(`✅ DjazAir: ${viaAlgiersFlights.length} options via Alger trouvées`);
+      return viaAlgiersFlights;
+      
+    } catch (error) {
+      console.warn('⚠️ Erreur recherche DjazAir via Alger:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Trouve une option via Alger pour un vol direct
+   */
+  private async findViaAlgiersOption(
+    params: FlightSearchParams,
+    directFlight: UnifiedFlightResult
+  ): Promise<UnifiedFlightResult | null> {
+    try {
+      // Recherche vol vers Alger
+      const toAlgiersParams = {
+        ...params,
+        destination: 'ALG',
+        departureDate: params.departureDate
+      };
+      
+      const toAlgiersFlights = await this.searchAmadeusFlights(toAlgiersParams);
+      if (toAlgiersFlights.length === 0) return null;
+      
+      // Recherche vol depuis Alger vers destination finale
+      const fromAlgiersParams = {
+        ...params,
+        origin: 'ALG',
+        departureDate: params.departureDate
+      };
+      
+      const fromAlgiersFlights = await this.searchAmadeusFlights(fromAlgiersParams);
+      if (fromAlgiersFlights.length === 0) return null;
+      
+      // Prendre le meilleur prix pour chaque segment
+      const bestToAlgiers = toAlgiersFlights.reduce((best, current) => 
+        current.price.amount < best.price.amount ? current : best
+      );
+      
+      const bestFromAlgiers = fromAlgiersFlights.reduce((best, current) => 
+        current.price.amount < best.price.amount ? current : best
+      );
+      
+      // Calculer le prix total et convertir en DZD au taux parallèle
+      const totalPriceEUR = bestToAlgiers.price.amount + bestFromAlgiers.price.amount;
+      const totalPriceDZD = totalPriceEUR * 260; // Taux parallèle
+      const totalPriceEURConverted = totalPriceDZD / 260; // Reconversion pour comparaison
+      
+      // Créer l'option via Alger
+      const viaAlgiersOption: UnifiedFlightResult = {
+        id: `djazair-${Date.now()}-${Math.random()}`,
+        airline: 'DjazAir (via Alger)',
+        airlineCode: 'DJZ',
+        flightNumber: `${bestToAlgiers.flightNumber} + ${bestFromAlgiers.flightNumber}`,
+        origin: params.origin,
+        destination: params.destination,
+        departureTime: bestToAlgiers.departureTime,
+        arrivalTime: bestFromAlgiers.arrivalTime,
+        duration: this.calculateTotalDuration(bestToAlgiers, bestFromAlgiers),
+        stops: 1,
+        price: {
+          amount: Math.round(totalPriceEURConverted * 100) / 100,
+          currency: 'EUR',
+          originalDZD: totalPriceDZD
+        },
+        aircraft: `${bestToAlgiers.aircraft || 'N/A'} + ${bestFromAlgiers.aircraft || 'N/A'}`,
+        cabinClass: params.cabinClass || 'Economy',
+        provider: 'DjazAir',
+        direct: false,
+        viaAlgiers: true,
+        baggage: {
+          included: bestToAlgiers.baggage?.included && bestFromAlgiers.baggage?.included,
+          weight: bestToAlgiers.baggage?.weight || bestFromAlgiers.baggage?.weight,
+          details: `Via Alger: ${bestToAlgiers.baggage?.details || 'N/A'} + ${bestFromAlgiers.baggage?.details || 'N/A'}`
+        },
+        connection: {
+          airport: 'ALG',
+          duration: this.calculateConnectionTime(bestToAlgiers, bestFromAlgiers),
+          flightNumber: bestFromAlgiers.flightNumber
+        },
+        searchSource: 'amadeus'
+      };
+      
+      return viaAlgiersOption;
+      
+    } catch (error) {
+      console.warn('⚠️ Erreur recherche option via Alger:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Calcule la durée totale d'un voyage via Alger
+   */
+  private calculateTotalDuration(
+    toAlgiers: AmadeusFlightResult,
+    fromAlgiers: AmadeusFlightResult
+  ): string {
+    // Logique simple pour calculer la durée totale
+    const toAlgiersDuration = this.parseDuration(toAlgiers.duration);
+    const fromAlgiersDuration = this.parseDuration(fromAlgiers.duration);
+    const connectionTime = this.calculateConnectionTime(toAlgiers, fromAlgiers);
+    
+    const totalMinutes = toAlgiersDuration + fromAlgiersDuration + connectionTime;
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    
+    return `${hours}h ${minutes}m`;
+  }
+
+  /**
+   * Parse une durée au format "Xh Ym" en minutes
+   */
+  private parseDuration(duration: string): number {
+    const match = duration.match(/(\d+)h\s*(\d+)?m?/);
+    if (match) {
+      const hours = parseInt(match[1]);
+      const minutes = match[2] ? parseInt(match[2]) : 0;
+      return hours * 60 + minutes;
+    }
+    return 0;
+  }
+
+  /**
+   * Calcule le temps de connexion entre deux vols
+   */
+  private calculateConnectionTime(
+    toAlgiers: AmadeusFlightResult,
+    fromAlgiers: AmadeusFlightResult
+  ): number {
+    // Logique simple : 2h de connexion par défaut
+    return 120; // 2h en minutes
   }
 
   /**
