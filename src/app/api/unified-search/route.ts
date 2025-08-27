@@ -8,7 +8,7 @@ const unifiedSearchRequestSchema = z.object({
   departureDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   returnDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   passengers: z.number().min(1).max(9).default(1),
-  cabinClass: z.enum(['Economy', 'Premium Economy', 'Business', 'First']).default('Economy'),
+  cabinClass: z.enum(['Economy', 'ECONOMY', 'Premium Economy', 'Business', 'First']).default('Economy'),
   currency: z.string().default('EUR')
 });
 
