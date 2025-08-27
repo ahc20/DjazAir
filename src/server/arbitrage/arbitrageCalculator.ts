@@ -4,18 +4,15 @@ export interface ArbitrageOpportunity {
   algerianPriceDZD: number;
   algerianPriceEUR: {
     official: number;      // Taux officiel (1€ = 150 DZD)
-    parallel: number;      // Taux parallèle (1€ = 260 DZD)
-    blackMarket: number;   // Taux marché noir (1€ = 300 DZD)
+    parallel: number;      // Taux parallèle/marché noir (1€ = 260 DZD)
   };
   savings: {
     official: number;
     parallel: number;
-    blackMarket: number;
   };
   savingsPercentage: {
     official: number;
     parallel: number;
-    blackMarket: number;
   };
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
   recommendations: string[];
@@ -23,17 +20,15 @@ export interface ArbitrageOpportunity {
 }
 
 export interface ExchangeRates {
-  official: number;    // BCE/Banque d'Algérie
-  parallel: number;    // Marché parallèle
-  blackMarket: number; // Marché noir
+  official: number;    // BCE/Banque d'Algérie (1€ = 150 DZD)
+  parallel: number;    // Marché parallèle/marché noir (1€ = 260 DZD)
   lastUpdated: Date;
 }
 
 export class ArbitrageCalculator {
   private exchangeRates: ExchangeRates = {
-    official: 150,      // 1 EUR = 150 DZD
-    parallel: 260,      // 1 EUR = 260 DZD
-    blackMarket: 300,   // 1 EUR = 300 DZD
+    official: 150,      // 1 EUR = 150 DZD (BCE/Banque d'Algérie)
+    parallel: 260,      // 1 EUR = 260 DZD (Marché parallèle/marché noir)
     lastUpdated: new Date()
   };
 
@@ -46,25 +41,22 @@ export class ArbitrageCalculator {
     algerianPriceDZD: number
   ): ArbitrageOpportunity {
     
-    // Calcul des prix en EUR selon différents taux
+    // Calcul des prix en EUR selon les 2 taux
     const algerianPriceEUR = {
       official: this.roundTo2Decimals(algerianPriceDZD / this.exchangeRates.official),
-      parallel: this.roundTo2Decimals(algerianPriceDZD / this.exchangeRates.parallel),
-      blackMarket: this.roundTo2Decimals(algerianPriceDZD / this.exchangeRates.blackMarket)
+      parallel: this.roundTo2Decimals(algerianPriceDZD / this.exchangeRates.parallel)
     };
 
     // Calcul des économies
     const savings = {
       official: this.roundTo2Decimals(internationalPriceEUR - algerianPriceEUR.official),
-      parallel: this.roundTo2Decimals(internationalPriceEUR - algerianPriceEUR.parallel),
-      blackMarket: this.roundTo2Decimals(internationalPriceEUR - algerianPriceEUR.blackMarket)
+      parallel: this.roundTo2Decimals(internationalPriceEUR - algerianPriceEUR.parallel)
     };
 
     // Calcul des pourcentages d'économies
     const savingsPercentage = {
       official: this.roundTo2Decimals((savings.official / internationalPriceEUR) * 100),
-      parallel: this.roundTo2Decimals((savings.parallel / internationalPriceEUR) * 100),
-      blackMarket: this.roundTo2Decimals((savings.blackMarket / internationalPriceEUR) * 100)
+      parallel: this.roundTo2Decimals((savings.parallel / internationalPriceEUR) * 100)
     };
 
     // Évaluation du niveau de risque
