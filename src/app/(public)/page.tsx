@@ -36,7 +36,7 @@ export default function HomePage() {
                 {APP_NAME}
               </h1>
               <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                Simulateur d'Arbitrage
+                Comparateur de Vols
               </span>
             </div>
 
@@ -51,11 +51,11 @@ export default function HomePage() {
         {/* Section hero */}
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Optimisez vos voyages internationaux
+            Trouvez les meilleurs prix de vols
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Comparez les prix des vols directs avec des simulations "via Alger" 
-            pour identifier les meilleures opportunités d'économies.
+            Recherchez et comparez les prix des vols en temps réel via Amadeus 
+            pour obtenir les meilleures offres disponibles.
           </p>
         </div>
 
@@ -76,10 +76,10 @@ export default function HomePage() {
               <Plane className="h-8 w-8 text-blue-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Comparaison Intelligente
+              Recherche en Temps Réel
             </h3>
             <p className="text-gray-600">
-              Analysez automatiquement les prix directs vs les options avec escale à Alger
+              Obtenez les prix les plus récents directement depuis Amadeus
             </p>
           </div>
 
@@ -88,10 +88,10 @@ export default function HomePage() {
               <TrendingUp className="h-8 w-8 text-green-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Calculs d'Arbitrage
+              Prix Transparents
             </h3>
             <p className="text-gray-600">
-              Simulez les économies potentielles avec différents taux de change
+              Comparez facilement les offres avec toutes les informations détaillées
             </p>
           </div>
 
