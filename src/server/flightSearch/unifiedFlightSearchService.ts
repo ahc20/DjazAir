@@ -79,13 +79,12 @@ export class UnifiedFlightSearchService {
       // Traitement des résultats Amadeus
       const allFlights = this.processAmadeusResults({ status: 'fulfilled', value: amadeusResults });
 
-      // Recherche DjazAir simple : 1 seule option via Alger
-      const djazAirOption = await this.findSimpleDjazAirOption(params);
-      
+      // TEMPORAIREMENT DÉSACTIVÉ : Recherche DjazAir simple
+      // const djazAirOption = await this.findSimpleDjazAirOption(params);
       let viaAlgiersFlights: UnifiedFlightResult[] = [];
-      if (djazAirOption) {
-        viaAlgiersFlights = [djazAirOption];
-      }
+      
+      // TODO: Réactiver DjazAir une fois que l'API fonctionne
+      console.log('⚠️ DjazAir temporairement désactivé pour test de performance');
       
       // Calcul des économies pour l'option DjazAir
       const viaAlgiersWithSavings = this.calculateSavings(viaAlgiersFlights, allFlights);
