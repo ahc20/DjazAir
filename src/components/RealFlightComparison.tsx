@@ -76,15 +76,22 @@ export function RealFlightComparison() {
   const [searchResults, setSearchResults] = useState<RealFlightComparison | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useState({
-    origin: 'CDG',
-    destination: 'DXB',
+    origin: '',
+    destination: '',
     departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    returnDate: '',
     passengers: 1,
     cabinClass: 'Economy',
     currency: 'EUR'
   });
 
   const searchFlights = async () => {
+    // Validation des champs requis
+    if (!searchParams.origin || !searchParams.destination) {
+      setError('Veuillez remplir l\'origine et la destination');
+      return;
+    }
+
     setIsSearching(true);
     setError(null);
     setSearchResults(null);
@@ -114,14 +121,7 @@ export function RealFlightComparison() {
     }
   };
 
-  const searchParisDubai = () => {
-    setSearchParams(prev => ({
-      ...prev,
-      origin: 'CDG',
-      destination: 'DXB'
-    }));
-    setTimeout(searchFlights, 100);
-  };
+
 
   const formatDateTime = (dateTimeString: string) => {
     try {
@@ -162,22 +162,22 @@ export function RealFlightComparison() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />
-            Recherche Réelle de Vols avec Comparaison
+            Recherche de Vols avec Comparaison "Via Alger"
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-gray-600">
-            Recherchez de vrais vols et comparez les prix directs vs "via Alger" pour identifier les opportunités d'arbitrage
+            Entrez vos critères de voyage et découvrez les vraies opportunités d'économies via l'escale à Alger
           </p>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="route">Aéroport de départ</Label>
+              <Label htmlFor="origin">Aéroport de départ</Label>
               <Input
-                id="route"
+                id="origin"
                 value={searchParams.origin}
                 onChange={(e) => setSearchParams(prev => ({ ...prev, origin: e.target.value.toUpperCase() }))}
-                placeholder="CDG"
+                placeholder="CDG, LHR, FRA..."
                 maxLength={3}
               />
             </div>
@@ -187,19 +187,27 @@ export function RealFlightComparison() {
                 id="destination"
                 value={searchParams.destination}
                 onChange={(e) => setSearchParams(prev => ({ ...prev, destination: e.target.value.toUpperCase() }))}
-                placeholder="DXB"
+                placeholder="DXB, BKK, SIN..."
                 maxLength={3}
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="departureDate">Date de départ</Label>
               <Input
                 type="date"
                 value={searchParams.departureDate}
                 onChange={(e) => setSearchParams(prev => ({ ...prev, departureDate: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="returnDate">Date de retour (optionnel)</Label>
+              <Input
+                type="date"
+                value={searchParams.returnDate}
+                onChange={(e) => setSearchParams(prev => ({ ...prev, returnDate: e.target.value }))}
               />
             </div>
             <div>
@@ -222,13 +230,13 @@ export function RealFlightComparison() {
           </div>
 
           <div className="flex gap-4">
-            <Button onClick={searchParisDubai} disabled={isSearching} className="flex items-center gap-2">
-              {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plane className="h-4 w-4" />}
-              Recherche Paris → Dubai
-            </Button>
-            <Button onClick={searchFlights} disabled={isSearching} variant="outline" className="flex items-center gap-2">
+            <Button 
+              onClick={searchFlights} 
+              disabled={isSearching || !searchParams.origin || !searchParams.destination} 
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+            >
               {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-              Recherche Personnalisée
+              Rechercher des Vols
             </Button>
           </div>
         </CardContent>

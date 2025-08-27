@@ -77,11 +77,6 @@ export default function HomePage() {
           <AdvancedFlightSearch />
         </div>
 
-        {/* Calculateur d'arbitrage */}
-        <div className="mb-16">
-          <ArbitrageCalculatorComponent />
-        </div>
-
         {/* Comparaison Réelle de Vols */}
         <div className="mb-16">
           <RealFlightComparison />
