@@ -56,12 +56,11 @@ export default function SearchResultsPage() {
           body: JSON.stringify({
             origin,
             destination,
-            departDate,
+            departureDate: departDate,
             returnDate,
-            adults,
-            children,
-            infants,
-            cabinClass: cabin
+            passengers: adults + children + infants,
+            cabinClass: cabin,
+            currency: 'EUR'
           })
         });
 
