@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  searches  Search[]
+
+  @@map("users")
+}
+
+model Search {
+  id           String   @id @default(cuid())
+  userId       String?
+  origin       String   @db.VarChar(3)
+  destination  String   @db.VarChar(3)
+  departDate   DateTime
+  returnDate   DateTime?
+  paxAdults    Int      @default(1)
+  paxChildren  Int      @default(0)
+  paxInfants  Int      @default(0)
+  cabin        Cabin    @default(ECONOMY)
+  createdAt    DateTime @default(now())
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("searches")
+}
+
+model LocalFareAssumption {
+  id           String   @id @default(cuid())
+  routeKey     String   // e.g. "ALG-DXB"
+  dateFrom     DateTime
+  dateTo       DateTime
+  carrier      String?
+  fareDzdMin   Float
+  fareDzdMax   Float
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("local_fare_assumptions")
+}
+
+model Config {
+  id                    Int      @id @default(1)
+  eurToDzdCustomRate    Float    @default(262)
+  showViaAlgiers        Boolean  @default(true)
+  minSavingsPercent     Float    @default(15.0)
+  riskBufferMinutes     Int      @default(120)
+  legalDisclaimer       String   @default("Cette application ne vend pas de billets en dinars algériens et ne réalise aucune opération de change. Les calculs 'via Alger' sont des SIMULATIONS basées sur des hypothèses administrateur ou des saisies utilisateur.")
+  updatedAt             DateTime @updatedAt
+
+  @@map("configs")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum Cabin {
+  ECONOMY
+  PREMIUM_ECONOMY
+  BUSINESS
+  FIRST
+}
