@@ -6,6 +6,7 @@ import { SearchForm } from '@/components/SearchForm';
 import { RealTimeSearch } from '@/components/RealTimeSearch';
 import { AdvancedFlightSearch } from '@/components/AdvancedFlightSearch';
 import { ArbitrageCalculatorComponent } from '@/components/ArbitrageCalculator';
+import { RealFlightComparison } from '@/components/RealFlightComparison';
 import { APP_NAME } from '@/lib/constants';
 import type { SearchFormData } from '@/lib/zod';
 
@@ -79,6 +80,11 @@ export default function HomePage() {
         {/* Calculateur d'arbitrage */}
         <div className="mb-16">
           <ArbitrageCalculatorComponent />
+        </div>
+
+        {/* Comparaison Réelle de Vols */}
+        <div className="mb-16">
+          <RealFlightComparison />
         </div>
 
         {/* Section des fonctionnalités */}
