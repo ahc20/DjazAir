@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DealCard } from '@/components/DealCard';
 import { RateSelector } from '@/components/RateSelector';
-import { LegalDisclaimer } from '@/components/LegalDisclaimer';
+
 import { formatPrice, formatDate } from '@/lib/utils';
 import { getAirportName } from '@/lib/iata';
 import type { ArbitrageResult, ExchangeRateMode } from '@/types';
@@ -122,8 +122,7 @@ export default function SearchResultsPage() {
         </div>
       </header>
 
-      {/* Avertissement légal */}
-      <LegalDisclaimer variant="header" className="mx-4 mt-4" />
+
 
       {/* Contenu principal */}
       <main className="max-w-7xl mx-auto px-4 py-8">
@@ -278,8 +277,7 @@ export default function SearchResultsPage() {
         </div>
       </main>
 
-      {/* Footer avec avertissement légal */}
-      <LegalDisclaimer variant="footer" />
+
     </div>
   );
 }

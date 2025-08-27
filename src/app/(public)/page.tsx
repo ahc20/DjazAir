@@ -1,9 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Plane, Shield, TrendingUp, Globe } from 'lucide-react';
+import { Plane, TrendingUp, Globe } from 'lucide-react';
 import { SearchForm } from '@/components/SearchForm';
-import { LegalDisclaimer } from '@/components/LegalDisclaimer';
 import { APP_NAME } from '@/lib/constants';
 import type { SearchFormData } from '@/lib/zod';
 
@@ -26,7 +25,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header avec avertissement légal */}
+      {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -39,16 +38,12 @@ export default function HomePage() {
                 Simulateur d'Arbitrage
               </span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Shield className="h-4 w-4" />
-              <span>100% Légal</span>
-            </div>
+
           </div>
         </div>
       </header>
 
-      {/* Avertissement légal */}
-      <LegalDisclaimer variant="header" className="mx-4 mt-4" />
+
 
       {/* Contenu principal */}
       <main className="max-w-7xl mx-auto px-4 py-12">
@@ -210,8 +205,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Footer avec avertissement légal */}
-      <LegalDisclaimer variant="footer" />
+
     </div>
   );
 }
