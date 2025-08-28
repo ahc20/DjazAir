@@ -2,6 +2,7 @@ import { FlightSearchParams } from "../scrapers/types";
 import { GoogleFlightsAPI, GoogleFlightResult } from "./googleFlightsAPI";
 import { AirAlgerieScraper, AirAlgerieFlightResult } from "./airAlgerieScraper";
 import { AmadeusAPI, AmadeusFlightResult } from "./amadeusAPI";
+import { DjazAirService, DjazAirOption } from "./djazairService";
 
 export interface UnifiedFlightResult {
   id: string;
@@ -38,7 +39,7 @@ export interface UnifiedFlightResult {
     amount: number;
     percentage: number;
   };
-  searchSource: "google" | "airalgerie" | "amadeus";
+  searchSource: "google" | "airalgerie" | "amadeus" | "djazair";
 }
 
 export interface SearchResults {
@@ -59,11 +60,13 @@ export class UnifiedFlightSearchService {
   private googleFlightsAPI: GoogleFlightsAPI;
   private airAlgerieScraper: AirAlgerieScraper;
   private amadeusAPI: AmadeusAPI;
+  private djazairService: DjazAirService;
 
   constructor() {
     this.googleFlightsAPI = new GoogleFlightsAPI();
     this.airAlgerieScraper = new AirAlgerieScraper();
     this.amadeusAPI = new AmadeusAPI();
+    this.djazairService = new DjazAirService();
   }
 
   /**
@@ -84,38 +87,22 @@ export class UnifiedFlightSearchService {
         value: amadeusResults,
       });
 
-      // Recherche DjazAir via API séparée avec timeout
+      // Recherche DjazAir GARANTIE avec le nouveau service robuste
       let viaAlgiersFlights: UnifiedFlightResult[] = [];
       try {
-        const djazairPromise = fetch("/api/djazair-calculate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(params),
-        });
-
-        // Timeout de 6 secondes pour DjazAir
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error("Timeout DjazAir")), 6000);
-        });
-
-        const djazairResponse = await Promise.race([djazairPromise, timeoutPromise]) as Response;
-
-        if (djazairResponse.ok) {
-          const djazairData = await djazairResponse.json();
-          if (djazairData.success) {
-            const djazairOption = this.createDjazAirOptionFromAPI(
-              djazairData.data,
-              params
-            );
-            if (djazairOption) {
-              viaAlgiersFlights = [djazairOption];
-              console.log("✅ Option DjazAir trouvée via API séparée");
-            }
-          }
+        console.log("🔍 Recherche DjazAir avec escale en Algérie...");
+        const djazairOption = await this.djazairService.getDjazAirOption(params);
+        
+        if (djazairOption) {
+          const unifiedDjazairOption = this.convertDjazAirToUnified(djazairOption);
+          viaAlgiersFlights = [unifiedDjazairOption];
+          console.log("✅ Option DjazAir trouvée et convertie:", djazairOption.airline, djazairOption.flightNumber);
+        } else {
+          console.warn("⚠️ Aucune option DjazAir trouvée");
         }
       } catch (error) {
-        console.warn("⚠️ Erreur API DjazAir (timeout ou erreur):", error);
-        // Continue sans DjazAir en cas d'erreur
+        console.warn("⚠️ Erreur service DjazAir:", error);
+        // Le service DjazAir a un fallback intégré, donc on devrait toujours avoir une option
       }
 
       // Calcul des économies pour l'option DjazAir
@@ -212,52 +199,31 @@ export class UnifiedFlightSearchService {
   }
 
   /**
-   * Crée une option DjazAir à partir des données de l'API séparée
+   * Convertit une option DjazAir en format unifié
    */
-  private createDjazAirOptionFromAPI(
-    djazairData: any,
-    params: FlightSearchParams
-  ): UnifiedFlightResult | null {
-    try {
-      const djazairOption: UnifiedFlightResult = {
-        id: `djazair-${Date.now()}`,
-        airline: "DjazAir (via Alger)",
-        airlineCode: "DJZ",
-        flightNumber: `${djazairData.segments.toAlgiers.flight} + ${djazairData.segments.fromAlgiers.flight}`,
-        origin: params.origin,
-        destination: params.destination,
-        departureTime: "08:00", // Heure simulée
-        arrivalTime: "22:00", // Heure simulée
-        duration: "16h 00m", // Durée simulée
-        stops: 1,
-        price: {
-          amount: djazairData.totalPriceEURConverted,
-          currency: "EUR",
-          originalDZD: djazairData.totalPriceDZD,
-        },
-        aircraft: "N/A",
-        cabinClass: params.cabinClass || "Economy",
-        provider: "DjazAir",
-        direct: false,
-        viaAlgiers: true,
-        baggage: {
-          included: true,
-          weight: "23kg",
-          details: "Via Alger: Bagages inclus",
-        },
-        connection: {
-          airport: "ALG",
-          duration: "2h 00m",
-          flightNumber: djazairData.segments.fromAlgiers.flight,
-        },
-        searchSource: "amadeus",
-      };
-
-      return djazairOption;
-    } catch (error) {
-      console.warn("⚠️ Erreur création option DjazAir:", error);
-      return null;
-    }
+  private convertDjazAirToUnified(djazairOption: DjazAirOption): UnifiedFlightResult {
+    return {
+      id: djazairOption.id,
+      airline: djazairOption.airline,
+      airlineCode: djazairOption.airlineCode,
+      flightNumber: djazairOption.flightNumber,
+      origin: djazairOption.origin,
+      destination: djazairOption.destination,
+      departureTime: djazairOption.departureTime,
+      arrivalTime: djazairOption.arrivalTime,
+      duration: djazairOption.duration,
+      stops: djazairOption.stops,
+      price: djazairOption.price,
+      aircraft: djazairOption.aircraft,
+      cabinClass: djazairOption.cabinClass,
+      provider: djazairOption.provider,
+      direct: djazairOption.direct,
+      viaAlgiers: djazairOption.viaAlgiers,
+      baggage: djazairOption.baggage,
+      connection: djazairOption.connection,
+      savings: djazairOption.savings,
+      searchSource: djazairOption.searchSource,
+    };
   }
 
   /**

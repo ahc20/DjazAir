@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Plane, Clock, MapPin, Users, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DjazAirOptionCard } from "@/components/DjazAirOptionCard";
 
 import { formatPrice, formatDate } from "@/lib/utils";
 import { getAirportName } from "@/lib/iata";
@@ -25,13 +26,27 @@ interface FlightResult {
   flightNumber: string;
   stops: number;
   baggage: { included: boolean; weight?: string; details?: string };
-  searchSource: "amadeus" | "google" | "airalgerie";
+  searchSource: "amadeus" | "google" | "airalgerie" | "djazair";
   viaAlgiers?: boolean;
   savings?: { amount: number; percentage: number };
   connection?: {
     airport: string;
-    duration: number;
-    flightNumber: string;
+    duration: string;
+    flightNumber?: string;
+  };
+  segments?: {
+    toAlgiers: {
+      flight: string;
+      price: number;
+      currency: string;
+      airline: string;
+    };
+    fromAlgiers: {
+      flight: string;
+      price: number;
+      currency: string;
+      airline: string;
+    };
   };
 }
 
@@ -276,19 +291,48 @@ export default function SearchResultsPage() {
               </span>
             </div>
 
+            {/* Option DjazAir en premier et très visible */}
+            {(() => {
+              const djazAirFlight = searchResults.find(f => f.viaAlgiers && f.searchSource === "djazair");
+              if (djazAirFlight) {
+                return (
+                  <div className="mb-8">
+                    <div className="text-center mb-6">
+                      <h3 className="text-2xl font-bold text-blue-600 mb-2">
+                        🎯 Solution DjazAir Recommandée
+                      </h3>
+                      <p className="text-gray-600">
+                        Économies garanties avec escale en Algérie
+                      </p>
+                    </div>
+                    <DjazAirOptionCard
+                      option={djazAirFlight}
+                      onBook={(optionId) => {
+                        console.log("Réserver DjazAir:", optionId);
+                        // Ici vous pouvez ajouter la logique de réservation
+                      }}
+                    />
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             {/* Séparateur Vols Directs vs DjazAir */}
             <div className="mb-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-1 border-t border-gray-200"></div>
                 <span className="text-sm font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
-                  Tous les Vols
+                  Autres Options de Vols
                 </span>
                 <div className="flex-1 border-t border-gray-200"></div>
               </div>
             </div>
 
             <div className="space-y-4">
-              {searchResults.map((flight) => (
+              {searchResults
+                .filter(flight => !flight.viaAlgiers || flight.searchSource !== "djazair")
+                .map((flight) => (
                 <Card
                   key={flight.id}
                   className={`hover:shadow-md transition-shadow ${
@@ -333,120 +377,79 @@ export default function SearchResultsPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <div className="text-sm text-gray-500 mb-1">
-                              Départ
-                            </div>
+                            <div className="text-sm text-gray-500 mb-1">Départ</div>
                             <div className="font-semibold">
-                              {flight.departureTime}
+                              {formatDate(flight.departureTime)}
                             </div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-500">
                               {flight.origin}
                             </div>
                           </div>
-
                           <div className="text-center">
-                            <div className="text-sm text-gray-500 mb-1">
-                              Durée
-                            </div>
-                            <div className="font-semibold">
-                              {flight.duration}
-                            </div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-500 mb-1">Durée</div>
+                            <div className="font-semibold">{flight.duration}</div>
+                            <div className="text-sm text-gray-500">
                               {flight.stops === 0
-                                ? "Direct"
+                                ? "Vol direct"
                                 : `${flight.stops} escale${flight.stops > 1 ? "s" : ""}`}
                             </div>
                           </div>
-
                           <div className="text-right">
-                            <div className="text-sm text-gray-500 mb-1">
-                              Arrivée
-                            </div>
+                            <div className="text-sm text-gray-500 mb-1">Arrivée</div>
                             <div className="font-semibold">
-                              {flight.arrivalTime}
+                              {formatDate(flight.arrivalTime)}
                             </div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-500">
                               {flight.destination}
                             </div>
                           </div>
                         </div>
 
-                        {/* Informations DjazAir spécifiques */}
-                        {flight.viaAlgiers && flight.connection && (
-                          <div className="mt-4 p-3 bg-green-100 rounded-lg">
-                            <div className="flex items-center gap-2 text-sm text-green-800">
-                              <span className="font-medium">
-                                🔄 Escale à Alger ({flight.connection.airport})
-                              </span>
+                        {/* Informations sur les escales */}
+                        {flight.connection && (
+                          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <MapPin className="h-4 w-4" />
                               <span>
-                                • Temps de connexion:{" "}
-                                {flight.connection.duration}
-                              </span>
-                              <span>
-                                • Vol de connexion:{" "}
-                                {flight.connection.flightNumber}
+                                Escale à {flight.connection.airport} (
+                                {flight.connection.duration})
                               </span>
                             </div>
-                            {flight.price.originalDZD && (
-                              <div className="text-xs text-green-700 mt-1">
-                                Prix total:{" "}
-                                {flight.price.originalDZD.toLocaleString()} DZD
-                                (taux parallèle 260 DZD/€)
-                              </div>
-                            )}
                           </div>
                         )}
 
-                        <div className="flex items-center gap-6 mt-4 text-sm text-gray-600">
-                          <span>Passagers: {adults + children + infants}</span>
-                          <span>Classe: {cabin}</span>
-                          {flight.baggage && (
-                            <span
-                              className={
-                                flight.baggage.included
-                                  ? "text-green-600"
-                                  : "text-orange-600"
-                              }
-                            >
-                              {flight.baggage.included
-                                ? "✅ Bagages inclus"
-                                : "⚠️ Bagages en supplément"}
-                            </span>
-                          )}
-                        </div>
+                        {/* Économies DjazAir */}
+                        {flight.savings && flight.savings.amount > 0 && (
+                          <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-green-600 font-medium">
+                                  💰 Économies DjazAir
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-bold text-green-600">
+                                  -{flight.savings.amount}€
+                                </div>
+                                <div className="text-sm text-green-600">
+                                  ({flight.savings.percentage.toFixed(1)}%)
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="text-right ml-6">
-                        <div className="text-3xl font-bold text-blue-600 mb-2">
-                          {flight.price.amount} {flight.price.currency}
+                      <div className="ml-6 text-right">
+                        <div className="text-2xl font-bold text-gray-900 mb-2">
+                          {formatPrice(flight.price.amount, flight.price.currency)}
                         </div>
-
-                        {/* Affichage des économies DjazAir */}
-                        {flight.viaAlgiers &&
-                          flight.savings &&
-                          flight.savings.amount > 0 && (
-                            <div className="text-sm text-green-600 mb-2 font-medium">
-                              💰 Économie: {flight.savings.amount}€ (
-                              {flight.savings.percentage}%)
-                            </div>
-                          )}
-
-                        <div className="text-sm text-gray-500 mb-4">
-                          {flight.baggage?.included
-                            ? "Bagages inclus"
-                            : "Bagages en supplément"}
-                        </div>
-
-                        <Button
-                          onClick={() => handleBookFlight(flight)}
-                          className={`w-full ${
-                            flight.viaAlgiers
-                              ? "bg-green-600 hover:bg-green-700"
-                              : ""
-                          }`}
-                        >
-                          {flight.viaAlgiers ? "Réserver DjazAir" : "Réserver"}
-                        </Button>
+                        {flight.price.originalDZD && (
+                          <div className="text-sm text-gray-500">
+                            {flight.price.originalDZD.toLocaleString()} DZD
+                          </div>
+                        )}
+                        <Button className="mt-2">Réserver</Button>
                       </div>
                     </div>
                   </CardContent>
