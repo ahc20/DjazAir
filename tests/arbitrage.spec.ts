@@ -189,7 +189,8 @@ describe('Fonctions d\'arbitrage', () => {
 
       expect(result.lowerRate).toBeCloseTo(262 * 0.9, 2);
       expect(result.upperRate).toBeCloseTo(262 * 1.1, 2);
-      expect(result.lowerSavings).toBeGreaterThan(result.upperSavings);
+      // Quand le taux baisse (lowerRate), le prix via Alger en EUR augmente, donc les économies diminuent
+      expect(result.lowerSavings).toBeLessThan(result.upperSavings);
     });
 
     it('utilise une variation de 10% par défaut', () => {
