@@ -257,7 +257,7 @@ export default function SearchResultsPage() {
               <p className="text-lg text-green-600 mb-4">
                 Nous avons trouvé des alternatives moins chères via Alger en utilisant le taux de change parallèle (260 DZD/€)
               </p>
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-3 gap-6 mb-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-700">
                     {searchResults.djazairFlights.length} Options DjazAir
@@ -277,6 +277,14 @@ export default function SearchResultsPage() {
                   <div className="text-sm text-green-600">Toutes options confondues</div>
                 </div>
               </div>
+              
+              {/* Bouton de comparaison détaillée */}
+              <a 
+                href={`/compare?origin=${origin}&destination=${destination}&departDate=${departDate}&returnDate=${returnDate || ''}&adults=${adults}&cabin=${cabin}`}
+                className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                🔍 Comparaison Détaillée DjazAir vs Classiques
+              </a>
             </div>
           </div>
         )}
