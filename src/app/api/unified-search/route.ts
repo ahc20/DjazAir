@@ -136,3 +136,4 @@ export async function GET(request: NextRequest) {
 // Fix: DjazAir temporairement désactivé pour test performance
 // Feat: DjazAir réactivé et optimisé avec recherche parallèle
 // Fix: DjazAir simulé pour test interface - évite les timeouts
+// Feat: API DjazAir séparée simple pour calcul des coûts via Alger
