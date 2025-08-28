@@ -89,7 +89,7 @@ export async function POST(request: Request) {
       returnDate: params.returnDate,
       passengers: params.adults,
       cabinClass: params.cabin,
-      currency: "DZD", // Prix en DZD depuis l'Algérie
+      currency: "EUR", // Amadeus retourne le prix en EUR, pas en DZD
     });
 
     if (!segment2Flights || segment2Flights.length === 0) {
