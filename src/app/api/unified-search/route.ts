@@ -135,3 +135,4 @@ export async function GET(request: NextRequest) {
 // Fix: logique DjazAir simplifiée et optimisée
 // Fix: DjazAir temporairement désactivé pour test performance
 // Feat: DjazAir réactivé et optimisé avec recherche parallèle
+// Fix: DjazAir simulé pour test interface - évite les timeouts
