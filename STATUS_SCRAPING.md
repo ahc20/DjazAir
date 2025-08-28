@@ -7,11 +7,12 @@
 ✅ **Effectue une vraie recherche** (simulée mais réaliste)  
 ✅ **Précise la décomposition des prix** en EUR et DZD  
 ✅ **Intègre Air Algérie** et d'autres compagnies  
-✅ **Compare intelligemment** les options directes vs "via Alger"  
+✅ **Compare intelligemment** les options directes vs "via Alger"
 
 ## 🚀 Ce qui a été Implémenté
 
 ### 1. Système de Scraping Unifié
+
 - **BaseScraper** : Classe abstraite avec gestion des erreurs et anti-détection
 - **AirAlgerieScraper** : Spécialisé pour Air Algérie avec prix en DZD
 - **AirFranceScraper** : Vols directs et avec escales
@@ -19,12 +20,14 @@
 - **UnifiedScraper** : Orchestration intelligente de tous les scrapers
 
 ### 2. API Endpoint `/api/scrape`
+
 - **POST** : Recherche complète avec paramètres
 - **GET** : Recherche rapide via query parameters
 - **Validation Zod** : Sécurisation des entrées
 - **Gestion d'erreurs** : Robustesse et fiabilité
 
 ### 3. Interface Utilisateur Avancée
+
 - **AdvancedFlightSearch** : Composant React complet
 - **Recherche en temps réel** : Test des fonctionnalités
 - **Affichage des résultats** : Comparaison visuelle claire
@@ -33,6 +36,7 @@
 ## 🔍 Fonctionnalités Clés
 
 ### Recherche Multi-Compagnies
+
 ```
 Air Algérie    → Vols directs + Via Alger (prix DZD)
 Air France     → Vols directs + Escales CDG/ORY
@@ -40,12 +44,14 @@ Emirates       → Vols directs + Via Dubai
 ```
 
 ### Analyse Intelligente
+
 - **Catégorisation automatique** : Directs vs Escales vs Via Alger
 - **Calcul des meilleurs prix** : Par catégorie et global
 - **Conversion de devises** : Taux officiels et simulés
 - **Gestion des escales** : Durées et correspondances
 
 ### Performance et Fiabilité
+
 - **Recherche parallèle** : Limitation de concurrence
 - **Retry automatique** : Gestion des échecs
 - **Anti-détection** : Délais aléatoires et User-Agents
@@ -54,6 +60,7 @@ Emirates       → Vols directs + Via Dubai
 ## 📊 Exemple de Résultats
 
 ### Vol Paris → Dubai
+
 ```
 Vols Directs :
 ├─ Air France  : 520€ (6h30)
@@ -68,6 +75,7 @@ Meilleur Via Alger : Air Algérie 500€
 ```
 
 ### Décomposition des Prix
+
 ```
 Air Algérie (Via Alger) :
 ├─ CDG → ALG : 180€ (2h15)
@@ -79,6 +87,7 @@ Air Algérie (Via Alger) :
 ## 🛠️ Architecture Technique
 
 ### Structure des Fichiers
+
 ```
 src/server/scrapers/
 ├── types.ts                 # Interfaces communes
@@ -96,6 +105,7 @@ src/components/
 ```
 
 ### Technologies Utilisées
+
 - **Next.js 14** : Framework React avec App Router
 - **TypeScript** : Typage strict et interfaces
 - **Zod** : Validation des données
@@ -105,12 +115,14 @@ src/components/
 ## 🔒 Sécurité et Conformité
 
 ### Mesures Anti-Détection
+
 - User-Agents rotatifs et réalistes
 - Délais aléatoires entre requêtes
 - Limitation de la concurrence
 - Gestion des timeouts
 
 ### Conformité Légale
+
 - **Aucun achat** : Consultation uniquement
 - **Aucun change** : Simulations informatiques
 - **Redirection officielle** : Vers les compagnies
@@ -119,12 +131,14 @@ src/components/
 ## 📱 Interface Utilisateur
 
 ### Composant AdvancedFlightSearch
+
 - **Formulaire de recherche** : Origine, destination, date, classe
 - **Boutons de test** : Paris-Dubai, recherche personnalisée
 - **Affichage des résultats** : Résumé, meilleurs prix, détails
 - **Conversion automatique** : EUR ↔ DZD en temps réel
 
 ### Fonctionnalités
+
 - Recherche en temps réel
 - Gestion des erreurs
 - Affichage progressif des résultats
@@ -133,12 +147,14 @@ src/components/
 ## 🚀 Déploiement
 
 ### Statut Actuel
+
 - ✅ **Build réussi** : Application compile sans erreurs
 - ✅ **Tests locaux** : Fonctionne en développement
 - ✅ **API fonctionnelle** : Endpoint `/api/scrape` opérationnel
 - ⏳ **Déploiement Vercel** : Prêt pour la production
 
 ### Configuration Vercel
+
 - **vercel.json** : Configuration optimisée
 - **GitHub Actions** : Déploiement automatique
 - **Variables d'environnement** : Sécurisées
@@ -147,18 +163,21 @@ src/components/
 ## 🔄 Prochaines Étapes
 
 ### Court Terme (1-2 semaines)
+
 1. **Déploiement Vercel** : Mise en production
 2. **Tests utilisateurs** : Validation des fonctionnalités
 3. **Optimisation performance** : Cache et compression
 4. **Monitoring** : Logs et métriques
 
 ### Moyen Terme (1-2 mois)
+
 1. **APIs réelles** : Intégration officielle des compagnies
 2. **Scraping réel** : Avec permission des sites
 3. **Cache intelligent** : Stockage des résultats
 4. **Notifications** : Alertes de prix
 
 ### Long Terme (3-6 mois)
+
 1. **Plus de compagnies** : Turkish Airlines, Qatar Airways
 2. **Recherche avancée** : Filtres et préférences
 3. **Application mobile** : React Native
@@ -167,12 +186,14 @@ src/components/
 ## 📈 Métriques et Performance
 
 ### Temps de Réponse
+
 - **Air Algérie** : ~3-5 secondes
-- **Air France** : ~2-4 secondes  
+- **Air France** : ~2-4 secondes
 - **Emirates** : ~2-4 secondes
 - **Total unifié** : ~4-8 secondes
 
 ### Fiabilité
+
 - **Taux de succès** : >95%
 - **Gestion d'erreurs** : Retry automatique
 - **Fallback** : Scrapers de secours

@@ -1,4 +1,4 @@
-import type { ArbitrageResult, ExchangeRateMode } from '@/types';
+import type { ArbitrageResult, ExchangeRateMode } from "@/types";
 
 export interface ArbitrageInputs {
   directPriceEUR: number;
@@ -102,7 +102,9 @@ export function assessRisks(
 /**
  * Fonction principale de calcul d'arbitrage
  */
-export function calculateArbitrage(inputs: ArbitrageInputs): ArbitrageCalculation {
+export function calculateArbitrage(
+  inputs: ArbitrageInputs
+): ArbitrageCalculation {
   const {
     directPriceEUR,
     originToAlgiersEUR,
@@ -178,27 +180,27 @@ export function validateArbitrageInputs(inputs: ArbitrageInputs): {
   const errors: string[] = [];
 
   if (inputs.directPriceEUR <= 0) {
-    errors.push('Le prix direct doit être positif');
+    errors.push("Le prix direct doit être positif");
   }
 
   if (inputs.originToAlgiersEUR <= 0) {
-    errors.push('Le prix vers Alger doit être positif');
+    errors.push("Le prix vers Alger doit être positif");
   }
 
   if (inputs.algiersToDestinationDZD <= 0) {
-    errors.push('Le prix depuis Alger doit être positif');
+    errors.push("Le prix depuis Alger doit être positif");
   }
 
   if (inputs.exchangeRate <= 0) {
-    errors.push('Le taux de change doit être positif');
+    errors.push("Le taux de change doit être positif");
   }
 
   if (inputs.minSavingsPercent < 0 || inputs.minSavingsPercent > 100) {
-    errors.push('Le pourcentage minimum d\'économies doit être entre 0 et 100');
+    errors.push("Le pourcentage minimum d'économies doit être entre 0 et 100");
   }
 
   if (inputs.riskBufferMinutes < 0) {
-    errors.push('Le buffer de risque doit être positif');
+    errors.push("Le buffer de risque doit être positif");
   }
 
   return {
@@ -218,8 +220,9 @@ export function calculateBreakEven(
   // Prix total via Alger = Prix vers Alger + (Prix depuis Alger DZD / Taux)
   // Break-even : Prix direct = Prix via Alger
   // Donc : Prix depuis Alger DZD = (Prix direct - Prix vers Alger) * Taux
-  
-  const maxAlgiersToDestinationDZD = (directPriceEUR - originToAlgiersEUR) * exchangeRate;
+
+  const maxAlgiersToDestinationDZD =
+    (directPriceEUR - originToAlgiersEUR) * exchangeRate;
   return Math.max(0, maxAlgiersToDestinationDZD);
 }
 
@@ -241,8 +244,16 @@ export function calculateRateSensitivity(
   const lowerRate = baseRate * (1 - rateVariation);
   const upperRate = baseRate * (1 + rateVariation);
 
-  const lowerViaTotal = calculateViaTotalEUR(originToAlgiersEUR, algiersToDestinationDZD, lowerRate);
-  const upperViaTotal = calculateViaTotalEUR(originToAlgiersEUR, algiersToDestinationDZD, upperRate);
+  const lowerViaTotal = calculateViaTotalEUR(
+    originToAlgiersEUR,
+    algiersToDestinationDZD,
+    lowerRate
+  );
+  const upperViaTotal = calculateViaTotalEUR(
+    originToAlgiersEUR,
+    algiersToDestinationDZD,
+    upperRate
+  );
 
   const lowerSavings = calculateSavingsEUR(directPriceEUR, lowerViaTotal);
   const upperSavings = calculateSavingsEUR(directPriceEUR, upperViaTotal);

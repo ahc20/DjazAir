@@ -1,12 +1,27 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plane, Search, Loader2, AlertCircle, CheckCircle, TrendingUp, Clock, MapPin } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Plane,
+  Search,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  TrendingUp,
+  Clock,
+  MapPin,
+} from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 interface ScrapedFlightData {
   origin: string;
@@ -66,15 +81,19 @@ interface ScrapingResult {
 
 export function AdvancedFlightSearch() {
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<ScrapingResult | null>(null);
+  const [searchResults, setSearchResults] = useState<ScrapingResult | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useState({
-    origin: 'CDG',
-    destination: 'DXB',
-    departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    origin: "CDG",
+    destination: "DXB",
+    departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0],
     passengers: 1,
-    cabinClass: 'Economy',
-    currency: 'EUR'
+    cabinClass: "Economy",
+    currency: "EUR",
   });
 
   const searchFlights = async () => {
@@ -83,10 +102,10 @@ export function AdvancedFlightSearch() {
     setSearchResults(null);
 
     try {
-      const response = await fetch('/api/scrape', {
-        method: 'POST',
+      const response = await fetch("/api/scrape", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(searchParams),
       });
@@ -95,23 +114,23 @@ export function AdvancedFlightSearch() {
 
       if (data.success) {
         setSearchResults(data);
-        console.log('✅ Résultats de scraping:', data);
+        console.log("✅ Résultats de scraping:", data);
       } else {
-        setError(data.error || 'Erreur de recherche');
+        setError(data.error || "Erreur de recherche");
       }
     } catch (err) {
-      setError('Erreur de connexion au serveur');
-      console.error('❌ Erreur:', err);
+      setError("Erreur de connexion au serveur");
+      console.error("❌ Erreur:", err);
     } finally {
       setIsSearching(false);
     }
   };
 
   const searchParisDubai = () => {
-    setSearchParams(prev => ({
+    setSearchParams((prev) => ({
       ...prev,
-      origin: 'CDG',
-      destination: 'DXB'
+      origin: "CDG",
+      destination: "DXB",
     }));
     setTimeout(searchFlights, 100);
   };
@@ -123,12 +142,12 @@ export function AdvancedFlightSearch() {
   const formatDateTime = (dateTimeString: string) => {
     try {
       const date = new Date(dateTimeString);
-      return date.toLocaleString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return date.toLocaleString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch {
       return dateTimeString;
@@ -150,24 +169,39 @@ export function AdvancedFlightSearch() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-gray-600">
-            Testez le système de scraping unifié avec Air Algérie, Air France et Emirates
+            Testez le système de scraping unifié avec Air Algérie, Air France et
+            Emirates
           </p>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Aéroport de départ</label>
+              <label className="block text-sm font-medium mb-1">
+                Aéroport de départ
+              </label>
               <Input
                 value={searchParams.origin}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, origin: e.target.value.toUpperCase() }))}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    origin: e.target.value.toUpperCase(),
+                  }))
+                }
                 placeholder="CDG"
                 maxLength={3}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Aéroport d'arrivée</label>
+              <label className="block text-sm font-medium mb-1">
+                Aéroport d'arrivée
+              </label>
               <Input
                 value={searchParams.destination}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, destination: e.target.value.toUpperCase() }))}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    destination: e.target.value.toUpperCase(),
+                  }))
+                }
                 placeholder="DXB"
                 maxLength={3}
               />
@@ -176,25 +210,36 @@ export function AdvancedFlightSearch() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Date de départ</label>
+              <label className="block text-sm font-medium mb-1">
+                Date de départ
+              </label>
               <Input
                 type="date"
                 value={searchParams.departureDate}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, departureDate: e.target.value }))}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    departureDate: e.target.value,
+                  }))
+                }
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Classe</label>
               <Select
                 value={searchParams.cabinClass}
-                onValueChange={(value) => setSearchParams(prev => ({ ...prev, cabinClass: value }))}
+                onValueChange={(value) =>
+                  setSearchParams((prev) => ({ ...prev, cabinClass: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Economy">Économique</SelectItem>
-                  <SelectItem value="Premium Economy">Premium Économique</SelectItem>
+                  <SelectItem value="Premium Economy">
+                    Premium Économique
+                  </SelectItem>
                   <SelectItem value="Business">Affaires</SelectItem>
                   <SelectItem value="First">Première</SelectItem>
                 </SelectContent>
@@ -203,12 +248,29 @@ export function AdvancedFlightSearch() {
           </div>
 
           <div className="flex gap-4">
-            <Button onClick={searchParisDubai} disabled={isSearching} className="flex items-center gap-2">
-              {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plane className="h-4 w-4" />}
+            <Button
+              onClick={searchParisDubai}
+              disabled={isSearching}
+              className="flex items-center gap-2"
+            >
+              {isSearching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plane className="h-4 w-4" />
+              )}
               Recherche Paris → Dubai
             </Button>
-            <Button onClick={searchCustomRoute} disabled={isSearching} variant="outline" className="flex items-center gap-2">
-              {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+            <Button
+              onClick={searchCustomRoute}
+              disabled={isSearching}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              {isSearching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
               Recherche Personnalisée
             </Button>
           </div>
@@ -242,7 +304,9 @@ export function AdvancedFlightSearch() {
                   <div className="text-2xl font-bold text-blue-600">
                     {searchResults.data.totalResults}
                   </div>
-                  <div className="text-sm text-blue-600">Total des résultats</div>
+                  <div className="text-sm text-blue-600">
+                    Total des résultats
+                  </div>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">
@@ -257,15 +321,19 @@ export function AdvancedFlightSearch() {
                   <div className="text-sm text-orange-600">Via Alger</div>
                 </div>
               </div>
-              
+
               <div className="mt-4 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  Recherche effectuée le {new Date(searchResults.data.searchTimestamp).toLocaleString('fr-FR')}
+                  Recherche effectuée le{" "}
+                  {new Date(searchResults.data.searchTimestamp).toLocaleString(
+                    "fr-FR"
+                  )}
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <MapPin className="h-4 w-4" />
-                  Fournisseurs consultés: {searchResults.data.providers.join(', ')}
+                  Fournisseurs consultés:{" "}
+                  {searchResults.data.providers.join(", ")}
                 </div>
               </div>
             </CardContent>
@@ -284,32 +352,47 @@ export function AdvancedFlightSearch() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {searchResults.data.bestPrices.direct && (
                     <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                      <div className="text-sm text-green-600 mb-1">Vol Direct</div>
+                      <div className="text-sm text-green-600 mb-1">
+                        Vol Direct
+                      </div>
                       <div className="text-2xl font-bold text-green-700">
-                        {formatPrice(searchResults.data.bestPrices.direct.amount, searchResults.data.bestPrices.direct.currency)}
+                        {formatPrice(
+                          searchResults.data.bestPrices.direct.amount,
+                          searchResults.data.bestPrices.direct.currency
+                        )}
                       </div>
                       <div className="text-sm text-green-600">
                         {searchResults.data.bestPrices.direct.provider}
                       </div>
                     </div>
                   )}
-                  
+
                   {searchResults.data.bestPrices.viaAlgiers && (
                     <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                      <div className="text-sm text-orange-600 mb-1">Via Alger</div>
+                      <div className="text-sm text-orange-600 mb-1">
+                        Via Alger
+                      </div>
                       <div className="text-2xl font-bold text-orange-700">
-                        {formatPrice(searchResults.data.bestPrices.viaAlgiers.amount, searchResults.data.bestPrices.viaAlgiers.currency)}
+                        {formatPrice(
+                          searchResults.data.bestPrices.viaAlgiers.amount,
+                          searchResults.data.bestPrices.viaAlgiers.currency
+                        )}
                       </div>
                       <div className="text-sm text-orange-600">
                         {searchResults.data.bestPrices.viaAlgiers.provider}
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-sm text-blue-600 mb-1">Meilleur Global</div>
+                    <div className="text-sm text-blue-600 mb-1">
+                      Meilleur Global
+                    </div>
                     <div className="text-2xl font-bold text-blue-700">
-                      {formatPrice(searchResults.data.bestPrices.overall.amount, searchResults.data.bestPrices.overall.currency)}
+                      {formatPrice(
+                        searchResults.data.bestPrices.overall.amount,
+                        searchResults.data.bestPrices.overall.currency
+                      )}
                     </div>
                     <div className="text-sm text-blue-600">
                       {searchResults.data.bestPrices.overall.provider}
@@ -336,33 +419,51 @@ export function AdvancedFlightSearch() {
                             {result.origin} → {result.destination}
                           </div>
                           <div className="text-sm text-gray-600">
-                            {result.provider} • {result.duration} • {result.stops} escale(s)
+                            {result.provider} • {result.duration} •{" "}
+                            {result.stops} escale(s)
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-bold text-green-600">
-                            {formatPrice(result.totalPrice.amount, result.totalPrice.currency)}
+                            {formatPrice(
+                              result.totalPrice.amount,
+                              result.totalPrice.currency
+                            )}
                           </div>
                           {result.totalPrice.originalCurrency && (
                             <div className="text-sm text-gray-600">
-                              ~{getPriceInDZD(result.totalPrice.amount, result.totalPrice.exchangeRate)} DZD
+                              ~
+                              {getPriceInDZD(
+                                result.totalPrice.amount,
+                                result.totalPrice.exchangeRate
+                              )}{" "}
+                              DZD
                             </div>
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
                         {result.flights.map((flight, flightIndex) => (
-                          <div key={flightIndex} className="flex justify-between items-center text-sm">
+                          <div
+                            key={flightIndex}
+                            className="flex justify-between items-center text-sm"
+                          >
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">{flight.airlineCode}</span>
+                              <span className="font-medium">
+                                {flight.airlineCode}
+                              </span>
                               <span>{flight.flightNumber}</span>
                             </div>
                             <div className="flex items-center gap-4">
-                              <span>{formatDateTime(flight.departureTime)}</span>
+                              <span>
+                                {formatDateTime(flight.departureTime)}
+                              </span>
                               <span>→</span>
                               <span>{formatDateTime(flight.arrivalTime)}</span>
-                              <span className="text-gray-600">({flight.duration})</span>
+                              <span className="text-gray-600">
+                                ({flight.duration})
+                              </span>
                             </div>
                           </div>
                         ))}
@@ -378,7 +479,9 @@ export function AdvancedFlightSearch() {
           {searchResults.data.viaAlgiers.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-orange-700">Vols Via Alger</CardTitle>
+                <CardTitle className="text-orange-700">
+                  Vols Via Alger
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -390,33 +493,51 @@ export function AdvancedFlightSearch() {
                             {result.origin} → {result.destination} (Via Alger)
                           </div>
                           <div className="text-sm text-gray-600">
-                            {result.provider} • {result.duration} • {result.stops} escale(s)
+                            {result.provider} • {result.duration} •{" "}
+                            {result.stops} escale(s)
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-bold text-orange-600">
-                            {formatPrice(result.totalPrice.amount, result.totalPrice.currency)}
+                            {formatPrice(
+                              result.totalPrice.amount,
+                              result.totalPrice.currency
+                            )}
                           </div>
                           {result.totalPrice.originalCurrency && (
                             <div className="text-sm text-gray-600">
-                              ~{getPriceInDZD(result.totalPrice.amount, result.totalPrice.exchangeRate)} DZD
+                              ~
+                              {getPriceInDZD(
+                                result.totalPrice.amount,
+                                result.totalPrice.exchangeRate
+                              )}{" "}
+                              DZD
                             </div>
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
                         {result.flights.map((flight, flightIndex) => (
-                          <div key={flightIndex} className="flex justify-between items-center text-sm">
+                          <div
+                            key={flightIndex}
+                            className="flex justify-between items-center text-sm"
+                          >
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">{flight.airlineCode}</span>
+                              <span className="font-medium">
+                                {flight.airlineCode}
+                              </span>
                               <span>{flight.flightNumber}</span>
                             </div>
                             <div className="flex items-center gap-4">
-                              <span>{formatDateTime(flight.departureTime)}</span>
+                              <span>
+                                {formatDateTime(flight.departureTime)}
+                              </span>
                               <span>→</span>
                               <span>{formatDateTime(flight.arrivalTime)}</span>
-                              <span className="text-gray-600">({flight.duration})</span>
+                              <span className="text-gray-600">
+                                ({flight.duration})
+                              </span>
                             </div>
                           </div>
                         ))}

@@ -1,4 +1,4 @@
-import type { ExchangeRateMode } from '@/types';
+import type { ExchangeRateMode } from "@/types";
 
 export interface ExchangeRateResult {
   rate: number;
@@ -12,8 +12,11 @@ export class ExchangeRateService {
   private readonly defaultCustomRate: number;
 
   constructor() {
-    this.exchangeBaseUrl = process.env.EXCHANGE_BASE_URL || 'https://api.exchangerate.host';
-    this.defaultCustomRate = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_PARALLEL_RATE_DZD || '262');
+    this.exchangeBaseUrl =
+      process.env.EXCHANGE_BASE_URL || "https://api.exchangerate.host";
+    this.defaultCustomRate = parseFloat(
+      process.env.NEXT_PUBLIC_DEFAULT_PARALLEL_RATE_DZD || "262"
+    );
   }
 
   /**
@@ -25,7 +28,7 @@ export class ExchangeRateService {
         `${this.exchangeBaseUrl}/latest?base=EUR&symbols=DZD`,
         {
           headers: {
-            'Accept': 'application/json',
+            Accept: "application/json",
           },
         }
       );
@@ -35,25 +38,24 @@ export class ExchangeRateService {
       }
 
       const data = await response.json();
-      
+
       if (!data.rates || !data.rates.DZD) {
-        throw new Error('Taux DZD non disponible dans la réponse');
+        throw new Error("Taux DZD non disponible dans la réponse");
       }
 
       return {
         rate: data.rates.DZD,
-        source: 'ECB via exchangerate.host',
+        source: "ECB via exchangerate.host",
         timestamp: new Date(),
         isOfficial: true,
       };
-
     } catch (error) {
-      console.error('Erreur lors de la récupération du taux officiel:', error);
-      
+      console.error("Erreur lors de la récupération du taux officiel:", error);
+
       // Fallback sur un taux par défaut en cas d'erreur
       return {
         rate: 150, // Taux de fallback approximatif
-        source: 'Fallback (erreur API)',
+        source: "Fallback (erreur API)",
         timestamp: new Date(),
         isOfficial: true,
       };
@@ -71,18 +73,17 @@ export class ExchangeRateService {
 
       return {
         rate: customRate,
-        source: 'Configuration administrateur',
+        source: "Configuration administrateur",
         timestamp: new Date(),
         isOfficial: false,
       };
-
     } catch (error) {
-      console.error('Erreur lors de la récupération du taux custom:', error);
-      
+      console.error("Erreur lors de la récupération du taux custom:", error);
+
       // Fallback sur le taux par défaut
       return {
         rate: this.defaultCustomRate,
-        source: 'Fallback (erreur config)',
+        source: "Fallback (erreur config)",
         timestamp: new Date(),
         isOfficial: false,
       };
@@ -94,12 +95,12 @@ export class ExchangeRateService {
    */
   async selectRate(mode: ExchangeRateMode): Promise<ExchangeRateResult> {
     switch (mode) {
-      case 'official':
+      case "official":
         return await this.getOfficialRateEURtoDZD();
-      
-      case 'custom':
+
+      case "custom":
         return await this.getCustomRate();
-      
+
       default:
         throw new Error(`Mode de taux invalide: ${mode}`);
     }
@@ -123,7 +124,10 @@ export class ExchangeRateService {
   /**
    * Convertit un montant EUR en DZD selon le mode spécifié
    */
-  async convertEURtoDZD(amountEUR: number, mode: ExchangeRateMode): Promise<{
+  async convertEURtoDZD(
+    amountEUR: number,
+    mode: ExchangeRateMode
+  ): Promise<{
     amountDZD: number;
     rate: ExchangeRateResult;
   }> {
@@ -139,7 +143,10 @@ export class ExchangeRateService {
   /**
    * Convertit un montant DZD en EUR selon le mode spécifié
    */
-  async convertDZDtoEUR(amountDZD: number, mode: ExchangeRateMode): Promise<{
+  async convertDZDtoEUR(
+    amountDZD: number,
+    mode: ExchangeRateMode
+  ): Promise<{
     amountEUR: number;
     rate: ExchangeRateResult;
   }> {
@@ -159,7 +166,7 @@ export class ExchangeRateService {
     const now = new Date();
     const rateAge = now.getTime() - rate.timestamp.getTime();
     const maxAge = 24 * 60 * 60 * 1000; // 24 heures en millisecondes
-    
+
     return rateAge < maxAge;
   }
 

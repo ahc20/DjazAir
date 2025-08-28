@@ -3,6 +3,7 @@
 ## ✅ Ce qui est terminé
 
 ### 🏗️ Infrastructure
+
 - [x] Projet Next.js 14 avec App Router
 - [x] Configuration TypeScript stricte
 - [x] Tailwind CSS + shadcn/ui
@@ -11,6 +12,7 @@
 - [x] Prisma ORM + schéma de base de données
 
 ### 🎨 Interface utilisateur
+
 - [x] Page d'accueil avec formulaire de recherche
 - [x] Composants UI modernes et responsifs
 - [x] Formulaire de recherche avec validation
@@ -19,6 +21,7 @@
 - [x] Avertissements légaux visibles partout
 
 ### 🔧 Logique métier
+
 - [x] Calculs d'arbitrage aérien
 - [x] Gestion des taux de change (ECB + custom)
 - [x] Adaptateurs API (Amadeus + Kiwi)
@@ -26,6 +29,7 @@
 - [x] Gestion des erreurs et fallbacks
 
 ### 📚 Documentation
+
 - [x] README.md complet
 - [x] Guide de déploiement
 - [x] Script de déploiement automatique
@@ -34,24 +38,28 @@
 ## 🚧 Ce qui reste à faire
 
 ### 🔐 Authentification
+
 - [ ] Configuration NextAuth
 - [ ] Intégration Google OAuth
 - [ ] Gestion des rôles utilisateur
 - [ ] Protection des routes admin
 
 ### 🗄️ Base de données
+
 - [ ] Configuration PostgreSQL en production
 - [ ] Migrations Prisma
 - [ ] Données de test
 - [ ] Backup et monitoring
 
 ### 🌐 Déploiement
+
 - [ ] Créer repository GitHub
 - [ ] Configurer Vercel
 - [ ] Variables d'environnement
 - [ ] Domain personnalisé (optionnel)
 
 ### 🧪 Tests et qualité
+
 - [ ] Tests d'intégration
 - [ ] Tests E2E
 - [ ] Coverage des tests
@@ -60,6 +68,7 @@
 ## 🚀 Prochaines étapes immédiates
 
 ### 1. Créer le repository GitHub
+
 ```bash
 # Allez sur https://github.com/new
 # Nom: djazair
@@ -68,6 +77,7 @@
 ```
 
 ### 2. Pousser le code
+
 ```bash
 # Une fois le repo créé, mettez à jour l'URL
 git remote set-url origin https://github.com/VOTRE_USERNAME/djazair.git
@@ -75,6 +85,7 @@ git push -u origin main
 ```
 
 ### 3. Déployer sur Vercel
+
 ```bash
 # Option A: Via l'interface web
 # - Allez sur https://vercel.com
@@ -88,6 +99,7 @@ vercel --prod
 ```
 
 ### 4. Configuration finale
+
 - [ ] Variables d'environnement sur Vercel
 - [ ] Base de données PostgreSQL
 - [ ] Clés API Amadeus et Kiwi

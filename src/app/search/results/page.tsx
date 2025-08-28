@@ -1,14 +1,13 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { ArrowLeft, Plane, Clock, MapPin, Users, Calendar } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { ArrowLeft, Plane, Clock, MapPin, Users, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-
-import { formatPrice, formatDate } from '@/lib/utils';
-import { getAirportName } from '@/lib/iata';
+import { formatPrice, formatDate } from "@/lib/utils";
+import { getAirportName } from "@/lib/iata";
 
 interface FlightResult {
   id: string;
@@ -17,8 +16,8 @@ interface FlightResult {
   departureTime: string;
   arrivalTime: string;
   duration: string;
-  price: { 
-    amount: number; 
+  price: {
+    amount: number;
     currency: string;
     originalDZD?: number;
   };
@@ -26,7 +25,7 @@ interface FlightResult {
   flightNumber: string;
   stops: number;
   baggage: { included: boolean; weight?: string; details?: string };
-  searchSource: 'amadeus' | 'google' | 'airalgerie';
+  searchSource: "amadeus" | "google" | "airalgerie";
   viaAlgiers?: boolean;
   savings?: { amount: number; percentage: number };
   connection?: {
@@ -43,14 +42,14 @@ export default function SearchResultsPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Récupérer les paramètres de recherche
-  const origin = searchParams.get('origin') || '';
-  const destination = searchParams.get('destination') || '';
-  const departDate = searchParams.get('departDate') || '';
-  const returnDate = searchParams.get('returnDate') || '';
-  const adults = parseInt(searchParams.get('adults') || '1');
-  const children = parseInt(searchParams.get('children') || '0');
-  const infants = parseInt(searchParams.get('infants') || '0');
-  const cabin = searchParams.get('cabin') || 'ECONOMY';
+  const origin = searchParams.get("origin") || "";
+  const destination = searchParams.get("destination") || "";
+  const departDate = searchParams.get("departDate") || "";
+  const returnDate = searchParams.get("returnDate") || "";
+  const adults = parseInt(searchParams.get("adults") || "1");
+  const children = parseInt(searchParams.get("children") || "0");
+  const infants = parseInt(searchParams.get("infants") || "0");
+  const cabin = searchParams.get("cabin") || "ECONOMY";
 
   useEffect(() => {
     // Recherche réelle via l'API unifiée
@@ -58,7 +57,7 @@ export default function SearchResultsPage() {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         const requestBody = {
           origin,
           destination,
@@ -66,27 +65,27 @@ export default function SearchResultsPage() {
           returnDate,
           passengers: adults + children + infants,
           cabinClass: cabin,
-          currency: 'EUR'
+          currency: "EUR",
         };
-        
-        console.log('📤 Données envoyées à l\'API:', requestBody);
-        
-        const response = await fetch('/api/unified-search', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
+
+        console.log("📤 Données envoyées à l'API:", requestBody);
+
+        const response = await fetch("/api/unified-search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
         });
 
         const data = await response.json();
-        
+
         if (data.success) {
           setSearchResults(data.data.allFlights || []);
         } else {
-          setError(data.error || 'Erreur lors de la recherche');
+          setError(data.error || "Erreur lors de la recherche");
         }
       } catch (err) {
-        setError('Erreur de connexion au serveur');
-        console.error('❌ Erreur:', err);
+        setError("Erreur de connexion au serveur");
+        console.error("❌ Erreur:", err);
       } finally {
         setIsLoading(false);
       }
@@ -95,11 +94,20 @@ export default function SearchResultsPage() {
     if (origin && destination && departDate) {
       searchFlights();
     }
-  }, [origin, destination, departDate, returnDate, adults, children, infants, cabin]);
+  }, [
+    origin,
+    destination,
+    departDate,
+    returnDate,
+    adults,
+    children,
+    infants,
+    cabin,
+  ]);
 
   const handleBookFlight = (flight: FlightResult) => {
     // Redirection vers un site de réservation
-    window.open('https://www.google.com/travel/flights', '_blank');
+    window.open("https://www.google.com/travel/flights", "_blank");
   };
 
   if (isLoading) {
@@ -108,7 +116,9 @@ export default function SearchResultsPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-lg text-gray-600">Recherche en cours...</p>
-          <p className="text-sm text-gray-500">Interrogation de l'API Amadeus en temps réel</p>
+          <p className="text-sm text-gray-500">
+            Interrogation de l'API Amadeus en temps réel
+          </p>
         </div>
       </div>
     );
@@ -166,14 +176,18 @@ export default function SearchResultsPage() {
               </div>
               <div>
                 <div className="text-sm text-gray-500">Passagers</div>
-                <div className="font-semibold">{adults + children + infants}</div>
+                <div className="font-semibold">
+                  {adults + children + infants}
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Résumé des économies DjazAir */}
-        {searchResults.some(f => f.viaAlgiers && f.savings && f.savings.amount > 0) && (
+        {searchResults.some(
+          (f) => f.viaAlgiers && f.savings && f.savings.amount > 0
+        ) && (
           <Card className="mb-8 border-green-200 bg-green-50">
             <CardContent className="pt-6">
               <div className="text-center">
@@ -181,36 +195,52 @@ export default function SearchResultsPage() {
                   🚀 Économies DjazAir Détectées !
                 </h3>
                 <p className="text-green-700 mb-4">
-                  Nous avons trouvé des alternatives moins chères via Alger en utilisant le taux de change parallèle (260 DZD/€)
+                  Nous avons trouvé des alternatives moins chères via Alger en
+                  utilisant le taux de change parallèle (260 DZD/€)
                 </p>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {(() => {
-                    const djazAirFlights = searchResults.filter(f => f.viaAlgiers && f.savings && f.savings.amount > 0);
-                    const bestSavings = djazAirFlights.reduce((best, current) => 
-                      (current.savings?.amount || 0) > (best.savings?.amount || 0) ? current : best
+                    const djazAirFlights = searchResults.filter(
+                      (f) => f.viaAlgiers && f.savings && f.savings.amount > 0
                     );
-                    const totalSavings = djazAirFlights.reduce((sum, f) => sum + (f.savings?.amount || 0), 0);
-                    
+                    const bestSavings = djazAirFlights.reduce(
+                      (best, current) =>
+                        (current.savings?.amount || 0) >
+                        (best.savings?.amount || 0)
+                          ? current
+                          : best
+                    );
+                    const totalSavings = djazAirFlights.reduce(
+                      (sum, f) => sum + (f.savings?.amount || 0),
+                      0
+                    );
+
                     return (
                       <>
                         <div className="text-center">
                           <div className="text-2xl font-bold text-green-600">
                             {djazAirFlights.length}
                           </div>
-                          <div className="text-sm text-green-700">Options DjazAir</div>
+                          <div className="text-sm text-green-700">
+                            Options DjazAir
+                          </div>
                         </div>
                         <div className="text-center">
                           <div className="text-2xl font-bold text-green-600">
                             {bestSavings.savings?.amount}€
                           </div>
-                          <div className="text-sm text-green-700">Meilleure économie</div>
+                          <div className="text-sm text-green-700">
+                            Meilleure économie
+                          </div>
                         </div>
                         <div className="text-center">
                           <div className="text-2xl font-bold text-green-600">
                             {totalSavings.toFixed(0)}€
                           </div>
-                          <div className="text-sm text-green-700">Total économies</div>
+                          <div className="text-sm text-green-700">
+                            Total économies
+                          </div>
                         </div>
                       </>
                     );
@@ -238,7 +268,8 @@ export default function SearchResultsPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
-                {searchResults.length} vol{searchResults.length > 1 ? 's' : ''} trouvé{searchResults.length > 1 ? 's' : ''}
+                {searchResults.length} vol{searchResults.length > 1 ? "s" : ""}{" "}
+                trouvé{searchResults.length > 1 ? "s" : ""}
               </h2>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                 Source: Amadeus API + DjazAir
@@ -258,54 +289,85 @@ export default function SearchResultsPage() {
 
             <div className="space-y-4">
               {searchResults.map((flight) => (
-                <Card key={flight.id} className={`hover:shadow-md transition-shadow ${
-                  flight.viaAlgiers ? 'border-2 border-green-200 bg-green-50' : ''
-                }`}>
+                <Card
+                  key={flight.id}
+                  className={`hover:shadow-md transition-shadow ${
+                    flight.viaAlgiers
+                      ? "border-2 border-green-200 bg-green-50"
+                      : ""
+                  }`}
+                >
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-4 mb-4">
                           <div className="flex items-center gap-2">
                             <Plane className="h-5 w-5 text-blue-600" />
-                            <span className="font-semibold">{flight.airline}</span>
-                            <span className="text-gray-500">{flight.flightNumber}</span>
+                            <span className="font-semibold">
+                              {flight.airline}
+                            </span>
+                            <span className="text-gray-500">
+                              {flight.flightNumber}
+                            </span>
                           </div>
-                          
+
                           {/* Badge DjazAir si applicable */}
                           {flight.viaAlgiers && (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                               🚀 DjazAir via Alger
                             </span>
                           )}
-                          
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            flight.searchSource === 'amadeus' 
-                              ? 'bg-blue-100 text-blue-800' 
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {flight.searchSource === 'amadeus' ? 'Amadeus' : flight.searchSource}
+
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              flight.searchSource === "amadeus"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {flight.searchSource === "amadeus"
+                              ? "Amadeus"
+                              : flight.searchSource}
                           </span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <div className="text-sm text-gray-500 mb-1">Départ</div>
-                            <div className="font-semibold">{flight.departureTime}</div>
-                            <div className="text-sm text-gray-600">{flight.origin}</div>
-                          </div>
-                          
-                          <div className="text-center">
-                            <div className="text-sm text-gray-500 mb-1">Durée</div>
-                            <div className="font-semibold">{flight.duration}</div>
+                            <div className="text-sm text-gray-500 mb-1">
+                              Départ
+                            </div>
+                            <div className="font-semibold">
+                              {flight.departureTime}
+                            </div>
                             <div className="text-sm text-gray-600">
-                              {flight.stops === 0 ? 'Direct' : `${flight.stops} escale${flight.stops > 1 ? 's' : ''}`}
+                              {flight.origin}
                             </div>
                           </div>
-                          
+
+                          <div className="text-center">
+                            <div className="text-sm text-gray-500 mb-1">
+                              Durée
+                            </div>
+                            <div className="font-semibold">
+                              {flight.duration}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {flight.stops === 0
+                                ? "Direct"
+                                : `${flight.stops} escale${flight.stops > 1 ? "s" : ""}`}
+                            </div>
+                          </div>
+
                           <div className="text-right">
-                            <div className="text-sm text-gray-500 mb-1">Arrivée</div>
-                            <div className="font-semibold">{flight.arrivalTime}</div>
-                            <div className="text-sm text-gray-600">{flight.destination}</div>
+                            <div className="text-sm text-gray-500 mb-1">
+                              Arrivée
+                            </div>
+                            <div className="font-semibold">
+                              {flight.arrivalTime}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {flight.destination}
+                            </div>
                           </div>
                         </div>
 
@@ -313,13 +375,23 @@ export default function SearchResultsPage() {
                         {flight.viaAlgiers && flight.connection && (
                           <div className="mt-4 p-3 bg-green-100 rounded-lg">
                             <div className="flex items-center gap-2 text-sm text-green-800">
-                              <span className="font-medium">🔄 Escale à Alger ({flight.connection.airport})</span>
-                              <span>• Temps de connexion: {flight.connection.duration}</span>
-                              <span>• Vol de connexion: {flight.connection.flightNumber}</span>
+                              <span className="font-medium">
+                                🔄 Escale à Alger ({flight.connection.airport})
+                              </span>
+                              <span>
+                                • Temps de connexion:{" "}
+                                {flight.connection.duration}
+                              </span>
+                              <span>
+                                • Vol de connexion:{" "}
+                                {flight.connection.flightNumber}
+                              </span>
                             </div>
                             {flight.price.originalDZD && (
                               <div className="text-xs text-green-700 mt-1">
-                                Prix total: {flight.price.originalDZD.toLocaleString()} DZD (taux parallèle 260 DZD/€)
+                                Prix total:{" "}
+                                {flight.price.originalDZD.toLocaleString()} DZD
+                                (taux parallèle 260 DZD/€)
                               </div>
                             )}
                           </div>
@@ -329,8 +401,16 @@ export default function SearchResultsPage() {
                           <span>Passagers: {adults + children + infants}</span>
                           <span>Classe: {cabin}</span>
                           {flight.baggage && (
-                            <span className={flight.baggage.included ? 'text-green-600' : 'text-orange-600'}>
-                              {flight.baggage.included ? '✅ Bagages inclus' : '⚠️ Bagages en supplément'}
+                            <span
+                              className={
+                                flight.baggage.included
+                                  ? "text-green-600"
+                                  : "text-orange-600"
+                              }
+                            >
+                              {flight.baggage.included
+                                ? "✅ Bagages inclus"
+                                : "⚠️ Bagages en supplément"}
                             </span>
                           )}
                         </div>
@@ -340,25 +420,32 @@ export default function SearchResultsPage() {
                         <div className="text-3xl font-bold text-blue-600 mb-2">
                           {flight.price.amount} {flight.price.currency}
                         </div>
-                        
+
                         {/* Affichage des économies DjazAir */}
-                        {flight.viaAlgiers && flight.savings && flight.savings.amount > 0 && (
-                          <div className="text-sm text-green-600 mb-2 font-medium">
-                            💰 Économie: {flight.savings.amount}€ ({flight.savings.percentage}%)
-                          </div>
-                        )}
-                        
+                        {flight.viaAlgiers &&
+                          flight.savings &&
+                          flight.savings.amount > 0 && (
+                            <div className="text-sm text-green-600 mb-2 font-medium">
+                              💰 Économie: {flight.savings.amount}€ (
+                              {flight.savings.percentage}%)
+                            </div>
+                          )}
+
                         <div className="text-sm text-gray-500 mb-4">
-                          {flight.baggage?.included ? 'Bagages inclus' : 'Bagages en supplément'}
+                          {flight.baggage?.included
+                            ? "Bagages inclus"
+                            : "Bagages en supplément"}
                         </div>
-                        
-                        <Button 
+
+                        <Button
                           onClick={() => handleBookFlight(flight)}
                           className={`w-full ${
-                            flight.viaAlgiers ? 'bg-green-600 hover:bg-green-700' : ''
+                            flight.viaAlgiers
+                              ? "bg-green-600 hover:bg-green-700"
+                              : ""
                           }`}
                         >
-                          {flight.viaAlgiers ? 'Réserver DjazAir' : 'Réserver'}
+                          {flight.viaAlgiers ? "Réserver DjazAir" : "Réserver"}
                         </Button>
                       </div>
                     </div>
@@ -374,9 +461,12 @@ export default function SearchResultsPage() {
           <Card className="text-center py-12">
             <CardContent>
               <Plane className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucun vol trouvé</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Aucun vol trouvé
+              </h3>
               <p className="text-gray-600">
-                Aucun vol disponible pour cette recherche. Essayez de modifier vos critères.
+                Aucun vol disponible pour cette recherche. Essayez de modifier
+                vos critères.
               </p>
             </CardContent>
           </Card>

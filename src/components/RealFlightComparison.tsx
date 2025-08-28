@@ -1,26 +1,32 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { 
-  Plane, 
-  Search, 
-  Loader2, 
-  AlertTriangle, 
-  CheckCircle, 
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import {
+  Plane,
+  Search,
+  Loader2,
+  AlertTriangle,
+  CheckCircle,
   Building2,
   ArrowUpRight,
   Euro,
   Clock,
   MapPin,
   AlertCircle,
-  Info
-} from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+  Info,
+} from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 interface RealFlightOption {
   id: string;
@@ -55,7 +61,7 @@ interface RealFlightComparison {
       amount: number;
       percentage: number;
     };
-    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+    riskLevel: "LOW" | "MEDIUM" | "HIGH";
     recommendations: string[];
   }>;
   bestOptions: {
@@ -73,22 +79,25 @@ interface RealFlightComparison {
 
 export function RealFlightComparison() {
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<RealFlightComparison | null>(null);
+  const [searchResults, setSearchResults] =
+    useState<RealFlightComparison | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useState({
-    origin: '',
-    destination: '',
-    departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    returnDate: '',
+    origin: "",
+    destination: "",
+    departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0],
+    returnDate: "",
     passengers: 1,
-    cabinClass: 'Economy',
-    currency: 'EUR'
+    cabinClass: "Economy",
+    currency: "EUR",
   });
 
   const searchFlights = async () => {
     // Validation des champs requis
     if (!searchParams.origin || !searchParams.destination) {
-      setError('Veuillez remplir l\'origine et la destination');
+      setError("Veuillez remplir l'origine et la destination");
       return;
     }
 
@@ -97,10 +106,10 @@ export function RealFlightComparison() {
     setSearchResults(null);
 
     try {
-      const response = await fetch('/api/real-search', {
-        method: 'POST',
+      const response = await fetch("/api/real-search", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(searchParams),
       });
@@ -109,29 +118,27 @@ export function RealFlightComparison() {
 
       if (data.success) {
         setSearchResults(data.data);
-        console.log('✅ Résultats de recherche réelle:', data.data);
+        console.log("✅ Résultats de recherche réelle:", data.data);
       } else {
-        setError(data.error || 'Erreur de recherche');
+        setError(data.error || "Erreur de recherche");
       }
     } catch (err) {
-      setError('Erreur de connexion au serveur');
-      console.error('❌ Erreur:', err);
+      setError("Erreur de connexion au serveur");
+      console.error("❌ Erreur:", err);
     } finally {
       setIsSearching(false);
     }
   };
 
-
-
   const formatDateTime = (dateTimeString: string) => {
     try {
       const date = new Date(dateTimeString);
-      return date.toLocaleString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return date.toLocaleString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch {
       return dateTimeString;
@@ -140,19 +147,27 @@ export function RealFlightComparison() {
 
   const getRiskColor = (riskLevel: string) => {
     switch (riskLevel) {
-      case 'LOW': return 'text-green-600 bg-green-50 border-green-200';
-      case 'MEDIUM': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'HIGH': return 'text-red-600 bg-red-50 border-red-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case "LOW":
+        return "text-green-600 bg-green-50 border-green-200";
+      case "MEDIUM":
+        return "text-yellow-600 bg-yellow-50 border-yellow-200";
+      case "HIGH":
+        return "text-red-600 bg-red-50 border-red-200";
+      default:
+        return "text-gray-600 bg-gray-50 border-gray-200";
     }
   };
 
   const getRiskIcon = (riskLevel: string) => {
     switch (riskLevel) {
-      case 'LOW': return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case 'MEDIUM': return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
-      case 'HIGH': return <AlertTriangle className="h-5 w-5 text-red-600" />;
-      default: return <Info className="h-5 w-5 text-gray-600" />;
+      case "LOW":
+        return <CheckCircle className="h-5 w-5 text-green-600" />;
+      case "MEDIUM":
+        return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
+      case "HIGH":
+        return <AlertTriangle className="h-5 w-5 text-red-600" />;
+      default:
+        return <Info className="h-5 w-5 text-gray-600" />;
     }
   };
 
@@ -167,16 +182,22 @@ export function RealFlightComparison() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-gray-600">
-            Entrez vos critères de voyage et découvrez les vraies opportunités d'économies via l'escale à Alger
+            Entrez vos critères de voyage et découvrez les vraies opportunités
+            d'économies via l'escale à Alger
           </p>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="origin">Aéroport de départ</Label>
               <Input
                 id="origin"
                 value={searchParams.origin}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, origin: e.target.value.toUpperCase() }))}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    origin: e.target.value.toUpperCase(),
+                  }))
+                }
                 placeholder="CDG, LHR, FRA..."
                 maxLength={3}
               />
@@ -186,7 +207,12 @@ export function RealFlightComparison() {
               <Input
                 id="destination"
                 value={searchParams.destination}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, destination: e.target.value.toUpperCase() }))}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    destination: e.target.value.toUpperCase(),
+                  }))
+                }
                 placeholder="DXB, BKK, SIN..."
                 maxLength={3}
               />
@@ -199,7 +225,12 @@ export function RealFlightComparison() {
               <Input
                 type="date"
                 value={searchParams.departureDate}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, departureDate: e.target.value }))}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    departureDate: e.target.value,
+                  }))
+                }
               />
             </div>
             <div>
@@ -207,21 +238,30 @@ export function RealFlightComparison() {
               <Input
                 type="date"
                 value={searchParams.returnDate}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, returnDate: e.target.value }))}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    returnDate: e.target.value,
+                  }))
+                }
               />
             </div>
             <div>
               <Label htmlFor="cabinClass">Classe</Label>
               <Select
                 value={searchParams.cabinClass}
-                onValueChange={(value) => setSearchParams(prev => ({ ...prev, cabinClass: value }))}
+                onValueChange={(value) =>
+                  setSearchParams((prev) => ({ ...prev, cabinClass: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Economy">Économique</SelectItem>
-                  <SelectItem value="Premium Economy">Premium Économique</SelectItem>
+                  <SelectItem value="Premium Economy">
+                    Premium Économique
+                  </SelectItem>
                   <SelectItem value="Business">Affaires</SelectItem>
                   <SelectItem value="First">Première</SelectItem>
                 </SelectContent>
@@ -230,12 +270,18 @@ export function RealFlightComparison() {
           </div>
 
           <div className="flex gap-4">
-            <Button 
-              onClick={searchFlights} 
-              disabled={isSearching || !searchParams.origin || !searchParams.destination} 
+            <Button
+              onClick={searchFlights}
+              disabled={
+                isSearching || !searchParams.origin || !searchParams.destination
+              }
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
             >
-              {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              {isSearching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
               Rechercher des Vols
             </Button>
           </div>
@@ -266,13 +312,16 @@ export function RealFlightComparison() {
             <CardContent className="pt-6">
               <div className="text-center mb-4">
                 <div className="text-3xl font-bold text-blue-600 mb-2">
-                  {formatPrice(searchResults.bestOptions.bestArbitrage.direct.price.amount, 'EUR')}
+                  {formatPrice(
+                    searchResults.bestOptions.bestArbitrage.direct.price.amount,
+                    "EUR"
+                  )}
                 </div>
                 <div className="text-sm text-blue-600">
                   Prix total aller-retour
                 </div>
               </div>
-              
+
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Plane className="h-4 w-4 text-blue-600" />
@@ -287,7 +336,7 @@ export function RealFlightComparison() {
                   <span>Protection de correspondance</span>
                 </div>
               </div>
-              
+
               <Button className="w-full mt-4 bg-blue-600 hover:bg-blue-700">
                 <ArrowUpRight className="h-4 w-4 mr-2" />
                 Réserver via canal officiel
@@ -309,13 +358,18 @@ export function RealFlightComparison() {
             <CardContent className="pt-6">
               <div className="text-center mb-4">
                 <div className="text-3xl font-bold text-green-600 mb-2">
-                  {formatPrice(searchResults.bestOptions.bestArbitrage.viaAlgiers.price.amount, 'EUR')}
+                  {formatPrice(
+                    searchResults.bestOptions.bestArbitrage.viaAlgiers.price
+                      .amount,
+                    "EUR"
+                  )}
                 </div>
                 <div className="text-sm text-green-600 mb-2">
-                  Économie de {searchResults.bestOptions.bestArbitrage.savings}€ ({searchResults.bestOptions.bestArbitrage.percentage}%)
+                  Économie de {searchResults.bestOptions.bestArbitrage.savings}€
+                  ({searchResults.bestOptions.bestArbitrage.percentage}%)
                 </div>
               </div>
-              
+
               <div className="space-y-2 text-sm mb-4">
                 <div className="flex justify-between">
                   <span>Origin → Alger:</span>
@@ -327,10 +381,16 @@ export function RealFlightComparison() {
                 </div>
                 <div className="flex justify-between font-semibold border-t pt-2">
                   <span>Total Via Alger:</span>
-                  <span>{formatPrice(searchResults.bestOptions.bestArbitrage.viaAlgiers.price.amount, 'EUR')}</span>
+                  <span>
+                    {formatPrice(
+                      searchResults.bestOptions.bestArbitrage.viaAlgiers.price
+                        .amount,
+                      "EUR"
+                    )}
+                  </span>
                 </div>
               </div>
-              
+
               <div className="space-y-2 text-sm mb-4">
                 <div className="flex items-center gap-2 text-yellow-600">
                   <AlertTriangle className="h-4 w-4" />
@@ -345,12 +405,12 @@ export function RealFlightComparison() {
                   <span>Risque de correspondance</span>
                 </div>
               </div>
-              
+
               <Button className="w-full mt-4 bg-green-600 hover:bg-green-700">
                 <ArrowUpRight className="h-4 w-4 mr-2" />
                 Réserver via canal officiel
               </Button>
-              
+
               <p className="text-xs text-gray-500 mt-2 text-center">
                 * Simulation basée sur des hypothèses de prix local en DZD
               </p>
@@ -373,43 +433,57 @@ export function RealFlightComparison() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {searchResults.arbitrageOpportunities.slice(0, 3).map((opportunity, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <div className="font-semibold text-lg">
-                            {opportunity.directFlight.airline} vs {opportunity.viaAlgiersFlight.airline}
+                  {searchResults.arbitrageOpportunities
+                    .slice(0, 3)
+                    .map((opportunity, index) => (
+                      <div key={index} className="p-4 border rounded-lg">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <div className="font-semibold text-lg">
+                              {opportunity.directFlight.airline} vs{" "}
+                              {opportunity.viaAlgiersFlight.airline}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {opportunity.directFlight.origin} →{" "}
+                              {opportunity.directFlight.destination}
+                            </div>
                           </div>
-                          <div className="text-sm text-gray-600">
-                            {opportunity.directFlight.origin} → {opportunity.directFlight.destination}
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-green-600">
+                              {opportunity.savings.amount}€
+                            </div>
+                            <div className="text-sm text-green-600">
+                              {opportunity.savings.percentage}% d'économies
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-green-600">
-                            {opportunity.savings.amount}€
+
+                        <div
+                          className={`p-3 rounded-lg border ${getRiskColor(opportunity.riskLevel)}`}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            {getRiskIcon(opportunity.riskLevel)}
+                            <span className="font-semibold">
+                              Risque{" "}
+                              {opportunity.riskLevel === "LOW"
+                                ? "Faible"
+                                : opportunity.riskLevel === "MEDIUM"
+                                  ? "Modéré"
+                                  : "Élevé"}
+                            </span>
                           </div>
-                          <div className="text-sm text-green-600">
-                            {opportunity.savings.percentage}% d'économies
+                          <div className="space-y-1">
+                            {opportunity.recommendations.map(
+                              (rec, recIndex) => (
+                                <div key={recIndex} className="text-sm">
+                                  {rec}
+                                </div>
+                              )
+                            )}
                           </div>
                         </div>
                       </div>
-                      
-                      <div className={`p-3 rounded-lg border ${getRiskColor(opportunity.riskLevel)}`}>
-                        <div className="flex items-center gap-2 mb-2">
-                          {getRiskIcon(opportunity.riskLevel)}
-                          <span className="font-semibold">
-                            Risque {opportunity.riskLevel === 'LOW' ? 'Faible' : 
-                                   opportunity.riskLevel === 'MEDIUM' ? 'Modéré' : 'Élevé'}
-                          </span>
-                        </div>
-                        <div className="space-y-1">
-                          {opportunity.recommendations.map((rec, recIndex) => (
-                            <div key={recIndex} className="text-sm">{rec}</div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </CardContent>
             </Card>
@@ -420,16 +494,23 @@ export function RealFlightComparison() {
             {/* Vols directs */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-blue-700">Vols Directs Disponibles</CardTitle>
+                <CardTitle className="text-blue-700">
+                  Vols Directs Disponibles
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {searchResults.directFlights.map((flight) => (
                     <div key={flight.id} className="p-3 border rounded-lg">
                       <div className="flex justify-between items-center mb-2">
-                        <div className="font-medium">{flight.airline} {flight.flightNumber}</div>
+                        <div className="font-medium">
+                          {flight.airline} {flight.flightNumber}
+                        </div>
                         <div className="text-lg font-bold text-blue-600">
-                          {formatPrice(flight.price.amount, flight.price.currency)}
+                          {formatPrice(
+                            flight.price.amount,
+                            flight.price.currency
+                          )}
                         </div>
                       </div>
                       <div className="text-sm text-gray-600 space-y-1">
@@ -466,9 +547,14 @@ export function RealFlightComparison() {
                   {searchResults.viaAlgiersFlights.map((flight) => (
                     <div key={flight.id} className="p-3 border rounded-lg">
                       <div className="flex justify-between items-center mb-2">
-                        <div className="font-medium">{flight.airline} {flight.flightNumber}</div>
+                        <div className="font-medium">
+                          {flight.airline} {flight.flightNumber}
+                        </div>
                         <div className="text-lg font-bold text-green-600">
-                          {formatPrice(flight.price.amount, flight.price.currency)}
+                          {formatPrice(
+                            flight.price.amount,
+                            flight.price.currency
+                          )}
                         </div>
                       </div>
                       <div className="text-sm text-gray-600 space-y-1">

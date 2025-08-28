@@ -73,7 +73,7 @@ export interface ScrapingSession {
   id: string;
   searchParams: FlightSearchParams;
   startTime: Date;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: "pending" | "running" | "completed" | "failed";
   results: ScrapingResult[];
   error?: string;
 }

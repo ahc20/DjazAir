@@ -1,16 +1,20 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Search, Plane, Users, Calendar, Building } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { searchFormSchema, type SearchFormData } from '@/lib/zod';
-import { getAirportSuggestions, formatAirportOption, type AirportCode } from '@/lib/iata';
-import { cn } from '@/lib/utils';
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Search, Plane, Users, Calendar, Building } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { searchFormSchema, type SearchFormData } from "@/lib/zod";
+import {
+  getAirportSuggestions,
+  formatAirportOption,
+  type AirportCode,
+} from "@/lib/iata";
+import { cn } from "@/lib/utils";
 
 interface SearchFormProps {
   onSubmit: (data: SearchFormData) => void;
@@ -19,9 +23,12 @@ interface SearchFormProps {
 
 export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
   const [originSuggestions, setOriginSuggestions] = useState<AirportCode[]>([]);
-  const [destinationSuggestions, setDestinationSuggestions] = useState<AirportCode[]>([]);
+  const [destinationSuggestions, setDestinationSuggestions] = useState<
+    AirportCode[]
+  >([]);
   const [showOriginSuggestions, setShowOriginSuggestions] = useState(false);
-  const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
+  const [showDestinationSuggestions, setShowDestinationSuggestions] =
+    useState(false);
 
   const {
     register,
@@ -35,15 +42,15 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
       adults: 1,
       children: 0,
       infants: 0,
-      cabin: 'ECONOMY',
+      cabin: "ECONOMY",
     },
   });
 
-  const watchedOrigin = watch('origin');
-  const watchedDestination = watch('destination');
+  const watchedOrigin = watch("origin");
+  const watchedDestination = watch("destination");
 
   const handleOriginChange = (value: string) => {
-    setValue('origin', value.toUpperCase());
+    setValue("origin", value.toUpperCase());
     if (value.length >= 1) {
       const suggestions = getAirportSuggestions(value);
       setOriginSuggestions(suggestions);
@@ -54,7 +61,7 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
   };
 
   const handleDestinationChange = (value: string) => {
-    setValue('destination', value.toUpperCase());
+    setValue("destination", value.toUpperCase());
     if (value.length >= 1) {
       const suggestions = getAirportSuggestions(value);
       setDestinationSuggestions(suggestions);
@@ -65,12 +72,12 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
   };
 
   const selectOrigin = (code: AirportCode) => {
-    setValue('origin', code);
+    setValue("origin", code);
     setShowOriginSuggestions(false);
   };
 
   const selectDestination = (code: AirportCode) => {
-    setValue('destination', code);
+    setValue("destination", code);
     setShowDestinationSuggestions(false);
   };
 
@@ -94,12 +101,18 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
               <label className="text-sm font-medium">Aéroport de départ</label>
               <div className="relative">
                 <Input
-                  {...register('origin')}
+                  {...register("origin")}
                   placeholder="CDG, LHR, FRA..."
-                  className={cn(errors.origin && 'border-red-500')}
+                  className={cn(errors.origin && "border-red-500")}
                   onChange={(e) => handleOriginChange(e.target.value)}
-                  onFocus={() => watchedOrigin && watchedOrigin.length >= 1 && setShowOriginSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowOriginSuggestions(false), 200)}
+                  onFocus={() =>
+                    watchedOrigin &&
+                    watchedOrigin.length >= 1 &&
+                    setShowOriginSuggestions(true)
+                  }
+                  onBlur={() =>
+                    setTimeout(() => setShowOriginSuggestions(false), 200)
+                  }
                 />
                 {showOriginSuggestions && originSuggestions.length > 0 && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
@@ -122,33 +135,44 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Aéroport de destination</label>
+              <label className="text-sm font-medium">
+                Aéroport de destination
+              </label>
               <div className="relative">
                 <Input
-                  {...register('destination')}
+                  {...register("destination")}
                   placeholder="DXB, BKK, SIN..."
-                  className={cn(errors.destination && 'border-red-500')}
+                  className={cn(errors.destination && "border-red-500")}
                   onChange={(e) => handleDestinationChange(e.target.value)}
-                  onFocus={() => watchedDestination && watchedDestination.length >= 1 && setShowDestinationSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowDestinationSuggestions(false), 200)}
+                  onFocus={() =>
+                    watchedDestination &&
+                    watchedDestination.length >= 1 &&
+                    setShowDestinationSuggestions(true)
+                  }
+                  onBlur={() =>
+                    setTimeout(() => setShowDestinationSuggestions(false), 200)
+                  }
                 />
-                {showDestinationSuggestions && destinationSuggestions.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {destinationSuggestions.map((code) => (
-                      <button
-                        key={code}
-                        type="button"
-                        className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-                        onClick={() => selectDestination(code)}
-                      >
-                        {formatAirportOption(code)}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                {showDestinationSuggestions &&
+                  destinationSuggestions.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                      {destinationSuggestions.map((code) => (
+                        <button
+                          key={code}
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                          onClick={() => selectDestination(code)}
+                        >
+                          {formatAirportOption(code)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
               </div>
               {errors.destination && (
-                <p className="text-sm text-red-500">{errors.destination.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.destination.message}
+                </p>
               )}
             </div>
           </div>
@@ -158,26 +182,34 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium">Date de départ</label>
               <Input
-                {...register('departDate')}
+                {...register("departDate")}
                 type="date"
-                className={cn(errors.departDate && 'border-red-500')}
-                min={new Date().toISOString().split('T')[0]}
+                className={cn(errors.departDate && "border-red-500")}
+                min={new Date().toISOString().split("T")[0]}
               />
               {errors.departDate && (
-                <p className="text-sm text-red-500">{errors.departDate.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.departDate.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Date de retour (optionnel)</label>
+              <label className="text-sm font-medium">
+                Date de retour (optionnel)
+              </label>
               <Input
-                {...register('returnDate')}
+                {...register("returnDate")}
                 type="date"
-                className={cn(errors.returnDate && 'border-red-500')}
-                min={watch('departDate') || new Date().toISOString().split('T')[0]}
+                className={cn(errors.returnDate && "border-red-500")}
+                min={
+                  watch("departDate") || new Date().toISOString().split("T")[0]
+                }
               />
               {errors.returnDate && (
-                <p className="text-sm text-red-500">{errors.returnDate.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.returnDate.message}
+                </p>
               )}
             </div>
           </div>
@@ -190,11 +222,11 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
                 Adultes
               </label>
               <Input
-                {...register('adults', { valueAsNumber: true })}
+                {...register("adults", { valueAsNumber: true })}
                 type="number"
                 min="1"
                 max="9"
-                className={cn(errors.adults && 'border-red-500')}
+                className={cn(errors.adults && "border-red-500")}
               />
               {errors.adults && (
                 <p className="text-sm text-red-500">{errors.adults.message}</p>
@@ -204,25 +236,27 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium">Enfants</label>
               <Input
-                {...register('children', { valueAsNumber: true })}
+                {...register("children", { valueAsNumber: true })}
                 type="number"
                 min="0"
                 max="8"
-                className={cn(errors.children && 'border-red-500')}
+                className={cn(errors.children && "border-red-500")}
               />
               {errors.children && (
-                <p className="text-sm text-red-500">{errors.children.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.children.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Nourrissons</label>
               <Input
-                {...register('infants', { valueAsNumber: true })}
+                {...register("infants", { valueAsNumber: true })}
                 type="number"
                 min="0"
                 max="8"
-                className={cn(errors.infants && 'border-red-500')}
+                className={cn(errors.infants && "border-red-500")}
               />
               {errors.infants && (
                 <p className="text-sm text-red-500">{errors.infants.message}</p>
@@ -236,7 +270,7 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
               <Building className="h-4 w-4" />
               Classe de cabine
             </label>
-            <Select {...register('cabin')}>
+            <Select {...register("cabin")}>
               <option value="ECONOMY">Économique</option>
               <option value="PREMIUM_ECONOMY">Économique Premium</option>
               <option value="BUSINESS">Affaires</option>

@@ -43,6 +43,7 @@ SCRAPING_USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 ### 2. Google Flights API
 
 #### Obtenir une clé API :
+
 1. Allez sur [Google Cloud Console](https://console.cloud.google.com/)
 2. Créez un nouveau projet ou sélectionnez un existant
 3. Activez l'API "QPX Express API" (Google Flights)
@@ -50,12 +51,14 @@ SCRAPING_USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 5. Copiez la clé dans `GOOGLE_FLIGHTS_API_KEY`
 
 #### Limites :
+
 - Gratuit : 50 requêtes/jour
 - Payant : $0.035 par requête après la limite gratuite
 
 ### 3. Skyscanner API (Alternative)
 
 #### Obtenir une clé API :
+
 1. Allez sur [Skyscanner for Business](https://www.partners.skyscanner.net/)
 2. Créez un compte développeur
 3. Demandez l'accès à l'API
@@ -64,10 +67,12 @@ SCRAPING_USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 ### 4. Amadeus API (Intégrée)
 
 #### Identifiants déjà configurés :
+
 - **Client ID** : ``
 - **Client Secret** : ``
 
 #### Limites :
+
 - Gratuit : 1000 requêtes/mois
 - Payant : Selon votre plan
 - Test API : Environnement de développement inclus
@@ -150,7 +155,7 @@ vercel logs --follow
 
 ```typescript
 // Dans votre API route
-export const runtime = 'edge'; // Pour de meilleures performances
+export const runtime = "edge"; // Pour de meilleures performances
 export const maxDuration = 30; // Timeout de 30 secondes
 ```
 

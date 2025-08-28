@@ -1,17 +1,23 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { 
-  Plane, 
-  Search, 
-  Loader2, 
-  AlertTriangle, 
-  CheckCircle, 
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import {
+  Plane,
+  Search,
+  Loader2,
+  AlertTriangle,
+  CheckCircle,
   Building2,
   ArrowUpRight,
   Clock,
@@ -20,9 +26,9 @@ import {
   Info,
   Users,
   Briefcase,
-  TrendingUp
-} from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+  TrendingUp,
+} from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 interface FlightResult {
   id: string;
@@ -59,7 +65,7 @@ interface FlightResult {
     amount: number;
     percentage: number;
   };
-  searchSource?: 'google' | 'airalgerie' | 'amadeus';
+  searchSource?: "google" | "airalgerie" | "amadeus";
 }
 
 interface SearchParams {
@@ -77,19 +83,21 @@ export function UnifiedFlightSearch() {
   const [searchResults, setSearchResults] = useState<FlightResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useState<SearchParams>({
-    origin: '',
-    destination: '',
-    departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    returnDate: '',
+    origin: "",
+    destination: "",
+    departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0],
+    returnDate: "",
     passengers: 1,
-    cabinClass: 'Economy',
-    currency: 'EUR'
+    cabinClass: "Economy",
+    currency: "EUR",
   });
 
   const searchFlights = async () => {
     // Validation des champs requis
     if (!searchParams.origin || !searchParams.destination) {
-      setError('Veuillez remplir l\'origine et la destination');
+      setError("Veuillez remplir l'origine et la destination");
       return;
     }
 
@@ -99,10 +107,10 @@ export function UnifiedFlightSearch() {
 
     try {
       // Recherche réelle via l'API unifiée
-      const response = await fetch('/api/unified-search', {
-        method: 'POST',
+      const response = await fetch("/api/unified-search", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(searchParams),
       });
@@ -131,18 +139,18 @@ export function UnifiedFlightSearch() {
           baggage: flight.baggage,
           connection: flight.connection,
           savings: flight.savings,
-          searchSource: flight.searchSource
+          searchSource: flight.searchSource,
         }));
 
         setSearchResults(convertedResults);
-        console.log('✅ Résultats de recherche réelle:', data);
-        console.log('📊 Statistiques:', data.stats);
+        console.log("✅ Résultats de recherche réelle:", data);
+        console.log("📊 Statistiques:", data.stats);
       } else {
-        setError(data.error || 'Erreur de recherche');
+        setError(data.error || "Erreur de recherche");
       }
     } catch (err) {
-      setError('Erreur de connexion au serveur');
-      console.error('❌ Erreur:', err);
+      setError("Erreur de connexion au serveur");
+      console.error("❌ Erreur:", err);
     } finally {
       setIsSearching(false);
     }
@@ -151,12 +159,12 @@ export function UnifiedFlightSearch() {
   const formatDateTime = (dateTimeString: string) => {
     try {
       const date = new Date(dateTimeString);
-      return date.toLocaleString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return date.toLocaleString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch {
       return dateTimeString;
@@ -164,30 +172,43 @@ export function UnifiedFlightSearch() {
   };
 
   const getFlightTypeColor = (flight: FlightResult) => {
-    if (flight.viaAlgiers) return 'border-green-200 bg-green-50';
-    if (flight.direct) return 'border-blue-200 bg-blue-50';
-    return 'border-gray-200 bg-gray-50';
+    if (flight.viaAlgiers) return "border-green-200 bg-green-50";
+    if (flight.direct) return "border-blue-200 bg-blue-50";
+    return "border-gray-200 bg-gray-50";
   };
 
   const getFlightTypeIcon = (flight: FlightResult) => {
-    if (flight.viaAlgiers) return <Building2 className="h-5 w-5 text-green-600" />;
+    if (flight.viaAlgiers)
+      return <Building2 className="h-5 w-5 text-green-600" />;
     if (flight.direct) return <Plane className="h-5 w-5 text-blue-600" />;
     return <Plane className="h-5 w-5 text-gray-600" />;
   };
 
   const getFlightTypeLabel = (flight: FlightResult) => {
-    if (flight.viaAlgiers) return 'Via Alger';
-    if (flight.direct) return 'Direct';
-    return 'Avec Escale';
+    if (flight.viaAlgiers) return "Via Alger";
+    if (flight.direct) return "Direct";
+    return "Avec Escale";
   };
 
   const getProviderBadge = (flight: FlightResult) => {
-    if (flight.searchSource === 'google') {
-      return <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Google Flights</span>;
-    } else if (flight.searchSource === 'airalgerie') {
-      return <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Air Algérie</span>;
-    } else if (flight.searchSource === 'amadeus') {
-      return <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">Amadeus</span>;
+    if (flight.searchSource === "google") {
+      return (
+        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+          Google Flights
+        </span>
+      );
+    } else if (flight.searchSource === "airalgerie") {
+      return (
+        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+          Air Algérie
+        </span>
+      );
+    } else if (flight.searchSource === "amadeus") {
+      return (
+        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+          Amadeus
+        </span>
+      );
     }
     return null;
   };
@@ -197,23 +218,29 @@ export function UnifiedFlightSearch() {
       {/* Formulaire de recherche */}
       <Card>
         <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-          <Search className="h-5 w-5" />
-          Recherche de Vols - Prix Réels
-        </CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5" />
+            Recherche de Vols - Prix Réels
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-gray-600">
-            Recherchez vos vols et obtenez les vrais prix en temps réel via Amadeus
+            Recherchez vos vols et obtenez les vrais prix en temps réel via
+            Amadeus
           </p>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="origin">Aéroport de départ</Label>
               <Input
                 id="origin"
                 value={searchParams.origin}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, origin: e.target.value.toUpperCase() }))}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    origin: e.target.value.toUpperCase(),
+                  }))
+                }
                 placeholder="CDG, ORY, LHR..."
                 maxLength={3}
               />
@@ -223,7 +250,12 @@ export function UnifiedFlightSearch() {
               <Input
                 id="destination"
                 value={searchParams.destination}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, destination: e.target.value.toUpperCase() }))}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    destination: e.target.value.toUpperCase(),
+                  }))
+                }
                 placeholder="DXB, IST, CAI..."
                 maxLength={3}
               />
@@ -236,7 +268,12 @@ export function UnifiedFlightSearch() {
               <Input
                 type="date"
                 value={searchParams.departureDate}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, departureDate: e.target.value }))}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    departureDate: e.target.value,
+                  }))
+                }
               />
             </div>
             <div>
@@ -244,21 +281,30 @@ export function UnifiedFlightSearch() {
               <Input
                 type="date"
                 value={searchParams.returnDate}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, returnDate: e.target.value }))}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    returnDate: e.target.value,
+                  }))
+                }
               />
             </div>
             <div>
               <Label htmlFor="cabinClass">Classe</Label>
               <Select
                 value={searchParams.cabinClass}
-                onValueChange={(value) => setSearchParams(prev => ({ ...prev, cabinClass: value }))}
+                onValueChange={(value) =>
+                  setSearchParams((prev) => ({ ...prev, cabinClass: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Economy">Économique</SelectItem>
-                  <SelectItem value="Premium Economy">Premium Économique</SelectItem>
+                  <SelectItem value="Premium Economy">
+                    Premium Économique
+                  </SelectItem>
                   <SelectItem value="Business">Affaires</SelectItem>
                   <SelectItem value="First">Première</SelectItem>
                 </SelectContent>
@@ -267,12 +313,18 @@ export function UnifiedFlightSearch() {
           </div>
 
           <div className="flex gap-4">
-            <Button 
-              onClick={searchFlights} 
-              disabled={isSearching || !searchParams.origin || !searchParams.destination} 
+            <Button
+              onClick={searchFlights}
+              disabled={
+                isSearching || !searchParams.origin || !searchParams.destination
+              }
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
             >
-              {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              {isSearching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
               Rechercher des Vols
             </Button>
           </div>
@@ -306,8 +358,8 @@ export function UnifiedFlightSearch() {
           <CardContent>
             <div className="space-y-4">
               {searchResults.map((flight) => (
-                <div 
-                  key={flight.id} 
+                <div
+                  key={flight.id}
                   className={`p-4 border rounded-lg ${getFlightTypeColor(flight)}`}
                 >
                   {/* En-tête du vol */}
@@ -325,7 +377,8 @@ export function UnifiedFlightSearch() {
                           {getProviderBadge(flight)}
                           {flight.viaAlgiers && flight.savings && (
                             <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                              Économies: {flight.savings.amount.toFixed(0)}€ ({flight.savings.percentage.toFixed(1)}%)
+                              Économies: {flight.savings.amount.toFixed(0)}€ (
+                              {flight.savings.percentage.toFixed(1)}%)
                             </span>
                           )}
                         </div>
@@ -333,7 +386,10 @@ export function UnifiedFlightSearch() {
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-blue-600">
-                        {formatPrice(flight.price.amount, flight.price.currency)}
+                        {formatPrice(
+                          flight.price.amount,
+                          flight.price.currency
+                        )}
                       </div>
                       {flight.price.originalDZD && (
                         <div className="text-sm text-gray-600">
@@ -349,18 +405,22 @@ export function UnifiedFlightSearch() {
                       <Clock className="h-4 w-4 text-gray-500" />
                       <div>
                         <div className="text-sm text-gray-600">Départ</div>
-                        <div className="font-medium">{formatDateTime(flight.departureTime)}</div>
+                        <div className="font-medium">
+                          {formatDateTime(flight.departureTime)}
+                        </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-gray-500" />
                       <div>
                         <div className="text-sm text-gray-600">Arrivée</div>
-                        <div className="font-medium">{formatDateTime(flight.arrivalTime)}</div>
+                        <div className="font-medium">
+                          {formatDateTime(flight.arrivalTime)}
+                        </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-gray-500" />
                       <div>
@@ -368,7 +428,7 @@ export function UnifiedFlightSearch() {
                         <div className="font-medium">{flight.duration}</div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-gray-500" />
                       <div>
@@ -384,21 +444,27 @@ export function UnifiedFlightSearch() {
                       <Briefcase className="h-4 w-4 text-gray-500" />
                       <div>
                         <div className="text-sm text-gray-600">Bagages</div>
-                        <div className="font-medium">{flight.baggage.included ? 'Inclus' : 'Non inclus'}</div>
+                        <div className="font-medium">
+                          {flight.baggage.included ? "Inclus" : "Non inclus"}
+                        </div>
                         {flight.baggage.weight && (
-                          <div className="text-xs text-gray-500">{flight.baggage.weight}</div>
+                          <div className="text-xs text-gray-500">
+                            {flight.baggage.weight}
+                          </div>
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Plane className="h-4 w-4 text-gray-500" />
                       <div>
                         <div className="text-sm text-gray-600">Avion</div>
-                        <div className="font-medium">{flight.aircraft || 'Non spécifié'}</div>
+                        <div className="font-medium">
+                          {flight.aircraft || "Non spécifié"}
+                        </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-gray-500" />
                       <div>
@@ -413,12 +479,17 @@ export function UnifiedFlightSearch() {
                     <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
                         <Building2 className="h-4 w-4 text-blue-600" />
-                        <span className="font-medium text-blue-800">Correspondance à {flight.connection.airport}</span>
+                        <span className="font-medium text-blue-800">
+                          Correspondance à {flight.connection.airport}
+                        </span>
                       </div>
                       <div className="text-sm text-blue-700">
                         <div>Durée d'attente: {flight.connection.duration}</div>
                         {flight.connection.flightNumber && (
-                          <div>Vol de correspondance: {flight.connection.flightNumber}</div>
+                          <div>
+                            Vol de correspondance:{" "}
+                            {flight.connection.flightNumber}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -437,8 +508,6 @@ export function UnifiedFlightSearch() {
           </CardContent>
         </Card>
       )}
-
-
     </div>
   );
 }

@@ -53,10 +53,12 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
   }
 }
 
@@ -64,31 +66,31 @@
   .btn-primary {
     @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors;
   }
-  
+
   .btn-secondary {
     @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors;
   }
-  
+
   .card-hover {
     @apply hover:shadow-md transition-shadow duration-200;
   }
-  
+
   .input-focus {
     @apply focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
   }
-  
+
   .badge-success {
     @apply bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full;
   }
-  
+
   .badge-warning {
     @apply bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full;
   }
-  
+
   .badge-danger {
     @apply bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full;
   }
-  
+
   .badge-info {
     @apply bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full;
   }
@@ -98,20 +100,20 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-  
+
   .gradient-text {
     @apply bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent;
   }
-  
+
   .glass-effect {
     @apply bg-white/80 backdrop-blur-sm border border-white/20;
   }
@@ -168,7 +170,7 @@
   .mobile-hidden {
     display: none;
   }
-  
+
   .mobile-full {
     width: 100%;
   }

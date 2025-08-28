@@ -1,7 +1,7 @@
-import { FlightSearchParams } from '../scrapers/types';
-import { GoogleFlightsAPI, GoogleFlightResult } from './googleFlightsAPI';
-import { AirAlgerieScraper, AirAlgerieFlightResult } from './airAlgerieScraper';
-import { AmadeusAPI, AmadeusFlightResult } from './amadeusAPI';
+import { FlightSearchParams } from "../scrapers/types";
+import { GoogleFlightsAPI, GoogleFlightResult } from "./googleFlightsAPI";
+import { AirAlgerieScraper, AirAlgerieFlightResult } from "./airAlgerieScraper";
+import { AmadeusAPI, AmadeusFlightResult } from "./amadeusAPI";
 
 export interface UnifiedFlightResult {
   id: string;
@@ -38,7 +38,7 @@ export interface UnifiedFlightResult {
     amount: number;
     percentage: number;
   };
-  searchSource: 'google' | 'airalgerie' | 'amadeus';
+  searchSource: "google" | "airalgerie" | "amadeus";
 }
 
 export interface SearchResults {
@@ -70,44 +70,56 @@ export class UnifiedFlightSearchService {
    * Recherche unifiée de vols via Amadeus (source principale)
    */
   async searchFlights(params: FlightSearchParams): Promise<SearchResults> {
-    console.log(`🚀 Recherche Amadeus pour ${params.origin} → ${params.destination}`);
+    console.log(
+      `🚀 Recherche Amadeus pour ${params.origin} → ${params.destination}`
+    );
 
     try {
       // Recherche principale via Amadeus
       const amadeusResults = await this.searchAmadeusFlights(params);
-      
+
       // Traitement des résultats Amadeus
-      const allFlights = this.processAmadeusResults({ status: 'fulfilled', value: amadeusResults });
+      const allFlights = this.processAmadeusResults({
+        status: "fulfilled",
+        value: amadeusResults,
+      });
 
       // Recherche DjazAir via API séparée
       let viaAlgiersFlights: UnifiedFlightResult[] = [];
       try {
-        const djazairResponse = await fetch('/api/djazair-calculate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(params)
+        const djazairResponse = await fetch("/api/djazair-calculate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(params),
         });
 
         if (djazairResponse.ok) {
           const djazairData = await djazairResponse.json();
           if (djazairData.success) {
-            const djazairOption = this.createDjazAirOptionFromAPI(djazairData.data, params);
+            const djazairOption = this.createDjazAirOptionFromAPI(
+              djazairData.data,
+              params
+            );
             if (djazairOption) {
               viaAlgiersFlights = [djazairOption];
-              console.log('✅ Option DjazAir trouvée via API séparée');
+              console.log("✅ Option DjazAir trouvée via API séparée");
             }
           }
         }
       } catch (error) {
-        console.warn('⚠️ Erreur API DjazAir:', error);
+        console.warn("⚠️ Erreur API DjazAir:", error);
       }
-      
+
       // Calcul des économies pour l'option DjazAir
-      const viaAlgiersWithSavings = this.calculateSavings(viaAlgiersFlights, allFlights);
+      const viaAlgiersWithSavings = this.calculateSavings(
+        viaAlgiersFlights,
+        allFlights
+      );
 
       // Combinaison et tri de tous les résultats
-      const combinedFlights = [...allFlights, ...viaAlgiersWithSavings]
-        .sort((a, b) => a.price.amount - b.price.amount);
+      const combinedFlights = [...allFlights, ...viaAlgiersWithSavings].sort(
+        (a, b) => a.price.amount - b.price.amount
+      );
 
       // Détermination des meilleures économies
       const bestSavings = this.findBestSavings(viaAlgiersWithSavings);
@@ -119,14 +131,15 @@ export class UnifiedFlightSearchService {
         searchParams: params,
         searchTimestamp: new Date(),
         totalResults: combinedFlights.length,
-        bestSavings
+        bestSavings,
       };
 
-      console.log(`✅ Recherche terminée: ${results.totalResults} vols trouvés (${viaAlgiersFlights.length} DjazAir)`);
+      console.log(
+        `✅ Recherche terminée: ${results.totalResults} vols trouvés (${viaAlgiersFlights.length} DjazAir)`
+      );
       return results;
-
     } catch (error) {
-      console.error('❌ Erreur recherche unifiée:', error);
+      console.error("❌ Erreur recherche unifiée:", error);
       throw new Error(`Erreur de recherche unifiée: ${error}`);
     }
   }
@@ -134,16 +147,20 @@ export class UnifiedFlightSearchService {
   /**
    * Recherche Google Flights avec gestion d'erreur
    */
-  private async searchGoogleFlights(params: FlightSearchParams): Promise<GoogleFlightResult[]> {
+  private async searchGoogleFlights(
+    params: FlightSearchParams
+  ): Promise<GoogleFlightResult[]> {
     try {
       if (this.googleFlightsAPI.isAvailable()) {
         return await this.googleFlightsAPI.searchFlightsWithFallback(params);
       } else {
-        console.warn('⚠️ Google Flights API non disponible, utilisation du fallback');
+        console.warn(
+          "⚠️ Google Flights API non disponible, utilisation du fallback"
+        );
         return this.googleFlightsAPI.getFallbackResults(params);
       }
     } catch (error) {
-      console.warn('⚠️ Erreur Google Flights, utilisation du fallback:', error);
+      console.warn("⚠️ Erreur Google Flights, utilisation du fallback:", error);
       return this.googleFlightsAPI.getFallbackResults(params);
     }
   }
@@ -151,16 +168,18 @@ export class UnifiedFlightSearchService {
   /**
    * Recherche Air Algérie avec gestion d'erreur
    */
-  private async searchAirAlgerieFlights(params: FlightSearchParams): Promise<AirAlgerieFlightResult[]> {
+  private async searchAirAlgerieFlights(
+    params: FlightSearchParams
+  ): Promise<AirAlgerieFlightResult[]> {
     try {
       if (this.airAlgerieScraper.isAvailable()) {
         return await this.airAlgerieScraper.searchFlightsWithFallback(params);
       } else {
-        console.warn('⚠️ Scraper Air Algérie non disponible');
+        console.warn("⚠️ Scraper Air Algérie non disponible");
         return [];
       }
     } catch (error) {
-      console.warn('⚠️ Erreur Air Algérie, utilisation du fallback:', error);
+      console.warn("⚠️ Erreur Air Algérie, utilisation du fallback:", error);
       return await this.airAlgerieScraper.simulateRealSearch(params);
     }
   }
@@ -168,16 +187,18 @@ export class UnifiedFlightSearchService {
   /**
    * Recherche Amadeus avec gestion d'erreur
    */
-  private async searchAmadeusFlights(params: FlightSearchParams): Promise<AmadeusFlightResult[]> {
+  private async searchAmadeusFlights(
+    params: FlightSearchParams
+  ): Promise<AmadeusFlightResult[]> {
     try {
       if (this.amadeusAPI.isAvailable()) {
         return await this.amadeusAPI.searchFlightsWithFallback(params);
       } else {
-        console.warn('⚠️ API Amadeus non disponible');
+        console.warn("⚠️ API Amadeus non disponible");
         return [];
       }
     } catch (error) {
-      console.warn('⚠️ Erreur Amadeus, utilisation du fallback:', error);
+      console.warn("⚠️ Erreur Amadeus, utilisation du fallback:", error);
       return this.amadeusAPI.getFallbackResults(params);
     }
   }
@@ -185,45 +206,48 @@ export class UnifiedFlightSearchService {
   /**
    * Crée une option DjazAir à partir des données de l'API séparée
    */
-  private createDjazAirOptionFromAPI(djazairData: any, params: FlightSearchParams): UnifiedFlightResult | null {
+  private createDjazAirOptionFromAPI(
+    djazairData: any,
+    params: FlightSearchParams
+  ): UnifiedFlightResult | null {
     try {
       const djazairOption: UnifiedFlightResult = {
         id: `djazair-${Date.now()}`,
-        airline: 'DjazAir (via Alger)',
-        airlineCode: 'DJZ',
+        airline: "DjazAir (via Alger)",
+        airlineCode: "DJZ",
         flightNumber: `${djazairData.segments.toAlgiers.flight} + ${djazairData.segments.fromAlgiers.flight}`,
         origin: params.origin,
         destination: params.destination,
-        departureTime: '08:00', // Heure simulée
-        arrivalTime: '22:00', // Heure simulée
-        duration: '16h 00m', // Durée simulée
+        departureTime: "08:00", // Heure simulée
+        arrivalTime: "22:00", // Heure simulée
+        duration: "16h 00m", // Durée simulée
         stops: 1,
         price: {
           amount: djazairData.totalPriceEURConverted,
-          currency: 'EUR',
-          originalDZD: djazairData.totalPriceDZD
+          currency: "EUR",
+          originalDZD: djazairData.totalPriceDZD,
         },
-        aircraft: 'N/A',
-        cabinClass: params.cabinClass || 'Economy',
-        provider: 'DjazAir',
+        aircraft: "N/A",
+        cabinClass: params.cabinClass || "Economy",
+        provider: "DjazAir",
         direct: false,
         viaAlgiers: true,
         baggage: {
           included: true,
-          weight: '23kg',
-          details: 'Via Alger: Bagages inclus'
+          weight: "23kg",
+          details: "Via Alger: Bagages inclus",
         },
         connection: {
-          airport: 'ALG',
-          duration: '2h 00m',
-          flightNumber: djazairData.segments.fromAlgiers.flight
+          airport: "ALG",
+          duration: "2h 00m",
+          flightNumber: djazairData.segments.fromAlgiers.flight,
         },
-        searchSource: 'amadeus'
+        searchSource: "amadeus",
       };
-      
+
       return djazairOption;
     } catch (error) {
-      console.warn('⚠️ Erreur création option DjazAir:', error);
+      console.warn("⚠️ Erreur création option DjazAir:", error);
       return null;
     }
   }
@@ -255,15 +279,17 @@ export class UnifiedFlightSearchService {
   /**
    * Traite les résultats Google Flights
    */
-  private processGoogleResults(result: PromiseSettledResult<GoogleFlightResult[]>): UnifiedFlightResult[] {
-    if (result.status === 'fulfilled') {
-      return result.value.map(flight => ({
+  private processGoogleResults(
+    result: PromiseSettledResult<GoogleFlightResult[]>
+  ): UnifiedFlightResult[] {
+    if (result.status === "fulfilled") {
+      return result.value.map((flight) => ({
         ...flight,
-        searchSource: 'google' as const,
-        viaAlgiers: false
+        searchSource: "google" as const,
+        viaAlgiers: false,
       }));
     } else {
-      console.warn('❌ Google Flights échoué:', result.reason);
+      console.warn("❌ Google Flights échoué:", result.reason);
       return [];
     }
   }
@@ -271,15 +297,17 @@ export class UnifiedFlightSearchService {
   /**
    * Traite les résultats Air Algérie
    */
-  private processAirAlgerieResults(result: PromiseSettledResult<AirAlgerieFlightResult[]>): UnifiedFlightResult[] {
-    if (result.status === 'fulfilled') {
-      return result.value.map(flight => ({
+  private processAirAlgerieResults(
+    result: PromiseSettledResult<AirAlgerieFlightResult[]>
+  ): UnifiedFlightResult[] {
+    if (result.status === "fulfilled") {
+      return result.value.map((flight) => ({
         ...flight,
-        searchSource: 'airalgerie' as const,
-        viaAlgiers: true
+        searchSource: "airalgerie" as const,
+        viaAlgiers: true,
       }));
     } else {
-      console.warn('❌ Air Algérie échoué:', result.reason);
+      console.warn("❌ Air Algérie échoué:", result.reason);
       return [];
     }
   }
@@ -287,15 +315,17 @@ export class UnifiedFlightSearchService {
   /**
    * Traite les résultats Amadeus
    */
-  private processAmadeusResults(result: PromiseSettledResult<AmadeusFlightResult[]>): UnifiedFlightResult[] {
-    if (result.status === 'fulfilled') {
-      return result.value.map(flight => ({
+  private processAmadeusResults(
+    result: PromiseSettledResult<AmadeusFlightResult[]>
+  ): UnifiedFlightResult[] {
+    if (result.status === "fulfilled") {
+      return result.value.map((flight) => ({
         ...flight,
-        searchSource: 'amadeus' as const,
-        viaAlgiers: false
+        searchSource: "amadeus" as const,
+        viaAlgiers: false,
       }));
     } else {
-      console.warn('❌ Amadeus échoué:', result.reason);
+      console.warn("❌ Amadeus échoué:", result.reason);
       return [];
     }
   }
@@ -312,9 +342,11 @@ export class UnifiedFlightSearchService {
     }
 
     // Prix de référence (meilleur prix direct)
-    const referencePrice = Math.min(...directFlights.map(f => f.price.amount));
+    const referencePrice = Math.min(
+      ...directFlights.map((f) => f.price.amount)
+    );
 
-    return viaAlgiersFlights.map(flight => {
+    return viaAlgiersFlights.map((flight) => {
       const savings = referencePrice - flight.price.amount;
       const percentage = (savings / referencePrice) * 100;
 
@@ -322,8 +354,8 @@ export class UnifiedFlightSearchService {
         ...flight,
         savings: {
           amount: Math.round(savings * 100) / 100,
-          percentage: Math.round(percentage * 100) / 100
-        }
+          percentage: Math.round(percentage * 100) / 100,
+        },
       };
     });
   }
@@ -331,9 +363,13 @@ export class UnifiedFlightSearchService {
   /**
    * Trouve les meilleures économies
    */
-  private findBestSavings(viaAlgiersFlights: UnifiedFlightResult[]): SearchResults['bestSavings'] {
-    const flightsWithSavings = viaAlgiersFlights.filter(f => f.savings && f.savings.amount > 0);
-    
+  private findBestSavings(
+    viaAlgiersFlights: UnifiedFlightResult[]
+  ): SearchResults["bestSavings"] {
+    const flightsWithSavings = viaAlgiersFlights.filter(
+      (f) => f.savings && f.savings.amount > 0
+    );
+
     if (flightsWithSavings.length === 0) {
       return undefined;
     }
@@ -343,11 +379,13 @@ export class UnifiedFlightSearchService {
       return current.savings.amount > best.savings.amount ? current : best;
     });
 
-    return bestFlight.savings ? {
-      amount: bestFlight.savings.amount,
-      percentage: bestFlight.savings.percentage,
-      flight: bestFlight
-    } : undefined;
+    return bestFlight.savings
+      ? {
+          amount: bestFlight.savings.amount,
+          percentage: bestFlight.savings.percentage,
+          flight: bestFlight,
+        }
+      : undefined;
   }
 
   /**
@@ -356,50 +394,59 @@ export class UnifiedFlightSearchService {
   getSearchStats(results: SearchResults) {
     const totalDirect = results.directFlights.length;
     const totalViaAlgiers = results.viaAlgiersFlights.length;
-    const totalSavings = results.viaAlgiersFlights.filter(f => f.savings && f.savings.amount > 0).length;
-    const avgSavings = results.viaAlgiersFlights
-      .filter(f => f.savings && f.savings.amount > 0)
-      .reduce((sum, f) => sum + (f.savings?.amount || 0), 0) / Math.max(totalSavings, 1);
+    const totalSavings = results.viaAlgiersFlights.filter(
+      (f) => f.savings && f.savings.amount > 0
+    ).length;
+    const avgSavings =
+      results.viaAlgiersFlights
+        .filter((f) => f.savings && f.savings.amount > 0)
+        .reduce((sum, f) => sum + (f.savings?.amount || 0), 0) /
+      Math.max(totalSavings, 1);
 
     return {
       totalDirect,
       totalViaAlgiers,
       totalSavings,
       averageSavings: Math.round(avgSavings * 100) / 100,
-      bestSavings: results.bestSavings
+      bestSavings: results.bestSavings,
     };
   }
 
   /**
    * Filtre les résultats selon des critères
    */
-  filterResults(results: SearchResults, filters: {
-    maxPrice?: number;
-    maxStops?: number;
-    airlines?: string[];
-    directOnly?: boolean;
-    viaAlgiersOnly?: boolean;
-  }): UnifiedFlightResult[] {
+  filterResults(
+    results: SearchResults,
+    filters: {
+      maxPrice?: number;
+      maxStops?: number;
+      airlines?: string[];
+      directOnly?: boolean;
+      viaAlgiersOnly?: boolean;
+    }
+  ): UnifiedFlightResult[] {
     let filtered = results.allFlights;
 
     if (filters.maxPrice) {
-      filtered = filtered.filter(f => f.price.amount <= filters.maxPrice!);
+      filtered = filtered.filter((f) => f.price.amount <= filters.maxPrice!);
     }
 
     if (filters.maxStops !== undefined) {
-      filtered = filtered.filter(f => f.stops <= filters.maxStops!);
+      filtered = filtered.filter((f) => f.stops <= filters.maxStops!);
     }
 
     if (filters.airlines && filters.airlines.length > 0) {
-      filtered = filtered.filter(f => filters.airlines!.includes(f.airlineCode));
+      filtered = filtered.filter((f) =>
+        filters.airlines!.includes(f.airlineCode)
+      );
     }
 
     if (filters.directOnly) {
-      filtered = filtered.filter(f => f.direct);
+      filtered = filtered.filter((f) => f.direct);
     }
 
     if (filters.viaAlgiersOnly) {
-      filtered = filtered.filter(f => f.viaAlgiers);
+      filtered = filtered.filter((f) => f.viaAlgiers);
     }
 
     return filtered;
@@ -410,7 +457,9 @@ export class UnifiedFlightSearchService {
    */
   updateParallelRate(newRate: number): void {
     this.airAlgerieScraper.updateParallelRate(newRate);
-    console.log(`🔄 Taux parallèle mis à jour dans le service unifié: 1€ = ${newRate} DZD`);
+    console.log(
+      `🔄 Taux parallèle mis à jour dans le service unifié: 1€ = ${newRate} DZD`
+    );
   }
 
   /**

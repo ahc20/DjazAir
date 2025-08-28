@@ -6,8 +6,8 @@ export interface FlightSearchParams {
   adults: number;
   children?: number;
   infants?: number;
-  cabin?: 'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST';
-  currency: 'EUR';
+  cabin?: "ECONOMY" | "PREMIUM_ECONOMY" | "BUSINESS" | "FIRST";
+  currency: "EUR";
 }
 
 export interface FlightOption {
@@ -64,11 +64,11 @@ export interface AppConfig {
   legalDisclaimer: string;
 }
 
-export type ExchangeRateMode = 'official' | 'custom';
+export type ExchangeRateMode = "official" | "custom";
 
 export interface User {
   id: string;
   email: string;
-  role: 'USER' | 'ADMIN';
+  role: "USER" | "ADMIN";
   createdAt: Date;
 }

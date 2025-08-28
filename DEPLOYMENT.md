@@ -3,6 +3,7 @@
 ## Déploiement sur Vercel
 
 ### 1. Prérequis
+
 - Compte GitHub
 - Compte Vercel (gratuit)
 - Variables d'environnement configurées
@@ -10,6 +11,7 @@
 ### 2. Étapes de déploiement
 
 #### Option A: Déploiement automatique via GitHub
+
 1. Créez un repository GitHub : `https://github.com/votre-username/djazair`
 2. Connectez votre compte GitHub à Vercel
 3. Importez le repository dans Vercel
@@ -17,6 +19,7 @@
 5. Déployez !
 
 #### Option B: Déploiement manuel
+
 1. Installez Vercel CLI : `npm i -g vercel`
 2. Connectez-vous : `vercel login`
 3. Déployez : `vercel --prod`

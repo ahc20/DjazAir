@@ -3,21 +3,25 @@
 ## ⚡ Déploiement en 5 minutes
 
 ### 1. 🌐 Allez sur Vercel
+
 - Ouvrez [https://vercel.com](https://vercel.com)
 - Connectez-vous avec votre compte GitHub
 
 ### 2. 📥 Importez votre projet
+
 - Cliquez sur **"New Project"**
 - Sélectionnez le repository **"ahc20/DjazAir"**
 - Cliquez sur **"Import"**
 
 ### 3. ⚙️ Configuration automatique
+
 - **Framework Preset** : Next.js (détecté automatiquement)
 - **Root Directory** : `./` (laisser par défaut)
 - **Build Command** : `npm run build` (automatique)
 - **Output Directory** : `.next` (automatique)
 
 ### 4. 🔑 Variables d'environnement
+
 Ajoutez ces variables dans l'onglet "Environment Variables" :
 
 ```bash
@@ -37,6 +41,7 @@ DATABASE_URL=postgresql://user:pass@host:port/djazair
 ```
 
 ### 5. 🚀 Déployez !
+
 - Cliquez sur **"Deploy"**
 - Attendez 2-3 minutes
 - Votre app sera en ligne ! 🎉
@@ -57,11 +62,13 @@ DATABASE_URL=postgresql://user:pass@host:port/djazair
 ## 🚨 En cas de problème
 
 ### Erreur de build
+
 - Vérifiez les variables d'environnement
 - Regardez les logs dans Vercel Dashboard
 - Testez localement : `npm run build`
 
 ### Erreur de runtime
+
 - Vérifiez les logs dans Vercel Dashboard
 - Testez localement : `npm run dev`
 - Vérifiez la console du navigateur

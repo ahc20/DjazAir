@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Plane, TrendingUp, Globe } from 'lucide-react';
-import { SearchForm } from '@/components/SearchForm';
+import React from "react";
+import { Plane, TrendingUp, Globe } from "lucide-react";
+import { SearchForm } from "@/components/SearchForm";
 
-import { APP_NAME } from '@/lib/constants';
-import type { SearchFormData } from '@/lib/zod';
+import { APP_NAME } from "@/lib/constants";
+import type { SearchFormData } from "@/lib/zod";
 
 export default function HomePage() {
   const handleSearch = async (data: SearchFormData) => {
@@ -32,19 +32,14 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Plane className="h-8 w-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">
-                {APP_NAME}
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900">{APP_NAME}</h1>
               <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
                 Comparateur de Vols
               </span>
             </div>
-
           </div>
         </div>
       </header>
-
-
 
       {/* Contenu principal */}
       <main className="max-w-7xl mx-auto px-4 py-12">
@@ -54,7 +49,7 @@ export default function HomePage() {
             Trouvez les meilleurs prix de vols
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Recherchez et comparez les prix des vols en temps réel via Amadeus 
+            Recherchez et comparez les prix des vols en temps réel via Amadeus
             pour obtenir les meilleures offres disponibles.
           </p>
         </div>
@@ -63,8 +58,6 @@ export default function HomePage() {
         <div className="mb-16">
           <SearchForm onSubmit={handleSearch} />
         </div>
-
-
 
         {/* Section des fonctionnalités */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
@@ -88,7 +81,8 @@ export default function HomePage() {
               Prix Transparents
             </h3>
             <p className="text-gray-600">
-              Comparez facilement les offres avec toutes les informations détaillées
+              Comparez facilement les offres avec toutes les informations
+              détaillées
             </p>
           </div>
 
@@ -110,41 +104,43 @@ export default function HomePage() {
           <h3 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
             Comment ça fonctionne ?
           </h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h4 className="text-lg font-medium text-gray-900 mb-3">
                 1. Recherche de vols
               </h4>
               <p className="text-gray-600 mb-4">
-                Entrez vos critères de voyage (origine, destination, dates, passagers) 
-                et notre système recherche automatiquement les meilleurs prix disponibles.
+                Entrez vos critères de voyage (origine, destination, dates,
+                passagers) et notre système recherche automatiquement les
+                meilleurs prix disponibles.
               </p>
-              
+
               <h4 className="text-lg font-medium text-gray-900 mb-3">
                 2. Simulation "via Alger"
               </h4>
               <p className="text-gray-600 mb-4">
-                Nous calculons le coût total d'un voyage avec escale à Alger en utilisant 
-                des taux de change officiels ou configurés par l'administrateur.
+                Nous calculons le coût total d'un voyage avec escale à Alger en
+                utilisant des taux de change officiels ou configurés par
+                l'administrateur.
               </p>
             </div>
-            
+
             <div>
               <h4 className="text-lg font-medium text-gray-900 mb-3">
                 3. Analyse d'arbitrage
               </h4>
               <p className="text-gray-600 mb-4">
-                Comparez les prix directs avec les options "via Alger" et identifiez 
-                les opportunités d'économies selon vos critères.
+                Comparez les prix directs avec les options "via Alger" et
+                identifiez les opportunités d'économies selon vos critères.
               </p>
-              
+
               <h4 className="text-lg font-medium text-gray-900 mb-3">
                 4. Réservation sécurisée
               </h4>
               <p className="text-gray-600">
-                Une fois votre choix fait, vous êtes redirigé vers les sites officiels 
-                des compagnies aériennes ou agences de voyage.
+                Une fois votre choix fait, vous êtes redirigé vers les sites
+                officiels des compagnies aériennes ou agences de voyage.
               </p>
             </div>
           </div>
@@ -155,7 +151,7 @@ export default function HomePage() {
           <h3 className="text-2xl font-semibold mb-6 text-center">
             Pourquoi choisir {APP_NAME} ?
           </h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
@@ -164,11 +160,12 @@ export default function HomePage() {
               <div>
                 <h4 className="font-medium mb-1">100% Légal et Transparent</h4>
                 <p className="text-blue-100 text-sm">
-                  Aucune opération de change, uniquement des simulations informatiques
+                  Aucune opération de change, uniquement des simulations
+                  informatiques
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                 <span className="text-sm font-bold">✓</span>
@@ -180,7 +177,7 @@ export default function HomePage() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                 <span className="text-sm font-bold">✓</span>
@@ -192,7 +189,7 @@ export default function HomePage() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                 <span className="text-sm font-bold">✓</span>
@@ -207,8 +204,6 @@ export default function HomePage() {
           </div>
         </div>
       </main>
-
-
     </div>
   );
 }

@@ -1,11 +1,18 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Plane, AlertTriangle, Info, ExternalLink, Euro, Calculator } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { formatPrice, calculateSavingsPercent } from '@/lib/utils';
-import type { ArbitrageResult } from '@/types';
+import React from "react";
+import {
+  Plane,
+  AlertTriangle,
+  Info,
+  ExternalLink,
+  Euro,
+  Calculator,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { formatPrice, calculateSavingsPercent } from "@/lib/utils";
+import type { ArbitrageResult } from "@/types";
 
 interface DealCardProps {
   result: ArbitrageResult;
@@ -30,14 +37,14 @@ interface DealCardProps {
   };
 }
 
-export function DealCard({ 
-  result, 
-  onBookDirect, 
-  onBookViaAlgiers, 
-  showViaAlgiers 
+export function DealCard({
+  result,
+  onBookDirect,
+  onBookViaAlgiers,
+  showViaAlgiers,
 }: DealCardProps) {
   const savingsPercent = calculateSavingsPercent(
-    result.directPriceEUR, 
+    result.directPriceEUR,
     result.viaAlgiersPriceEUR
   );
 
@@ -57,14 +64,14 @@ export function DealCard({
               {formatPrice(result.directPriceEUR)}
             </div>
             <p className="text-gray-600">Prix total aller-retour</p>
-            
+
             <div className="space-y-2 text-sm text-gray-600">
               <p>• Vol direct sans escale</p>
               <p>• Bagages inclus</p>
               <p>• Protection de correspondance</p>
             </div>
 
-            <Button 
+            <Button
               onClick={onBookDirect}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
@@ -77,17 +84,21 @@ export function DealCard({
 
       {/* Carte Via Alger (Simulation) */}
       {showViaAlgiers && (
-        <Card className={`border-2 transition-colors ${
-          result.isDeal 
-            ? 'border-green-200 hover:border-green-300 bg-green-50' 
-            : 'border-orange-200 hover:border-orange-300 bg-orange-50'
-        }`}>
-          <CardHeader className={`${
-            result.isDeal ? 'bg-green-100' : 'bg-orange-100'
-          }`}>
-            <CardTitle className={`flex items-center gap-2 ${
-              result.isDeal ? 'text-green-800' : 'text-orange-800'
-            }`}>
+        <Card
+          className={`border-2 transition-colors ${
+            result.isDeal
+              ? "border-green-200 hover:border-green-300 bg-green-50"
+              : "border-orange-200 hover:border-orange-300 bg-orange-50"
+          }`}
+        >
+          <CardHeader
+            className={`${result.isDeal ? "bg-green-100" : "bg-orange-100"}`}
+          >
+            <CardTitle
+              className={`flex items-center gap-2 ${
+                result.isDeal ? "text-green-800" : "text-orange-800"
+              }`}
+            >
               <Calculator className="h-5 w-5" />
               Via Alger (Simulation)
               <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
@@ -97,15 +108,18 @@ export function DealCard({
           </CardHeader>
           <CardContent className="p-6">
             <div className="text-center space-y-4">
-              <div className={`text-4xl font-bold ${
-                result.isDeal ? 'text-green-600' : 'text-orange-600'
-              }`}>
+              <div
+                className={`text-4xl font-bold ${
+                  result.isDeal ? "text-green-600" : "text-orange-600"
+                }`}
+              >
                 {formatPrice(result.viaAlgiersPriceEUR)}
               </div>
-              
+
               {result.isDeal ? (
                 <div className="text-green-700 font-semibold">
-                  Économie de {formatPrice(result.savingsEUR)} ({savingsPercent}%)
+                  Économie de {formatPrice(result.savingsEUR)} ({savingsPercent}
+                  %)
                 </div>
               ) : (
                 <div className="text-orange-700 font-semibold">
@@ -117,15 +131,21 @@ export function DealCard({
               <div className="text-left text-sm space-y-2 bg-white p-3 rounded border">
                 <div className="flex justify-between">
                   <span>Origin → Alger:</span>
-                  <span className="font-medium">{formatPrice(result.viaBreakdown.originToAlgiersEUR)}</span>
+                  <span className="font-medium">
+                    {formatPrice(result.viaBreakdown.originToAlgiersEUR)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Alger → Destination:</span>
-                  <span className="font-medium">{formatPrice(result.viaBreakdown.algiersToDestinationEUR)}</span>
+                  <span className="font-medium">
+                    {formatPrice(result.viaBreakdown.algiersToDestinationEUR)}
+                  </span>
                 </div>
                 <div className="border-t pt-2 flex justify-between font-semibold">
                   <span>Total Via Alger:</span>
-                  <span>{formatPrice(result.viaBreakdown.totalViaAlgiersEUR)}</span>
+                  <span>
+                    {formatPrice(result.viaBreakdown.totalViaAlgiersEUR)}
+                  </span>
                 </div>
               </div>
 
@@ -137,7 +157,7 @@ export function DealCard({
                     Billets séparés (correspondance non protégée)
                   </div>
                 )}
-                
+
                 {result.risks.visaRequired && (
                   <div className="flex items-center gap-2 text-red-700 text-sm">
                     <Info className="h-4 w-4" />
@@ -153,13 +173,13 @@ export function DealCard({
                 )}
               </div>
 
-              <Button 
+              <Button
                 onClick={onBookViaAlgiers}
                 variant={result.isDeal ? "default" : "outline"}
                 className={`w-full ${
-                  result.isDeal 
-                    ? 'bg-green-600 hover:bg-green-700 text-white' 
-                    : 'border-orange-300 text-orange-700 hover:bg-orange-50'
+                  result.isDeal
+                    ? "bg-green-600 hover:bg-green-700 text-white"
+                    : "border-orange-300 text-orange-700 hover:bg-orange-50"
                 }`}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />

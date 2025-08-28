@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plane, Search, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plane, Search, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 interface FlightSearchResult {
   directFlights: any[];
@@ -33,7 +33,9 @@ interface FlightSearchResult {
 
 export function RealTimeSearch() {
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<FlightSearchResult | null>(null);
+  const [searchResults, setSearchResults] = useState<FlightSearchResult | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
 
   const searchParisDubai = async () => {
@@ -42,23 +44,27 @@ export function RealTimeSearch() {
 
     try {
       // Recherche Paris → Dubai via Alger
-      const response = await fetch('/api/search?origin=CDG&destination=DXB&date=2025-01-15');
-      
+      const response = await fetch(
+        "/api/search?origin=CDG&destination=DXB&date=2025-01-15"
+      );
+
       if (!response.ok) {
-        throw new Error('Erreur lors de la recherche');
+        throw new Error("Erreur lors de la recherche");
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         setSearchResults(result.data);
-        console.log('Résultats de recherche:', result.data);
+        console.log("Résultats de recherche:", result.data);
       } else {
-        throw new Error(result.message || 'Erreur lors de la recherche');
+        throw new Error(result.message || "Erreur lors de la recherche");
       }
     } catch (error) {
-      console.error('Erreur recherche:', error);
-      setError(error instanceof Error ? error.message : 'Erreur lors de la recherche');
+      console.error("Erreur recherche:", error);
+      setError(
+        error instanceof Error ? error.message : "Erreur lors de la recherche"
+      );
     } finally {
       setIsSearching(false);
     }
@@ -70,38 +76,40 @@ export function RealTimeSearch() {
 
     try {
       // Recherche personnalisée
-      const response = await fetch('/api/search', {
-        method: 'POST',
+      const response = await fetch("/api/search", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          origin: 'CDG',
-          destination: 'DXB',
-          departDate: '2025-01-15',
+          origin: "CDG",
+          destination: "DXB",
+          departDate: "2025-01-15",
           adults: 1,
           children: 0,
           infants: 0,
-          cabin: 'ECONOMY',
-          currency: 'EUR'
+          cabin: "ECONOMY",
+          currency: "EUR",
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Erreur lors de la recherche');
+        throw new Error("Erreur lors de la recherche");
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         setSearchResults(result.data);
-        console.log('Résultats de recherche personnalisée:', result.data);
+        console.log("Résultats de recherche personnalisée:", result.data);
       } else {
-        throw new Error(result.message || 'Erreur lors de la recherche');
+        throw new Error(result.message || "Erreur lors de la recherche");
       }
     } catch (error) {
-      console.error('Erreur recherche personnalisée:', error);
-      setError(error instanceof Error ? error.message : 'Erreur lors de la recherche');
+      console.error("Erreur recherche personnalisée:", error);
+      setError(
+        error instanceof Error ? error.message : "Erreur lors de la recherche"
+      );
     } finally {
       setIsSearching(false);
     }
@@ -118,11 +126,12 @@ export function RealTimeSearch() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-gray-600">
-            Testez la vraie recherche de vols avec Air Algérie et autres fournisseurs
+            Testez la vraie recherche de vols avec Air Algérie et autres
+            fournisseurs
           </p>
-          
+
           <div className="flex gap-4">
-            <Button 
+            <Button
               onClick={searchParisDubai}
               disabled={isSearching}
               className="flex items-center gap-2"
@@ -135,7 +144,7 @@ export function RealTimeSearch() {
               Recherche Paris → Dubai
             </Button>
 
-            <Button 
+            <Button
               onClick={searchCustomRoute}
               disabled={isSearching}
               variant="outline"
@@ -162,7 +171,8 @@ export function RealTimeSearch() {
               <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <span className="text-green-700">
-                  Recherche terminée ! {searchResults.providers.length} fournisseurs consultés
+                  Recherche terminée ! {searchResults.providers.length}{" "}
+                  fournisseurs consultés
                 </span>
               </div>
 
@@ -181,16 +191,21 @@ export function RealTimeSearch() {
                           {formatPrice(searchResults.bestDirectPriceEUR!)} €
                         </div>
                         <div className="text-sm text-gray-600">
-                          {searchResults.directFlights.length} option(s) trouvée(s)
+                          {searchResults.directFlights.length} option(s)
+                          trouvée(s)
                         </div>
                         {searchResults.priceBreakdown.direct.totalDZD && (
                           <div className="text-sm text-gray-600">
-                            ~{searchResults.priceBreakdown.direct.totalDZD.toLocaleString()} DZD
+                            ~
+                            {searchResults.priceBreakdown.direct.totalDZD.toLocaleString()}{" "}
+                            DZD
                           </div>
                         )}
                       </div>
                     ) : (
-                      <div className="text-gray-500">Aucun vol direct trouvé</div>
+                      <div className="text-gray-500">
+                        Aucun vol direct trouvé
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -209,28 +224,45 @@ export function RealTimeSearch() {
                           {formatPrice(searchResults.bestViaAlgiersPriceEUR!)} €
                         </div>
                         <div className="text-sm text-gray-600">
-                          {searchResults.viaAlgiersFlights.length} option(s) trouvée(s)
+                          {searchResults.viaAlgiersFlights.length} option(s)
+                          trouvée(s)
                         </div>
                         <div className="text-sm text-gray-600">
-                          {searchResults.priceBreakdown.viaAlgiers.totalDZD.toLocaleString()} DZD
+                          {searchResults.priceBreakdown.viaAlgiers.totalDZD.toLocaleString()}{" "}
+                          DZD
                         </div>
-                        
+
                         {/* Décomposition des prix */}
-                        {searchResults.priceBreakdown.viaAlgiers.breakdown.length > 0 && (
+                        {searchResults.priceBreakdown.viaAlgiers.breakdown
+                          .length > 0 && (
                           <div className="mt-3 p-2 bg-white rounded border text-xs">
-                            <div className="font-medium mb-1">Décomposition:</div>
-                            {searchResults.priceBreakdown.viaAlgiers.breakdown.slice(0, 2).map((option, index) => (
-                              <div key={index} className="text-gray-600">
-                                <div>Paris → Alger: {formatPrice(option.outbound.priceEUR)} €</div>
-                                <div>Alger → Dubai: {formatPrice(option.inbound.priceEUR)} €</div>
-                                <div className="font-medium">Total: {formatPrice(option.total)} €</div>
-                              </div>
-                            ))}
+                            <div className="font-medium mb-1">
+                              Décomposition:
+                            </div>
+                            {searchResults.priceBreakdown.viaAlgiers.breakdown
+                              .slice(0, 2)
+                              .map((option, index) => (
+                                <div key={index} className="text-gray-600">
+                                  <div>
+                                    Paris → Alger:{" "}
+                                    {formatPrice(option.outbound.priceEUR)} €
+                                  </div>
+                                  <div>
+                                    Alger → Dubai:{" "}
+                                    {formatPrice(option.inbound.priceEUR)} €
+                                  </div>
+                                  <div className="font-medium">
+                                    Total: {formatPrice(option.total)} €
+                                  </div>
+                                </div>
+                              ))}
                           </div>
                         )}
                       </div>
                     ) : (
-                      <div className="text-gray-500">Aucun vol via Alger trouvé</div>
+                      <div className="text-gray-500">
+                        Aucun vol via Alger trouvé
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -238,11 +270,13 @@ export function RealTimeSearch() {
 
               {/* Fournisseurs consultés */}
               <div className="text-sm text-gray-600">
-                <span className="font-medium">Fournisseurs consultés:</span> {searchResults.providers.join(', ')}
+                <span className="font-medium">Fournisseurs consultés:</span>{" "}
+                {searchResults.providers.join(", ")}
               </div>
-              
+
               <div className="text-xs text-gray-500">
-                Recherche effectuée le {new Date(searchResults.timestamp).toLocaleString('fr-FR')}
+                Recherche effectuée le{" "}
+                {new Date(searchResults.timestamp).toLocaleString("fr-FR")}
               </div>
             </div>
           )}

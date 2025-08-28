@@ -1,4 +1,4 @@
-import { FlightSearchParams } from '../scrapers/types';
+import { FlightSearchParams } from "../scrapers/types";
 
 export interface GoogleFlightResult {
   id: string;
@@ -28,10 +28,10 @@ export interface GoogleFlightResult {
 
 export class GoogleFlightsAPI {
   private apiKey: string;
-  private baseUrl = 'https://www.googleapis.com/qpxExpress/v1/trips/search';
+  private baseUrl = "https://www.googleapis.com/qpxExpress/v1/trips/search";
 
   constructor() {
-    this.apiKey = process.env.GOOGLE_FLIGHTS_API_KEY || '';
+    this.apiKey = process.env.GOOGLE_FLIGHTS_API_KEY || "";
   }
 
   /**
@@ -44,33 +44,38 @@ export class GoogleFlightsAPI {
   /**
    * Recherche de vols via Google Flights API
    */
-  async searchFlights(params: FlightSearchParams): Promise<GoogleFlightResult[]> {
+  async searchFlights(
+    params: FlightSearchParams
+  ): Promise<GoogleFlightResult[]> {
     if (!this.isAvailable()) {
-      throw new Error('Google Flights API non configurée');
+      throw new Error("Google Flights API non configurée");
     }
 
     try {
-      console.log(`🔍 Recherche Google Flights: ${params.origin} → ${params.destination}`);
+      console.log(
+        `🔍 Recherche Google Flights: ${params.origin} → ${params.destination}`
+      );
 
       const requestBody = this.buildRequestBody(params);
-      
+
       const response = await fetch(`${this.baseUrl}?key=${this.apiKey}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
-        throw new Error(`Erreur Google Flights API: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Erreur Google Flights API: ${response.status} ${response.statusText}`
+        );
       }
 
       const data = await response.json();
       return this.parseGoogleFlightsResponse(data, params);
-
     } catch (error) {
-      console.error('❌ Erreur Google Flights API:', error);
+      console.error("❌ Erreur Google Flights API:", error);
       throw new Error(`Erreur de recherche Google Flights: ${error}`);
     }
   }
@@ -84,20 +89,20 @@ export class GoogleFlightsAPI {
         passengers: {
           adultCount: params.passengers || 1,
           childCount: 0,
-          infantCount: 0
+          infantCount: 0,
         },
         slice: [
           {
             origin: params.origin,
             destination: params.destination,
             date: params.departureDate,
-            preferredCabin: this.mapCabinClass(params.cabinClass || 'Economy')
-          }
+            preferredCabin: this.mapCabinClass(params.cabinClass || "Economy"),
+          },
         ],
         solutions: 20, // Nombre de solutions à retourner
         refundable: false,
-        maxPrice: 'USD10000' // Prix maximum en USD
-      }
+        maxPrice: "USD10000", // Prix maximum en USD
+      },
     };
   }
 
@@ -106,23 +111,26 @@ export class GoogleFlightsAPI {
    */
   private mapCabinClass(cabinClass: string): string {
     const mapping: Record<string, string> = {
-      'Economy': 'COACH',
-      'Premium Economy': 'PREMIUM_COACH',
-      'Business': 'BUSINESS',
-      'First': 'FIRST'
+      Economy: "COACH",
+      "Premium Economy": "PREMIUM_COACH",
+      Business: "BUSINESS",
+      First: "FIRST",
     };
-    return mapping[cabinClass] || 'COACH';
+    return mapping[cabinClass] || "COACH";
   }
 
   /**
    * Parse la réponse de l'API Google Flights
    */
-  private parseGoogleFlightsResponse(data: any, params: FlightSearchParams): GoogleFlightResult[] {
+  private parseGoogleFlightsResponse(
+    data: any,
+    params: FlightSearchParams
+  ): GoogleFlightResult[] {
     const results: GoogleFlightResult[] = [];
 
     try {
       if (!data.tripOption || !Array.isArray(data.tripOption)) {
-        console.warn('Aucun résultat trouvé dans la réponse Google Flights');
+        console.warn("Aucun résultat trouvé dans la réponse Google Flights");
         return results;
       }
 
@@ -136,9 +144,8 @@ export class GoogleFlightsAPI {
           console.warn(`Erreur parsing option ${index}:`, error);
         }
       });
-
     } catch (error) {
-      console.error('Erreur parsing réponse Google Flights:', error);
+      console.error("Erreur parsing réponse Google Flights:", error);
     }
 
     return results;
@@ -147,7 +154,11 @@ export class GoogleFlightsAPI {
   /**
    * Parse une option de vol individuelle
    */
-  private parseTripOption(trip: any, params: FlightSearchParams, index: number): GoogleFlightResult | null {
+  private parseTripOption(
+    trip: any,
+    params: FlightSearchParams,
+    index: number
+  ): GoogleFlightResult | null {
     try {
       if (!trip.slice || !trip.slice[0] || !trip.pricing) {
         return null;
@@ -177,12 +188,12 @@ export class GoogleFlightsAPI {
       // Bagages (par défaut inclus pour Google Flights)
       const baggage = {
         included: true,
-        weight: '23kg',
-        details: 'Bagage en soute inclus'
+        weight: "23kg",
+        details: "Bagage en soute inclus",
       };
 
       // Type d'avion
-      const aircraft = segment.leg[0].aircraft || 'Non spécifié';
+      const aircraft = segment.leg[0].aircraft || "Non spécifié";
 
       return {
         id: `google-${index}`,
@@ -197,12 +208,11 @@ export class GoogleFlightsAPI {
         stops,
         price,
         aircraft,
-        cabinClass: params.cabinClass || 'Economy',
-        provider: 'Google Flights',
+        cabinClass: params.cabinClass || "Economy",
+        provider: "Google Flights",
         direct: stops === 0,
-        baggage
+        baggage,
       };
-
     } catch (error) {
       console.warn(`Erreur parsing option ${index}:`, error);
       return null;
@@ -212,17 +222,20 @@ export class GoogleFlightsAPI {
   /**
    * Calcule la durée du vol
    */
-  private calculateDuration(departureTime: string, arrivalTime: string): string {
+  private calculateDuration(
+    departureTime: string,
+    arrivalTime: string
+  ): string {
     try {
       const departure = new Date(departureTime);
       const arrival = new Date(arrivalTime);
       const diffMs = arrival.getTime() - departure.getTime();
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
       const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      
+
       return `${diffHours}h ${diffMinutes}m`;
     } catch {
-      return 'Durée non disponible';
+      return "Durée non disponible";
     }
   }
 
@@ -244,15 +257,15 @@ export class GoogleFlightsAPI {
       const saleTotal = pricing.saleTotal;
       const currency = saleTotal.substring(0, 3);
       const amount = parseFloat(saleTotal.substring(3));
-      
+
       return {
         amount: Math.round(amount * 100) / 100,
-        currency
+        currency,
       };
     } catch {
       return {
         amount: 0,
-        currency: 'EUR'
+        currency: "EUR",
       };
     }
   }
@@ -262,26 +275,26 @@ export class GoogleFlightsAPI {
    */
   private getAirlineName(code: string): string {
     const airlines: Record<string, string> = {
-      'AF': 'Air France',
-      'EK': 'Emirates',
-      'TK': 'Turkish Airlines',
-      'QR': 'Qatar Airways',
-      'ET': 'Ethiopian Airlines',
-      'MS': 'EgyptAir',
-      'RJ': 'Royal Jordanian',
-      'ME': 'Middle East Airlines',
-      'AH': 'Air Algérie',
-      'AT': 'Royal Air Maroc',
-      'TU': 'Tunisair',
-      'LY': 'El Al',
-      'SU': 'Aeroflot',
-      'LH': 'Lufthansa',
-      'BA': 'British Airways',
-      'IB': 'Iberia',
-      'AZ': 'ITA Airways',
-      'KL': 'KLM',
-      'LX': 'Swiss',
-      'OS': 'Austrian Airlines'
+      AF: "Air France",
+      EK: "Emirates",
+      TK: "Turkish Airlines",
+      QR: "Qatar Airways",
+      ET: "Ethiopian Airlines",
+      MS: "EgyptAir",
+      RJ: "Royal Jordanian",
+      ME: "Middle East Airlines",
+      AH: "Air Algérie",
+      AT: "Royal Air Maroc",
+      TU: "Tunisair",
+      LY: "El Al",
+      SU: "Aeroflot",
+      LH: "Lufthansa",
+      BA: "British Airways",
+      IB: "Iberia",
+      AZ: "ITA Airways",
+      KL: "KLM",
+      LX: "Swiss",
+      OS: "Austrian Airlines",
     };
 
     return airlines[code] || code;
@@ -290,11 +303,16 @@ export class GoogleFlightsAPI {
   /**
    * Recherche de vols avec fallback vers des données simulées
    */
-  async searchFlightsWithFallback(params: FlightSearchParams): Promise<GoogleFlightResult[]> {
+  async searchFlightsWithFallback(
+    params: FlightSearchParams
+  ): Promise<GoogleFlightResult[]> {
     try {
       return await this.searchFlights(params);
     } catch (error) {
-      console.warn('Google Flights API échouée, utilisation du fallback:', error);
+      console.warn(
+        "Google Flights API échouée, utilisation du fallback:",
+        error
+      );
       return this.getFallbackResults(params);
     }
   }
@@ -303,19 +321,19 @@ export class GoogleFlightsAPI {
    * Résultats de fallback (simulation) quand l'API échoue
    */
   public getFallbackResults(params: FlightSearchParams): GoogleFlightResult[] {
-    console.log('🔄 Utilisation des résultats de fallback Google Flights');
-    
+    console.log("🔄 Utilisation des résultats de fallback Google Flights");
+
     const basePrices: Record<string, number> = {
-      'CDG-DXB': 354,
-      'CDG-IST': 280,
-      'CDG-CAI': 350,
-      'CDG-BEY': 380,
-      'CDG-AMM': 420,
-      'ORY-DXB': 380,
-      'ORY-IST': 300,
-      'ORY-CAI': 370,
-      'ORY-BEY': 400,
-      'ORY-AMM': 440
+      "CDG-DXB": 354,
+      "CDG-IST": 280,
+      "CDG-CAI": 350,
+      "CDG-BEY": 380,
+      "CDG-AMM": 420,
+      "ORY-DXB": 380,
+      "ORY-IST": 300,
+      "ORY-CAI": 370,
+      "ORY-BEY": 400,
+      "ORY-AMM": 440,
     };
 
     const route = `${params.origin}-${params.destination}`;
@@ -323,55 +341,55 @@ export class GoogleFlightsAPI {
 
     return [
       {
-        id: 'google-fallback-1',
-        airline: 'Air France',
-        airlineCode: 'AF',
-        flightNumber: 'AF1001',
+        id: "google-fallback-1",
+        airline: "Air France",
+        airlineCode: "AF",
+        flightNumber: "AF1001",
         origin: params.origin,
         destination: params.destination,
         departureTime: `${params.departureDate}T08:00:00`,
         arrivalTime: `${params.departureDate}T14:30:00`,
-        duration: '6h 30m',
+        duration: "6h 30m",
         stops: 0,
         price: {
           amount: basePrice,
-          currency: 'EUR'
+          currency: "EUR",
         },
-        aircraft: 'Airbus A350-900',
-        cabinClass: params.cabinClass || 'Economy',
-        provider: 'Google Flights (Fallback)',
+        aircraft: "Airbus A350-900",
+        cabinClass: params.cabinClass || "Economy",
+        provider: "Google Flights (Fallback)",
         direct: true,
         baggage: {
           included: true,
-          weight: '23kg',
-          details: 'Bagage en soute inclus'
-        }
+          weight: "23kg",
+          details: "Bagage en soute inclus",
+        },
       },
       {
-        id: 'google-fallback-2',
-        airline: 'Emirates',
-        airlineCode: 'EK',
-        flightNumber: 'EK2001',
+        id: "google-fallback-2",
+        airline: "Emirates",
+        airlineCode: "EK",
+        flightNumber: "EK2001",
         origin: params.origin,
         destination: params.destination,
         departureTime: `${params.departureDate}T10:30:00`,
         arrivalTime: `${params.departureDate}T17:15:00`,
-        duration: '6h 45m',
+        duration: "6h 45m",
         stops: 0,
         price: {
           amount: basePrice * 0.95,
-          currency: 'EUR'
+          currency: "EUR",
         },
-        aircraft: 'Boeing 777-300ER',
-        cabinClass: params.cabinClass || 'Economy',
-        provider: 'Google Flights (Fallback)',
+        aircraft: "Boeing 777-300ER",
+        cabinClass: params.cabinClass || "Economy",
+        provider: "Google Flights (Fallback)",
         direct: true,
         baggage: {
           included: true,
-          weight: '30kg',
-          details: 'Bagage en soute + bagage à main inclus'
-        }
-      }
+          weight: "30kg",
+          details: "Bagage en soute + bagage à main inclus",
+        },
+      },
     ];
   }
 }

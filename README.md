@@ -19,21 +19,25 @@ L'application est un **outil d'information et de comparaison** à des fins éduc
 ## 🚀 Fonctionnalités
 
 ### ✈️ Recherche de vols
+
 - Recherche multi-critères (origine, destination, dates, passagers, classe)
 - Autocomplétion des codes IATA
 - Validation des données en temps réel
 
 ### 💰 Simulation d'arbitrage
+
 - Comparaison prix direct vs "via Alger"
 - Calculs automatiques avec différents taux de change
 - Évaluation des risques et avertissements
 
 ### 🔧 Administration
+
 - Configuration des taux de change custom
 - Gestion des hypothèses de prix local
 - Paramètres de sécurité et de conformité
 
 ### 🛡️ Sécurité et transparence
+
 - Avertissements légaux sur toutes les pages
 - Traçabilité des modifications administratives
 - Validation stricte des entrées utilisateur
@@ -41,29 +45,33 @@ L'application est un **outil d'information et de comparaison** à des fins éduc
 ## 🛠️ Stack Technique
 
 ### Frontend
+
 - **Next.js 14** avec App Router
 - **TypeScript** strict
 - **Tailwind CSS** + **shadcn/ui**
 - **React Hook Form** + **Zod** pour la validation
 
 ### Backend
+
 - **Server Actions** Next.js
 - **Prisma** ORM
 - **PostgreSQL** (SQLite en développement)
 
 ### APIs
+
 - **Amadeus Self-Service API** (principal)
 - **Kiwi Tequila API** (fallback)
 - **exchangerate.host** (taux officiels BCE)
 
 ### Tests & Qualité
+
 - **Vitest** pour les tests unitaires
 - **ESLint** + **Prettier** pour le code
 - **Husky** + **lint-staged** pour les hooks Git
 
 ## 📋 Prérequis
 
-- **Node.js** 18+ 
+- **Node.js** 18+
 - **npm** ou **yarn**
 - **PostgreSQL** (ou SQLite pour le développement)
 - **Comptes API** :
@@ -209,11 +217,11 @@ const amadeus = new AmadeusProvider();
 
 // Recherche
 const results = await amadeus.searchRoundTrip({
-  origin: 'CDG',
-  destination: 'DXB',
-  departDate: '2025-01-15',
+  origin: "CDG",
+  destination: "DXB",
+  departDate: "2025-01-15",
   adults: 1,
-  currency: 'EUR'
+  currency: "EUR",
 });
 ```
 
@@ -238,12 +246,14 @@ const custom = await exchangeService.getCustomRate();
 ## 🎨 Composants UI
 
 ### Composants de base (shadcn/ui)
+
 - `Button` - Boutons avec variantes
 - `Input` - Champs de saisie
 - `Card` - Cartes de contenu
 - `Select` - Sélecteurs
 
 ### Composants métier
+
 - `SearchForm` - Formulaire de recherche
 - `DealCard` - Affichage des résultats
 - `RateSelector` - Choix du taux de change
@@ -252,12 +262,14 @@ const custom = await exchangeService.getCustomRate();
 ## 🔒 Sécurité et Conformité
 
 ### Mesures de sécurité
+
 - Validation stricte des entrées (Zod)
 - Sanitisation des données
 - Protection CSRF (Next.js)
 - Rate limiting (à implémenter)
 
 ### Conformité légale
+
 - Avertissements visibles sur toutes les pages
 - Métadonnées de conformité
 - Traçabilité des actions administratives
@@ -307,11 +319,13 @@ NEXTAUTH_URL=https://votre-domaine.com
 ## 📊 Monitoring et Logs
 
 ### Logs applicatifs
+
 - Erreurs API et calculs
 - Actions administratives
 - Métriques de performance
 
 ### Monitoring
+
 - Santé des APIs externes
 - Temps de réponse
 - Taux d'erreur
@@ -319,6 +333,7 @@ NEXTAUTH_URL=https://votre-domaine.com
 ## 🔧 Maintenance
 
 ### Tâches régulières
+
 - Mise à jour des taux de change
 - Vérification des APIs
 - Sauvegarde de la base de données
@@ -345,6 +360,7 @@ npm run db:generate
 ### Problèmes courants
 
 1. **Erreur de base de données**
+
    ```bash
    npm run db:generate
    npm run db:push
@@ -377,12 +393,14 @@ Voir `src/lib/zod.ts` pour tous les schémas de validation.
 ## 🤝 Contribution
 
 ### Standards de code
+
 - TypeScript strict
 - ESLint + Prettier
 - Tests unitaires obligatoires
 - Documentation des composants
 
 ### Processus
+
 1. Fork du repository
 2. Création d'une branche feature
 3. Tests et validation
@@ -402,6 +420,7 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 - Fournit uniquement des simulations basées sur des hypothèses
 
 Les utilisateurs sont responsables de :
+
 - Vérifier les conditions de visa
 - Évaluer les risques de correspondance
 - Effectuer leurs réservations via des canaux officiels
@@ -410,6 +429,7 @@ Les utilisateurs sont responsables de :
 ## 📞 Support
 
 Pour toute question ou problème :
+
 - Issues GitHub
 - Documentation technique
 - Support développeur

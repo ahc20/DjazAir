@@ -6,7 +6,7 @@ export interface FlightSearchParams {
   adults: number;
   children?: number;
   infants?: number;
-  cabin?: 'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST';
+  cabin?: "ECONOMY" | "PREMIUM_ECONOMY" | "BUSINESS" | "FIRST";
   currency: string;
 }
 
