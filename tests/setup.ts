@@ -2,7 +2,7 @@
 import { beforeAll, afterAll, vi } from 'vitest';
 
 // Mock des variables d'environnement pour les tests
-process.env.NODE_ENV = 'test';
+// Note: NODE_ENV est géré automatiquement par Vitest
 process.env.EXCHANGE_BASE_URL = 'https://api.exchangerate.host';
 process.env.NEXT_PUBLIC_DEFAULT_PARALLEL_RATE_DZD = '262';
 
