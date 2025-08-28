@@ -336,17 +336,33 @@ export default function SearchResultsPage() {
                             <span className="font-semibold text-gray-700">
                               {index + 1}er segment {index === 0 ? '→ Alger' : 'Alger →'}
                             </span>
-                            <span className="text-lg font-bold text-blue-600">
-                              {segment.priceEUR} {segment.currency}
-                            </span>
+                            <div className="text-right">
+                              <div className="text-lg font-bold text-blue-600">
+                                {segment.priceEUR.toFixed(2)} {segment.currency}
+                              </div>
+                              {segment.priceDZD && segment.currency === "DZD" && (
+                                <div className="text-sm text-gray-500">
+                                  ({segment.priceDZD.toFixed(0)} DZD)
+                                </div>
+                              )}
+                              {segment.priceDZD && segment.currency === "EUR" && (
+                                <div className="text-sm text-gray-500">
+                                  ({segment.priceDZD.toFixed(0)} DZD)
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                          <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
                             <div>
                               <strong>Vol:</strong> {segment.airline} {segment.flightNumber}
                             </div>
                             <div>
-                              <strong>Prix:</strong> {segment.priceEUR} {segment.currency}
-                              {segment.priceDZD && ` (${segment.priceDZD} DZD)`}
+                              <strong>Prix:</strong> {segment.priceEUR.toFixed(2)} {segment.currency}
+                              {segment.priceDZD && (
+                                <span className="text-gray-500">
+                                  {" "}({segment.priceDZD.toFixed(0)} DZD)
+                                </span>
+                              )}
                             </div>
                             <div>
                               <strong>Départ:</strong> {new Date(segment.departureTime).toLocaleTimeString('fr-FR', { 
@@ -365,6 +381,11 @@ export default function SearchResultsPage() {
                             </div>
                             <div>
                               <strong>Devise:</strong> {segment.currency}
+                              {segment.priceDZD && (
+                                <span className="text-gray-500">
+                                  {" "}(+ {segment.priceDZD.toFixed(0)} DZD local)
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -382,6 +403,16 @@ export default function SearchResultsPage() {
                           <div className="text-sm text-blue-600">{flight.layover.location}</div>
                         </div>
                         <span className="text-blue-600">✈️</span>
+                      </div>
+                    </div>
+
+                    {/* Explication des taux de change */}
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+                      <h4 className="font-semibold text-yellow-700 mb-2">💱 Calcul des taux de change</h4>
+                      <div className="text-sm text-yellow-700 space-y-1">
+                        <div><strong>Taux officiel :</strong> 1 EUR = 150 DZD (utilisé par Amadeus)</div>
+                        <div><strong>Taux parallèle :</strong> 1 EUR = 260 DZD (économies DjazAir)</div>
+                        <div><strong>Note :</strong> Les prix DZD d'Amadeus sont automatiquement convertis au taux officiel</div>
                       </div>
                     </div>
 
