@@ -124,13 +124,35 @@ export async function POST(request: Request) {
           continue;
         }
 
-        // Calcul des prix
-        const segment1PriceEUR = segment1.price.amount;
-        const segment2PriceDZD = segment2.price.amount;
-        const segment2PriceEUR = segment2PriceDZD / params.dzdEurRate;
+        // Calcul des prix avec correction des taux de change
+        const segment1PriceEUR = segment1.price.amount;  // Prix en EUR depuis l'origine
         
-        const totalPriceEUR = segment1PriceEUR + segment2PriceEUR;
-        const totalPriceDZD = (segment1PriceEUR * params.dzdEurRate) + segment2PriceDZD;
+        // CORRECTION : Amadeus retourne le prix en DZD converti au taux officiel
+        // Il faut d'abord le reconvertir en EUR, puis au taux parallèle
+        const amadeusPriceDZD = segment2.price.amount;  // Prix DZD converti par Amadeus
+        const officialRate = 150;  // Taux officiel : 1 EUR = 150 DZD
+        const parallelRate = params.dzdEurRate;  // Taux parallèle : 1 EUR = 260 DZD
+        
+        // Étape 1 : Reconvertir au taux officiel pour avoir le prix en EUR
+        const segment2PriceEUR = amadeusPriceDZD / officialRate;
+        
+        // Étape 2 : Convertir au taux parallèle pour avoir le vrai prix local en DZD
+        const realLocalPriceDZD = segment2PriceEUR * parallelRate;
+        
+        // Étape 3 : Prix final en EUR (taux parallèle)
+        const segment2FinalPriceEUR = realLocalPriceDZD / parallelRate;
+        
+        // Logs détaillés pour le debugging
+        console.log(`🔢 Calcul des taux pour ${segment2.origin} → ${segment2.destination}:`);
+        console.log(`   Prix Amadeus (DZD converti): ${amadeusPriceDZD} DZD`);
+        console.log(`   Taux officiel: 1 EUR = ${officialRate} DZD`);
+        console.log(`   Taux parallèle: 1 EUR = ${parallelRate} DZD`);
+        console.log(`   Prix en EUR (officiel): ${amadeusPriceDZD} / ${officialRate} = ${segment2PriceEUR.toFixed(2)} EUR`);
+        console.log(`   Prix local réel (DZD): ${segment2PriceEUR.toFixed(2)} × ${parallelRate} = ${realLocalPriceDZD.toFixed(0)} DZD`);
+        console.log(`   Prix final (EUR parallèle): ${realLocalPriceDZD.toFixed(0)} / ${parallelRate} = ${segment2FinalPriceEUR.toFixed(2)} EUR`);
+        
+        const totalPriceEUR = segment1PriceEUR + segment2FinalPriceEUR;
+        const totalPriceDZD = (segment1PriceEUR * parallelRate) + realLocalPriceDZD;
 
         // Calcul de la durée totale
         const totalDurationMs = (new Date(segment2.arrivalTime).getTime() - new Date(segment1.departureTime).getTime());
@@ -172,8 +194,8 @@ export async function POST(request: Request) {
               departureTime: segment2.departureTime,
               arrivalTime: segment2.arrivalTime,
               duration: segment2.duration || "Durée non spécifiée",
-              priceEUR: segment2PriceEUR,
-              priceDZD: segment2PriceDZD,
+              priceEUR: segment2FinalPriceEUR,
+              priceDZD: realLocalPriceDZD,
               currency: "DZD"
             }
           ],
@@ -209,7 +231,13 @@ export async function POST(request: Request) {
         },
         totalCombinations: djazairFlights.length,
         dzdEurRate: params.dzdEurRate,
-        policy: params.policy
+        officialRate: 150,
+        policy: params.policy,
+        rateExplanation: {
+          official: "1 EUR = 150 DZD (taux officiel utilisé par Amadeus)",
+          parallel: `1 EUR = ${params.dzdEurRate} DZD (taux parallèle pour les économies DjazAir)`,
+          note: "Les prix DZD d'Amadeus sont automatiquement convertis au taux officiel"
+        }
       }
     });
 
