@@ -67,7 +67,7 @@ export default function SearchResultsPage() {
   const cabin = searchParams.get("cabin") || "ECONOMY";
 
   useEffect(() => {
-    // Recherche DjazAir SIMPLE et RAPIDE
+    // Recherche DjazAir RÉELLE via l'API Quote
     const searchDjazAir = async () => {
       try {
         setIsLoading(true);
@@ -78,15 +78,18 @@ export default function SearchResultsPage() {
           destination,
           departureDate: departDate,
           returnDate,
-          passengers: adults + children + infants,
-          cabinClass: cabin,
-          currency: "EUR",
+          adults: adults + children + infants,
+          cabin: cabin,
+          maxResults: 20,
+          policy: "DZ_ONLY",
+          dzdEurRate: 260,
+          airlinesWhitelist: "AH,AF,ET,TK,MS,QR,EK", // Compagnies principales
         };
 
-        console.log("📤 Données envoyées à l'API DjazAir Simple:", requestBody);
+        console.log("📤 Recherche de vrais vols DjazAir via l'API Quote:", requestBody);
 
-        // Appel direct à l'API DjazAir simple
-        const djazairResponse = await fetch("/api/djazair-simple", {
+        // Appel à l'API DjazAir Quote pour de vrais vols
+        const djazairResponse = await fetch("/api/djazair/quote", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestBody),
@@ -95,24 +98,93 @@ export default function SearchResultsPage() {
         if (djazairResponse.ok) {
           const djazairData = await djazairResponse.json();
           if (djazairData.success) {
-            // Créer un résultat de vol avec l'option DjazAir
-            const djazairFlight: FlightResult = {
-              ...djazairData.data,
-              baggage: djazairData.data.baggage || { included: true, weight: "23kg" },
-              connection: djazairData.data.connection || { airport: "ALG", duration: "4h 30m" },
-            };
+            console.log("✅ Vrais vols DjazAir trouvés:", djazairData.data);
             
-            setSearchResults([djazairFlight]);
-            console.log("✅ DjazAir Simple réussi:", djazairFlight);
+            // Recherche aussi des vols directs pour comparaison
+            let directFlights: FlightResult[] = [];
+            try {
+              const directResponse = await fetch("/api/search", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  origin,
+                  destination,
+                  departureDate: departDate,
+                  returnDate,
+                  adults: adults + children + infants,
+                  cabin,
+                  maxResults: 5,
+                }),
+              });
+              
+              if (directResponse.ok) {
+                const directData = await directResponse.json();
+                if (directData.success && directData.data.length > 0) {
+                  directFlights = directData.data.slice(0, 3).map((flight: any) => ({
+                    ...flight,
+                    searchSource: "amadeus" as const,
+                    viaAlgiers: false,
+                  }));
+                }
+              }
+            } catch (directError) {
+              console.warn("⚠️ Impossible de récupérer les vols directs pour comparaison:", directError);
+            }
+            
+            // Créer un résultat de vol avec les vrais segments DjazAir
+            const djazairFlight: FlightResult = {
+              id: `djazair-${Date.now()}`,
+              origin,
+              destination,
+              departureTime: djazairData.data.originToAlgiers.departureTime,
+              arrivalTime: djazairData.data.algiersToDestination.arrivalTime,
+              duration: `${djazairData.data.originToAlgiers.duration} + ${djazairData.data.algiersToDestination.duration}`,
+              price: {
+                amount: djazairData.data.totalEUR,
+                currency: "EUR",
+                originalDZD: djazairData.data.totalDZD,
+              },
+              airline: "DjazAir",
+              flightNumber: `${djazairData.data.originToAlgiers.flightNumber} + ${djazairData.data.algiersToDestination.flightNumber}`,
+              stops: 1,
+              baggage: { included: true, weight: "23kg" },
+              searchSource: "djazair",
+              viaAlgiers: true,
+              savings: calculateSavings(djazairData.data.totalEUR, directFlights),
+              connection: {
+                airport: "ALG",
+                duration: "4h 30m",
+                flightNumber: "Connexion",
+              },
+              segments: {
+                toAlgiers: {
+                  flight: djazairData.data.originToAlgiers.flightNumber,
+                  price: djazairData.data.originToAlgiers.priceEUR,
+                  currency: djazairData.data.originToAlgiers.currency,
+                  airline: djazairData.data.originToAlgiers.airline,
+                },
+                fromAlgiers: {
+                  flight: djazairData.data.algiersToDestination.flightNumber,
+                  price: djazairData.data.algiersToDestination.priceEUR,
+                  currency: djazairData.data.algiersToDestination.currency,
+                  airline: djazairData.data.algiersToDestination.airline,
+                },
+              },
+            };
+
+            // Combiner les résultats : DjazAir en premier, puis vols directs
+            setSearchResults([djazairFlight, ...directFlights]);
           } else {
-            setError(djazairData.error || "Erreur DjazAir");
+            console.warn("⚠️ Aucun vol DjazAir trouvé:", djazairData.error);
+            setError("Aucune option DjazAir disponible pour cette recherche");
           }
         } else {
-          setError("Erreur de l'API DjazAir");
+          console.error("❌ Erreur API DjazAir Quote:", djazairResponse.status);
+          setError("Erreur lors de la recherche DjazAir");
         }
-      } catch (err) {
-        setError("Erreur de connexion au serveur");
-        console.error("❌ Erreur:", err);
+      } catch (error) {
+        console.error("❌ Erreur recherche DjazAir:", error);
+        setError("Erreur de connexion au serveur DjazAir");
       } finally {
         setIsLoading(false);
       }
@@ -121,16 +193,18 @@ export default function SearchResultsPage() {
     if (origin && destination && departDate) {
       searchDjazAir();
     }
-  }, [
-    origin,
-    destination,
-    departDate,
-    returnDate,
-    adults,
-    children,
-    infants,
-    cabin,
-  ]);
+  }, [origin, destination, departDate, returnDate, adults, children, infants, cabin]);
+
+  // Fonction pour calculer les économies
+  const calculateSavings = (djazairPrice: number, directFlights: FlightResult[]) => {
+    if (directFlights.length === 0) return { amount: 0, percentage: 0 };
+    
+    const cheapestDirect = Math.min(...directFlights.map(f => f.price.amount));
+    const savings = cheapestDirect - djazairPrice;
+    const percentage = Math.round((savings / cheapestDirect) * 100);
+    
+    return { amount: Math.max(0, savings), percentage: Math.max(0, percentage) };
+  };
 
   const handleBookFlight = (flight: FlightResult) => {
     // Redirection vers un site de réservation
