@@ -84,14 +84,21 @@ export class UnifiedFlightSearchService {
         value: amadeusResults,
       });
 
-      // Recherche DjazAir via API séparée
+      // Recherche DjazAir via API séparée avec timeout
       let viaAlgiersFlights: UnifiedFlightResult[] = [];
       try {
-        const djazairResponse = await fetch("/api/djazair-calculate", {
+        const djazairPromise = fetch("/api/djazair-calculate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(params),
         });
+
+        // Timeout de 6 secondes pour DjazAir
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("Timeout DjazAir")), 6000);
+        });
+
+        const djazairResponse = await Promise.race([djazairPromise, timeoutPromise]);
 
         if (djazairResponse.ok) {
           const djazairData = await djazairResponse.json();
@@ -107,7 +114,8 @@ export class UnifiedFlightSearchService {
           }
         }
       } catch (error) {
-        console.warn("⚠️ Erreur API DjazAir:", error);
+        console.warn("⚠️ Erreur API DjazAir (timeout ou erreur):", error);
+        // Continue sans DjazAir en cas d'erreur
       }
 
       // Calcul des économies pour l'option DjazAir

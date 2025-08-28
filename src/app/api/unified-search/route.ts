@@ -22,9 +22,9 @@ const unifiedSearchRequestSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    // Timeout global de 8 secondes pour éviter les 504
+    // Timeout global de 12 secondes (augmenté pour éviter les 504)
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error("Timeout de la requête")), 8000);
+      setTimeout(() => reject(new Error("Timeout de la requête")), 12000);
     });
 
     const bodyPromise = request.json();
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const searchParams = validationResult.data;
     console.log("✅ Paramètres validés:", searchParams);
 
-    // Recherche avec timeout
+    // Recherche avec timeout et gestion d'erreur améliorée
     const searchPromise = unifiedSearchService.searchFlights(searchParams);
     const searchResults = await Promise.race([searchPromise, timeoutPromise]);
 
@@ -66,6 +66,7 @@ export async function POST(request: Request) {
         {
           success: false,
           error: "La recherche prend trop de temps. Veuillez réessayer.",
+          suggestion: "Essayez de réduire la période de recherche ou de changer les dates.",
         },
         { status: 504 }
       );
@@ -75,6 +76,7 @@ export async function POST(request: Request) {
       {
         success: false,
         error: "Erreur interne du serveur",
+        suggestion: "Veuillez réessayer dans quelques instants.",
       },
       { status: 500 }
     );

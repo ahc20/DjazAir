@@ -19,7 +19,14 @@ const djazairRequestSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    // Timeout de 5 secondes pour éviter les blocages
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Timeout DjazAir")), 5000);
+    });
+
+    const bodyPromise = request.json();
+    const body = await Promise.race([bodyPromise, timeoutPromise]);
+
     console.log("📥 DjazAir: Données reçues:", body);
 
     // Validation
@@ -42,17 +49,22 @@ export async function POST(request: Request) {
 
     const amadeusAPI = new AmadeusAPI();
 
-    // Recherche simple : vol vers Alger
-    const toAlgiersFlights = await amadeusAPI.searchFlights({
-      ...params,
-      destination: "ALG",
-    });
+    // Recherche parallèle avec timeout
+    const searchPromise = Promise.all([
+      amadeusAPI.searchFlights({
+        ...params,
+        destination: "ALG",
+      }),
+      amadeusAPI.searchFlights({
+        ...params,
+        origin: "ALG",
+      }),
+    ]);
 
-    // Recherche simple : vol depuis Alger
-    const fromAlgiersFlights = await amadeusAPI.searchFlights({
-      ...params,
-      origin: "ALG",
-    });
+    const [toAlgiersFlights, fromAlgiersFlights] = await Promise.race([
+      searchPromise,
+      timeoutPromise,
+    ]);
 
     if (toAlgiersFlights.length === 0 || fromAlgiersFlights.length === 0) {
       return NextResponse.json(
@@ -73,7 +85,7 @@ export async function POST(request: Request) {
       current.price.amount < best.price.amount ? current : best
     );
 
-    // Calcul DjazAir simple
+    // Calcul DjazAir optimisé
     const totalPriceEUR =
       bestToAlgiers.price.amount + bestFromAlgiers.price.amount;
     const totalPriceDZD = totalPriceEUR * 260; // Taux parallèle
@@ -109,6 +121,17 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("❌ Erreur DjazAir:", error);
+
+    if (error instanceof Error && error.message === "Timeout DjazAir") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Calcul DjazAir trop long, veuillez réessayer",
+        },
+        { status: 408 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,

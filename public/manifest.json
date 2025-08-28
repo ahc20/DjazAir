@@ -1,0 +1,19 @@
+{
+  "name": "DjazAir - Recherche de vols avec escale en Algérie",
+  "short_name": "DjazAir",
+  "description": "Trouvez les meilleurs prix pour vos vols avec escale en Algérie et économisez grâce à l'arbitrage des taux de change",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e40af",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["travel", "finance", "productivity"],
+  "lang": "fr",
+  "dir": "ltr"
+}
