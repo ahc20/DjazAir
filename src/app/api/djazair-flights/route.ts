@@ -69,10 +69,9 @@ export async function POST(request: Request) {
       passengers: params.adults,
       cabinClass: params.cabin,
       currency: "EUR",
-      maxResults: Math.min(params.maxResults, 10), // Limiter pour optimiser
     });
 
-    if (!segment1Flights.success || !segment1Flights.data || segment1Flights.data.length === 0) {
+    if (!segment1Flights || segment1Flights.length === 0) {
       console.log("❌ Aucun vol trouvé pour le segment 1");
       return NextResponse.json({
         success: false,
@@ -91,10 +90,9 @@ export async function POST(request: Request) {
       passengers: params.adults,
       cabinClass: params.cabin,
       currency: "DZD", // Prix en DZD depuis l'Algérie
-      maxResults: Math.min(params.maxResults, 10),
     });
 
-    if (!segment2Flights.success || !segment2Flights.data || segment2Flights.data.length === 0) {
+    if (!segment2Flights || segment2Flights.length === 0) {
       console.log("❌ Aucun vol trouvé pour le segment 2");
       return NextResponse.json({
         success: false,
@@ -103,17 +101,17 @@ export async function POST(request: Request) {
       });
     }
 
-    console.log(`✅ Segments trouvés: ${segment1Flights.data.length} + ${segment2Flights.data.length}`);
+    console.log(`✅ Segments trouvés: ${segment1Flights.length} + ${segment2Flights.length}`);
 
     // Génération des combinaisons DjazAir
     const djazairFlights: DjazAirFlight[] = [];
-    const maxCombinations = Math.min(5, segment1Flights.data.length * segment2Flights.data.length);
+    const maxCombinations = Math.min(5, segment1Flights.length * segment2Flights.length);
 
     let combinationsGenerated = 0;
     
     // Parcourir les combinaisons possibles
-    for (const segment1 of segment1Flights.data.slice(0, 3)) {
-      for (const segment2 of segment2Flights.data.slice(0, 3)) {
+    for (const segment1 of segment1Flights.slice(0, 3)) {
+      for (const segment2 of segment2Flights.slice(0, 3)) {
         if (combinationsGenerated >= maxCombinations) break;
 
         // Vérifier la compatibilité des horaires
@@ -206,8 +204,8 @@ export async function POST(request: Request) {
       data: djazairFlights,
       metadata: {
         segmentsFound: {
-          segment1: segment1Flights.data.length,
-          segment2: segment2Flights.data.length
+          segment1: segment1Flights.length,
+          segment2: segment2Flights.length
         },
         totalCombinations: djazairFlights.length,
         dzdEurRate: params.dzdEurRate,

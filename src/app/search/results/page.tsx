@@ -189,7 +189,8 @@ export default function SearchResultsPage() {
           djazairFlights,
           classicFlights: [],
           loading: false,
-          error: "Erreur lors de la recherche des vols classiques"
+          error: "Erreur lors de la recherche des vols classiques",
+          savings: null
         });
       }
     };
