@@ -127,32 +127,28 @@ export async function POST(request: Request) {
         // Calcul des prix avec correction des taux de change
         const segment1PriceEUR = segment1.price.amount;  // Prix en EUR depuis l'origine
         
-        // CORRECTION : Amadeus retourne le prix en DZD converti au taux officiel
-        // Il faut d'abord le reconvertir en EUR, puis au taux parallèle
-        const amadeusPriceDZD = segment2.price.amount;  // Prix DZD converti par Amadeus
+        // CORRECTION : Amadeus retourne le prix en EUR pour le segment ALG → DXB
+        // Il faut le multiplier par 150 (taux officiel) puis diviser par 260 (taux parallèle)
+        const amadeusPriceEUR = segment2.price.amount;  // Prix EUR retourné par Amadeus
         const officialRate = 150;  // Taux officiel : 1 EUR = 150 DZD
         const parallelRate = params.dzdEurRate;  // Taux parallèle : 1 EUR = 260 DZD
         
-        // Étape 1 : Reconvertir au taux officiel pour avoir le prix en EUR
-        const segment2PriceEUR = amadeusPriceDZD / officialRate;
+        // Étape 1 : Convertir le prix EUR d'Amadeus en DZD (taux officiel)
+        const segment2PriceDZD = amadeusPriceEUR * officialRate;
         
-        // Étape 2 : Convertir au taux parallèle pour avoir le vrai prix local en DZD
-        const realLocalPriceDZD = segment2PriceEUR * parallelRate;
-        
-        // Étape 3 : Prix final en EUR (taux parallèle)
-        const segment2FinalPriceEUR = realLocalPriceDZD / parallelRate;
+        // Étape 2 : Convertir ce prix DZD au taux parallèle pour avoir le "vrai" prix EUR
+        const segment2FinalPriceEUR = segment2PriceDZD / parallelRate;
         
         // Logs détaillés pour le debugging
         console.log(`🔢 Calcul des taux pour ${segment2.origin} → ${segment2.destination}:`);
-        console.log(`   Prix Amadeus (DZD converti): ${amadeusPriceDZD} DZD`);
+        console.log(`   Prix Amadeus (EUR): ${amadeusPriceEUR} EUR`);
         console.log(`   Taux officiel: 1 EUR = ${officialRate} DZD`);
         console.log(`   Taux parallèle: 1 EUR = ${parallelRate} DZD`);
-        console.log(`   Prix en EUR (officiel): ${amadeusPriceDZD} / ${officialRate} = ${segment2PriceEUR.toFixed(2)} EUR`);
-        console.log(`   Prix local réel (DZD): ${segment2PriceEUR.toFixed(2)} × ${parallelRate} = ${realLocalPriceDZD.toFixed(0)} DZD`);
-        console.log(`   Prix final (EUR parallèle): ${realLocalPriceDZD.toFixed(0)} / ${parallelRate} = ${segment2FinalPriceEUR.toFixed(2)} EUR`);
+        console.log(`   Prix en DZD (officiel): ${amadeusPriceEUR} × ${officialRate} = ${segment2PriceDZD.toFixed(0)} DZD`);
+        console.log(`   Prix final (EUR parallèle): ${segment2PriceDZD.toFixed(0)} / ${parallelRate} = ${segment2FinalPriceEUR.toFixed(2)} EUR`);
         
         const totalPriceEUR = segment1PriceEUR + segment2FinalPriceEUR;
-        const totalPriceDZD = (segment1PriceEUR * parallelRate) + realLocalPriceDZD;
+        const totalPriceDZD = (segment1PriceEUR * parallelRate) + segment2PriceDZD;
 
         // Calcul de la durée totale
         const totalDurationMs = (new Date(segment2.arrivalTime).getTime() - new Date(segment1.departureTime).getTime());
@@ -195,7 +191,7 @@ export async function POST(request: Request) {
               arrivalTime: segment2.arrivalTime,
               duration: segment2.duration || "Durée non spécifiée",
               priceEUR: segment2FinalPriceEUR,
-              priceDZD: realLocalPriceDZD,
+              priceDZD: segment2PriceDZD,
               currency: "DZD"
             }
           ],
