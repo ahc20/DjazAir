@@ -2,7 +2,7 @@
 import { beforeAll, afterAll, vi } from 'vitest';
 
 // Mock des variables d'environnement pour les tests
-Object.defineProperty(process.env, 'NODE_ENV', { value: 'test', writable: true });
+process.env.NODE_ENV = 'test';
 process.env.EXCHANGE_BASE_URL = 'https://api.exchangerate.host';
 process.env.NEXT_PUBLIC_DEFAULT_PARALLEL_RATE_DZD = '262';
 
