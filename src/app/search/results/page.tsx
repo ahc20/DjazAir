@@ -67,7 +67,7 @@ export default function SearchResultsPage() {
   const cabin = searchParams.get("cabin") || "ECONOMY";
 
   useEffect(() => {
-    // Recherche DjazAir RÉELLE via l'API Quote
+    // Recherche DjazAir RÉELLE via l'API djazair-flights
     const searchDjazAir = async () => {
       try {
         setIsLoading(true);
@@ -80,16 +80,13 @@ export default function SearchResultsPage() {
           returnDate,
           adults: adults + children + infants,
           cabin: cabin,
-          maxResults: 20,
-          policy: "DZ_ONLY",
           dzdEurRate: 260,
-          airlinesWhitelist: "AH,AF,ET,TK,MS,QR,EK", // Compagnies principales
         };
 
-        console.log("📤 Recherche de vrais vols DjazAir via l'API Quote:", requestBody);
+        console.log("📤 Recherche de vrais vols DjazAir via l'API djazair-flights:", requestBody);
 
-        // Appel à l'API DjazAir Quote pour de vrais vols
-        const djazairResponse = await fetch("/api/djazair/quote", {
+        // Appel à l'API DjazAir Flights pour de vrais vols avec escale en Algérie
+        const djazairResponse = await fetch("/api/djazair-flights", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestBody),
@@ -98,95 +95,144 @@ export default function SearchResultsPage() {
         if (djazairResponse.ok) {
           const djazairData = await djazairResponse.json();
           if (djazairData.success) {
-            console.log("✅ Vrais vols DjazAir trouvés:", djazairData.data);
+            console.log("✅ Vrais vols DjazAir trouvés:", djazairData.data.length);
             
-            // Recherche aussi des vols directs pour comparaison
-            let directFlights: FlightResult[] = [];
-            try {
-              const directResponse = await fetch("/api/search", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  origin,
-                  destination,
-                  departureDate: departDate,
-                  returnDate,
-                  adults: adults + children + infants,
-                  cabin,
-                  maxResults: 5,
-                }),
-              });
-              
-              if (directResponse.ok) {
-                const directData = await directResponse.json();
-                if (directData.success && directData.data.length > 0) {
-                  directFlights = directData.data.slice(0, 3).map((flight: any) => ({
-                    ...flight,
-                    searchSource: "amadeus" as const,
-                    viaAlgiers: false,
-                  }));
-                }
-              }
-            } catch (directError) {
-              console.warn("⚠️ Impossible de récupérer les vols directs pour comparaison:", directError);
-            }
-            
-            // Créer un résultat de vol avec les vrais segments DjazAir
-            const djazairFlight: FlightResult = {
-              id: `djazair-${Date.now()}`,
-              origin,
-              destination,
-              departureTime: djazairData.data.originToAlgiers.departureTime,
-              arrivalTime: djazairData.data.algiersToDestination.arrivalTime,
-              duration: `${djazairData.data.originToAlgiers.duration} + ${djazairData.data.algiersToDestination.duration}`,
+            // Convertir les vols DjazAir au format FlightResult
+            const djazairFlights: FlightResult[] = djazairData.data.map((flight: any) => ({
+              id: flight.id,
+              origin: flight.origin,
+              destination: flight.destination,
+              departureTime: flight.departureTime,
+              arrivalTime: flight.arrivalTime,
+              duration: flight.totalDuration,
               price: {
-                amount: djazairData.data.totalEUR,
-                currency: "EUR",
-                originalDZD: djazairData.data.totalDZD,
+                amount: flight.totalPrice.amount,
+                currency: flight.totalPrice.currency,
+                originalDZD: flight.totalPrice.originalDZD,
               },
               airline: "DjazAir",
-              flightNumber: `${djazairData.data.originToAlgiers.flightNumber} + ${djazairData.data.algiersToDestination.flightNumber}`,
+              flightNumber: `${flight.segments.toAlgiers.flightNumber} + ${flight.segments.fromAlgiers.flightNumber}`,
               stops: 1,
               baggage: { included: true, weight: "23kg" },
               searchSource: "djazair",
               viaAlgiers: true,
-              savings: calculateSavings(djazairData.data.totalEUR, directFlights),
+              savings: flight.savings || { amount: 0, percentage: 0 },
               connection: {
-                airport: "ALG",
-                duration: "4h 30m",
-                flightNumber: "Connexion",
+                airport: flight.connection.airport,
+                duration: flight.connection.duration,
+                flightNumber: flight.connection.type,
               },
               segments: {
                 toAlgiers: {
-                  flight: djazairData.data.originToAlgiers.flightNumber,
-                  price: djazairData.data.originToAlgiers.priceEUR,
-                  currency: djazairData.data.originToAlgiers.currency,
-                  airline: djazairData.data.originToAlgiers.airline,
+                  flight: flight.segments.toAlgiers.flightNumber,
+                  price: flight.segments.toAlgiers.price,
+                  currency: flight.segments.toAlgiers.currency,
+                  airline: flight.segments.toAlgiers.airline,
                 },
                 fromAlgiers: {
-                  flight: djazairData.data.algiersToDestination.flightNumber,
-                  price: djazairData.data.algiersToDestination.priceEUR,
-                  currency: djazairData.data.algiersToDestination.currency,
-                  airline: djazairData.data.algiersToDestination.airline,
+                  flight: flight.segments.fromAlgiers.flightNumber,
+                  price: flight.segments.fromAlgiers.price,
+                  currency: flight.segments.fromAlgiers.currency,
+                  airline: flight.segments.fromAlgiers.airline,
                 },
               },
-            };
+            }));
 
-            // Combiner les résultats : DjazAir en premier, puis vols directs
-            setSearchResults([djazairFlight, ...directFlights]);
+            // Stocker les vols DjazAir
+            setSearchResults(prev => {
+              const withoutDjazair = prev.filter(f => f.searchSource !== "djazair");
+              return [...djazairFlights, ...withoutDjazair];
+            });
+
+            // Maintenant rechercher les vols classiques pour comparaison
+            await searchClassicFlights(Math.min(...djazairFlights.map(f => f.price.amount)));
           } else {
             console.warn("⚠️ Aucun vol DjazAir trouvé:", djazairData.error);
             setError("Aucune option DjazAir disponible pour cette recherche");
+            // Même sans DjazAir, rechercher les vols classiques
+            await searchClassicFlights(0);
           }
         } else {
-          console.error("❌ Erreur API DjazAir Quote:", djazairResponse.status);
+          console.error("❌ Erreur API DjazAir Flights:", djazairResponse.status);
           setError("Erreur lors de la recherche DjazAir");
+          // Même en cas d'erreur DjazAir, rechercher les vols classiques
+          await searchClassicFlights(0);
         }
       } catch (error) {
         console.error("❌ Erreur recherche DjazAir:", error);
         setError("Erreur de connexion au serveur DjazAir");
+        // Même en cas d'erreur, rechercher les vols classiques
+        await searchClassicFlights(0);
       } finally {
         setIsLoading(false);
+      }
+    };
+
+    // Recherche des vols classiques pour comparaison
+    const searchClassicFlights = async (djazairPrice: number) => {
+      try {
+        console.log("🔍 Recherche de vols classiques pour comparaison...");
+
+        const classicResponse = await fetch("/api/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            origin,
+            destination,
+            departureDate: departDate,
+            returnDate,
+            adults: adults + children + infants,
+            cabin,
+            maxResults: 10,
+          }),
+        });
+        
+        if (classicResponse.ok) {
+          const classicData = await classicResponse.json();
+          if (classicData.success && classicData.data.length > 0) {
+            console.log("✅ Vols classiques trouvés:", classicData.data.length);
+            
+            const classicFlights = classicData.data.slice(0, 5).map((flight: any) => ({
+              ...flight,
+              searchSource: "amadeus" as const,
+              viaAlgiers: false,
+              savings: djazairPrice > 0 ? calculateSavings(djazairPrice, flight.price.amount) : { amount: 0, percentage: 0 },
+            }));
+
+            // Ajouter les vols classiques aux résultats
+            setSearchResults(prev => {
+              const djazairFlights = prev.filter(f => f.searchSource === "djazair");
+              const withoutClassic = prev.filter(f => f.searchSource !== "amadeus");
+              return [...djazairFlights, ...classicFlights];
+            });
+
+            // Mettre à jour les économies DjazAir si disponible
+            if (djazairPrice > 0) {
+              setSearchResults(prev => {
+                return prev.map(flight => {
+                  if (flight.searchSource === "djazair") {
+                    const cheapestClassic = Math.min(...classicFlights.map((f: FlightResult) => f.price.amount));
+                    const savings = cheapestClassic - djazairPrice;
+                    return {
+                      ...flight,
+                      savings: {
+                        amount: Math.max(0, savings),
+                        percentage: Math.max(0, Math.round((savings / cheapestClassic) * 100)),
+                      },
+                    };
+                  }
+                  return flight;
+                });
+              });
+            }
+          } else {
+            console.warn("⚠️ Aucun vol classique trouvé");
+          }
+        } else {
+          console.warn("⚠️ Erreur lors de la recherche de vols classiques:", classicResponse.status);
+        }
+      } catch (classicError) {
+        console.warn("⚠️ Impossible de récupérer les vols classiques pour comparaison:", classicError);
       }
     };
 
@@ -196,20 +242,37 @@ export default function SearchResultsPage() {
   }, [origin, destination, departDate, returnDate, adults, children, infants, cabin]);
 
   // Fonction pour calculer les économies
-  const calculateSavings = (djazairPrice: number, directFlights: FlightResult[]) => {
-    if (directFlights.length === 0) return { amount: 0, percentage: 0 };
+  const calculateSavings = (djazairPrice: number, classicPrice: number) => {
+    const savings = classicPrice - djazairPrice;
+    const percentage = Math.round((savings / classicPrice) * 100);
     
-    const cheapestDirect = Math.min(...directFlights.map(f => f.price.amount));
-    const savings = cheapestDirect - djazairPrice;
-    const percentage = Math.round((savings / cheapestDirect) * 100);
-    
-    return { amount: Math.max(0, savings), percentage: Math.max(0, percentage) };
+    return { 
+      amount: Math.max(0, savings), 
+      percentage: Math.max(0, percentage) 
+    };
   };
 
-  const handleBookFlight = (flight: FlightResult) => {
-    // Redirection vers un site de réservation
-    window.open("https://www.google.com/travel/flights", "_blank");
+  const handleBookFlight = (flight: FlightResult | string) => {
+    if (typeof flight === "string") {
+      // Ancien format avec optionId
+      console.log("Réserver vol avec ID:", flight);
+      alert(`Réservation du vol ${flight} !`);
+    } else {
+      // Nouveau format avec FlightResult
+      console.log("Réserver vol:", flight);
+      alert(`Réservation du vol ${flight.airline} ${flight.flightNumber} de ${flight.origin} à ${flight.destination} !`);
+    }
   };
+
+  // Séparer les résultats par type
+  const djazairFlights = searchResults.filter(flight => flight.searchSource === "djazair");
+  const classicFlights = searchResults.filter(flight => flight.searchSource === "amadeus");
+
+  // Calculer les statistiques de comparaison
+  const cheapestClassic = classicFlights.length > 0 ? Math.min(...classicFlights.map(f => f.price.amount)) : 0;
+  const cheapestDjazair = djazairFlights.length > 0 ? Math.min(...djazairFlights.map(f => f.price.amount)) : 0;
+  const totalSavings = cheapestClassic > 0 && cheapestDjazair > 0 ? cheapestClassic - cheapestDjazair : 0;
+  const savingsPercentage = cheapestClassic > 0 && cheapestDjazair > 0 ? Math.round((totalSavings / cheapestClassic) * 100) : 0;
 
   if (isLoading) {
     return (
@@ -353,78 +416,181 @@ export default function SearchResultsPage() {
         )}
 
         {/* Résultats de recherche */}
-        {error && (
-          <Card className="mb-8 border-red-200 bg-red-50">
-            <CardContent className="pt-6">
-              <div className="text-center text-red-700">
-                <p className="font-medium">Erreur lors de la recherche</p>
-                <p className="text-sm">{error}</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <div className="space-y-6">
+          {/* Affichage des erreurs */}
+          {error && (
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="pt-6">
+                <div className="text-center text-red-700">
+                  <p className="font-medium">Erreur lors de la recherche</p>
+                  <p className="text-sm">{error}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Option DjazAir en premier et très visible */}
-        {searchResults.length > 0 && searchResults[0].viaAlgiers && (
-          <div className="mb-8">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-blue-600 mb-2">
-                🎯 Solution DjazAir Recommandée
-              </h2>
-              <p className="text-xl text-gray-600">
-                Économies garanties avec escale en Algérie
-              </p>
+          {/* Indicateur de chargement */}
+          {isLoading && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="pt-6">
+                <div className="text-center text-blue-700">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p className="font-medium">Recherche en cours...</p>
+                  <p className="text-sm">Recherche de vols DjazAir et classiques</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Section DjazAir */}
+          {djazairFlights.length > 0 && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-blue-600 mb-2">
+                  ✈️ Solution DjazAir - Escale en Algérie
+                </h2>
+                <p className="text-gray-600">
+                  Vols avec escale à Alger pour des économies garanties
+                </p>
+              </div>
+
+              {/* Statistiques DjazAir */}
+              {totalSavings > 0 && (
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border-2 border-green-200">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-700 mb-2">
+                      💰 Économies DjazAir Détectées !
+                    </div>
+                    <div className="text-lg text-green-600 mb-4">
+                      Nous avons trouvé des alternatives moins chères via Alger en utilisant le taux de change parallèle (260 DZD/€)
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-2xl font-bold text-green-700">
+                          {djazairFlights.length}
+                        </div>
+                        <div className="text-sm text-green-600">Options DjazAir</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-green-700">
+                          {totalSavings.toFixed(0)}€
+                        </div>
+                        <div className="text-sm text-green-600">Meilleure économie</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-green-700">
+                          {savingsPercentage}%
+                        </div>
+                        <div className="text-sm text-green-600">Économie relative</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Options DjazAir */}
+              {djazairFlights.map((flight) => (
+                <DjazAirOptionCard
+                  key={flight.id}
+                  option={flight}
+                  onBook={handleBookFlight}
+                />
+              ))}
             </div>
-            
-            <DjazAirOptionCard
-              option={searchResults[0]}
-              onBook={(optionId) => {
-                console.log("Réserver DjazAir:", optionId);
-                alert(`Réservation DjazAir ${optionId} !`);
-              }}
-            />
-          </div>
-        )}
+          )}
 
-        {/* Statistiques DjazAir */}
-        {searchResults.length > 0 && searchResults[0].viaAlgiers && (
-          <Card className="mb-8 border-green-200 bg-green-50">
-            <CardContent className="pt-6">
-              <div className="text-center mb-4">
-                <h3 className="text-xl font-bold text-green-700">
-                  💰 Avantages DjazAir
-                </h3>
+          {/* Section Vols Classiques */}
+          {classicFlights.length > 0 && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-700 mb-2">
+                  🛫 Vols Classiques - Comparaison
+                </h2>
+                <p className="text-gray-600">
+                  Vols directs et avec escales traditionnelles
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {searchResults[0].savings?.amount || 0}€
-                  </div>
-                  <div className="text-sm text-green-700">
-                    Économies garanties
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {searchResults[0].savings?.percentage || 0}%
-                  </div>
-                  <div className="text-sm text-green-700">
-                    Pourcentage d'économies
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    ALG
-                  </div>
-                  <div className="text-sm text-green-700">
-                    Escale optimisée
+              {/* Statistiques de comparaison */}
+              {djazairFlights.length > 0 && (
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <div className="text-center">
+                    <div className="text-lg font-semibold text-gray-700 mb-2">
+                      📊 Comparaison des Prix
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium">Prix classique le moins cher :</span>
+                        <div className="text-xl font-bold text-gray-800">
+                          {cheapestClassic}€
+                        </div>
+                      </div>
+                      <div>
+                        <span className="font-medium">Prix DjazAir :</span>
+                        <div className="text-xl font-bold text-blue-600">
+                          {cheapestDjazair}€
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
+              )}
+
+              {/* Liste des vols classiques */}
+              <div className="grid gap-4">
+                {classicFlights.map((flight) => (
+                  <Card key={flight.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-4 mb-2">
+                            <div className="text-lg font-semibold text-gray-800">
+                              {flight.origin} → {flight.destination}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {flight.airline} {flight.flightNumber}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-4 text-sm text-gray-600">
+                            <span>🕐 {flight.duration}</span>
+                            <span>🛫 {flight.stops} escale(s)</span>
+                            {flight.savings && flight.savings.amount > 0 && (
+                              <span className="text-green-600 font-medium">
+                                💰 +{flight.savings.amount}€ plus cher que DjazAir
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-gray-800">
+                            {flight.price.amount}€
+                          </div>
+                          <Button
+                            onClick={() => handleBookFlight(flight)}
+                            variant="outline"
+                            size="sm"
+                            className="mt-2"
+                          >
+                            Réserver
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
+
+          {/* Message si aucun résultat */}
+          {searchResults.length === 0 && !isLoading && !error && (
+            <div className="text-center py-12">
+              <div className="text-gray-500 text-lg">
+                Aucun vol trouvé pour cette recherche
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Informations sur DjazAir */}
         <Card className="mb-8 border-blue-200 bg-blue-50">
@@ -454,22 +620,6 @@ export default function SearchResultsPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Aucun résultat */}
-        {!isLoading && searchResults.length === 0 && !error && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Plane className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Aucun vol trouvé
-              </h3>
-              <p className="text-gray-600">
-                Aucun vol disponible pour cette recherche. Essayez de modifier
-                vos critères.
-              </p>
-            </CardContent>
-          </Card>
-        )}
       </main>
     </div>
   );
