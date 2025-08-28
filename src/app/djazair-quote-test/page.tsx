@@ -1,11 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface QuoteResult {
   originToAlgiers: {
@@ -144,29 +139,35 @@ export default function DjazAirQuoteTestPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Formulaire de test */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Paramètres de Test</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-bold mb-4">Paramètres de Test</h2>
+            <div className="space-y-4">
               {/* Origine et Destination */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="origin">Origine (IATA)</Label>
-                  <Input
+                  <label htmlFor="origin" className="block text-sm font-medium text-gray-700 mb-1">
+                    Origine (IATA)
+                  </label>
+                  <input
                     id="origin"
+                    type="text"
                     value={params.origin}
                     onChange={(e) => handleParamChange("origin", e.target.value)}
                     placeholder="CDG"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="destination">Destination (IATA)</Label>
-                  <Input
+                  <label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-1">
+                    Destination (IATA)
+                  </label>
+                  <input
                     id="destination"
+                    type="text"
                     value={params.destination}
                     onChange={(e) => handleParamChange("destination", e.target.value)}
                     placeholder="DXB"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -174,21 +175,27 @@ export default function DjazAirQuoteTestPage() {
               {/* Dates */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="departureDate">Date de départ</Label>
-                  <Input
+                  <label htmlFor="departureDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Date de départ
+                  </label>
+                  <input
                     id="departureDate"
                     type="date"
                     value={params.departureDate}
                     onChange={(e) => handleParamChange("departureDate", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="returnDate">Date de retour</Label>
-                  <Input
+                  <label htmlFor="returnDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Date de retour
+                  </label>
+                  <input
                     id="returnDate"
                     type="date"
                     value={params.returnDate}
                     onChange={(e) => handleParamChange("returnDate", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -196,49 +203,56 @@ export default function DjazAirQuoteTestPage() {
               {/* Passagers et Classe */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="adults">Passagers adultes</Label>
-                  <Input
+                  <label htmlFor="adults" className="block text-sm font-medium text-gray-700 mb-1">
+                    Passagers adultes
+                  </label>
+                  <input
                     id="adults"
                     type="number"
                     min="1"
                     max="9"
                     value={params.adults}
                     onChange={(e) => handleParamChange("adults", parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="cabin">Classe</Label>
-                  <Select value={params.cabin} onValueChange={(value) => handleParamChange("cabin", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ECONOMY">Économie</SelectItem>
-                      <SelectItem value="PREMIUM_ECONOMY">Premium Économie</SelectItem>
-                      <SelectItem value="BUSINESS">Affaires</SelectItem>
-                      <SelectItem value="FIRST">Première</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <label htmlFor="cabin" className="block text-sm font-medium text-gray-700 mb-1">
+                    Classe
+                  </label>
+                  <select
+                    value={params.cabin}
+                    onChange={(e) => handleParamChange("cabin", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="ECONOMY">Économie</option>
+                    <option value="PREMIUM_ECONOMY">Premium Économie</option>
+                    <option value="BUSINESS">Affaires</option>
+                    <option value="FIRST">Première</option>
+                  </select>
                 </div>
               </div>
 
               {/* Politique et Taux */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="policy">Politique devise</Label>
-                  <Select value={params.policy} onValueChange={(value) => handleParamChange("policy", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="DZ_ONLY">DZ_ONLY (DZD uniquement depuis ALG)</SelectItem>
-                      <SelectItem value="ALL_DZ_TOUCHING">ALL_DZ_TOUCHING (DZD si touche ALG)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <label htmlFor="policy" className="block text-sm font-medium text-gray-700 mb-1">
+                    Politique devise
+                  </label>
+                  <select
+                    value={params.policy}
+                    onChange={(e) => handleParamChange("policy", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="DZ_ONLY">DZ_ONLY (DZD uniquement depuis ALG)</option>
+                    <option value="ALL_DZ_TOUCHING">ALL_DZ_TOUCHING (DZD si touche ALG)</option>
+                  </select>
                 </div>
                 <div>
-                  <Label htmlFor="dzdEurRate">Taux DZD/EUR</Label>
-                  <Input
+                  <label htmlFor="dzdEurRate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Taux DZD/EUR
+                  </label>
+                  <input
                     id="dzdEurRate"
                     type="number"
                     step="0.01"
@@ -246,6 +260,7 @@ export default function DjazAirQuoteTestPage() {
                     max="1000"
                     value={params.dzdEurRate}
                     onChange={(e) => handleParamChange("dzdEurRate", parseFloat(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -253,70 +268,72 @@ export default function DjazAirQuoteTestPage() {
               {/* Compagnies et Résultats max */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="airlinesWhitelist">Compagnies (CSV)</Label>
-                  <Input
+                  <label htmlFor="airlinesWhitelist" className="block text-sm font-medium text-gray-700 mb-1">
+                    Compagnies (CSV)
+                  </label>
+                  <input
                     id="airlinesWhitelist"
+                    type="text"
                     value={params.airlinesWhitelist}
                     onChange={(e) => handleParamChange("airlinesWhitelist", e.target.value)}
                     placeholder="AH,AF (Air Algérie, Air France)"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="maxResults">Résultats max</Label>
-                  <Input
+                  <label htmlFor="maxResults" className="block text-sm font-medium text-gray-700 mb-1">
+                    Résultats max
+                  </label>
+                  <input
                     id="maxResults"
                     type="number"
                     min="1"
                     max="100"
                     value={params.maxResults}
                     onChange={(e) => handleParamChange("maxResults", parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               {/* Boutons de test */}
               <div className="space-y-3 pt-4">
-                <Button
+                <button
                   onClick={testQuote}
                   disabled={isLoading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3"
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-md transition-colors"
                 >
                   {isLoading ? "🔄 Test en cours..." : "🚀 Tester Quote GET"}
-                </Button>
+                </button>
                 
-                <Button
+                <button
                   onClick={testQuotePOST}
                   disabled={isLoading}
-                  variant="outline"
-                  className="w-full border-green-500 text-green-600 hover:bg-green-50 font-bold py-3"
+                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-md transition-colors"
                 >
                   {isLoading ? "🔄 Test en cours..." : "📤 Tester Quote POST"}
-                </Button>
+                </button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Résultats */}
           <div className="space-y-6">
             {/* Erreur */}
             {error && (
-              <Card className="border-red-200 bg-red-50">
-                <CardContent className="pt-6">
-                  <div className="text-center text-red-700">
-                    <p className="font-medium">❌ Erreur lors du test</p>
-                    <p className="text-sm">{error}</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                <div className="text-center text-red-700">
+                  <p className="font-medium">❌ Erreur lors du test</p>
+                  <p className="text-sm">{error}</p>
+                </div>
+              </div>
             )}
 
             {/* Résultat du devis */}
             {quoteResult && (
-              <Card className="border-green-200 bg-green-50">
-                <CardHeader>
-                  <CardTitle className="text-green-700">✅ Devis DjazAir Généré</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                <h3 className="text-xl font-bold text-green-700 mb-4">✅ Devis DjazAir Généré</h3>
+                <div className="space-y-4">
                   {/* Premier segment */}
                   <div className="bg-white p-4 rounded-lg border border-green-200">
                     <h4 className="font-semibold text-green-700 mb-2">
@@ -377,26 +394,22 @@ export default function DjazAirQuoteTestPage() {
                       </ul>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
             {/* Informations techniques */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Informations Techniques</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>Endpoint :</strong> /api/djazair/quote</p>
-                  <p><strong>Méthodes :</strong> GET et POST</p>
-                  <p><strong>Logique :</strong> Recherche en deux segments via ALG</p>
-                  <p><strong>Devises :</strong> EUR/DZD selon la politique</p>
-                  <p><strong>Conversion :</strong> DZD → EUR avec taux configurable</p>
-                  <p><strong>Filtrage :</strong> Compagnies par whitelist</p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-xl font-bold mb-4">Informations Techniques</h3>
+              <div className="space-y-2 text-sm text-gray-600">
+                <p><strong>Endpoint :</strong> /api/djazair/quote</p>
+                <p><strong>Méthodes :</strong> GET et POST</p>
+                <p><strong>Logique :</strong> Recherche en deux segments via ALG</p>
+                <p><strong>Devises :</strong> EUR/DZD selon la politique</p>
+                <p><strong>Conversion :</strong> DZD → EUR avec taux configurable</p>
+                <p><strong>Filtrage :</strong> Compagnies par whitelist</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
