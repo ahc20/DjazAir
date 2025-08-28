@@ -98,7 +98,7 @@ export class UnifiedFlightSearchService {
           setTimeout(() => reject(new Error("Timeout DjazAir")), 6000);
         });
 
-        const djazairResponse = await Promise.race([djazairPromise, timeoutPromise]);
+        const djazairResponse = await Promise.race([djazairPromise, timeoutPromise]) as Response;
 
         if (djazairResponse.ok) {
           const djazairData = await djazairResponse.json();

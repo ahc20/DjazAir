@@ -61,10 +61,12 @@ export async function POST(request: Request) {
       }),
     ]);
 
-    const [toAlgiersFlights, fromAlgiersFlights] = await Promise.race([
+    const searchResults = await Promise.race([
       searchPromise,
       timeoutPromise,
-    ]);
+    ]) as [any[], any[]];
+
+    const [toAlgiersFlights, fromAlgiersFlights] = searchResults;
 
     if (toAlgiersFlights.length === 0 || fromAlgiersFlights.length === 0) {
       return NextResponse.json(
