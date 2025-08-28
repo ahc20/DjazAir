@@ -183,58 +183,6 @@ export class UnifiedFlightSearchService {
   }
 
   /**
-   * Crée une option DjazAir simulée pour test de l'interface
-   */
-  private createSimulatedDjazAirOption(params: FlightSearchParams, directFlights: UnifiedFlightResult[]): UnifiedFlightResult | null {
-    if (directFlights.length === 0) return null;
-    
-    // Prendre le vol direct le moins cher comme référence
-    const cheapestDirect = directFlights.reduce((best, current) => 
-      current.price.amount < best.price.amount ? current : best
-    );
-    
-    // Simuler une option DjazAir 20% moins chère
-    const simulatedPriceEUR = cheapestDirect.price.amount * 0.8;
-    const simulatedPriceDZD = simulatedPriceEUR * 260; // Taux parallèle
-    
-    const simulatedOption: UnifiedFlightResult = {
-      id: `djazair-simulated-${Date.now()}`,
-      airline: 'DjazAir (via Alger) - SIMULÉ',
-      airlineCode: 'DJZ',
-      flightNumber: 'SIM001 + SIM002',
-      origin: params.origin,
-      destination: params.destination,
-      departureTime: '08:00',
-      arrivalTime: '22:00',
-      duration: '16h 00m',
-      stops: 1,
-      price: {
-        amount: Math.round(simulatedPriceEUR * 100) / 100,
-        currency: 'EUR',
-        originalDZD: simulatedPriceDZD
-      },
-      aircraft: 'Simulated Aircraft',
-      cabinClass: params.cabinClass || 'Economy',
-      provider: 'DjazAir (Simulation)',
-      direct: false,
-      viaAlgiers: true,
-      baggage: {
-        included: true,
-        weight: '23kg',
-        details: 'Via Alger: Bagages inclus (simulation)'
-      },
-      connection: {
-        airport: 'ALG',
-        duration: '2h 00m',
-        flightNumber: 'SIM002'
-      },
-      searchSource: 'amadeus'
-    };
-    
-    return simulatedOption;
-  }
-
-  /**
    * Crée une option DjazAir à partir des données de l'API séparée
    */
   private createDjazAirOptionFromAPI(djazairData: any, params: FlightSearchParams): UnifiedFlightResult | null {
