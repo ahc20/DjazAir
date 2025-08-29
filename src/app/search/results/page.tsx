@@ -2,69 +2,23 @@
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { DjazAirOptionCard } from "@/components/DjazAirOptionCard";
+import { FlightResult } from "@/types/flight";
+import { DjazAirFlight } from "@/types/djazair";
 
-interface FlightResult {
-  id: string;
-  origin: string;
-  destination: string;
-  departureTime: string;
-  arrivalTime: string;
-  duration: string;
-  airline: string;
-  flightNumber: string;
-  price: {
-    amount: number;
-    currency: string;
-  };
-  stops: number;
-}
-
-interface DjazAirFlight {
-  id: string;
-  origin: string;
-  destination: string;
-  departureDate: string;
-  returnDate?: string;
-  totalDuration: string;
-  totalPriceEUR: number;
-  totalPriceDZD?: number;
-  segments: {
-    origin: string;
-    destination: string;
-    airline: string;
-    flightNumber: string;
-    departureTime: string;
-    arrivalTime: string;
-    duration: string;
-    priceEUR: number;
-    priceDZD?: number;
-    currency: string;
-  }[];
-  layover: {
-    airport: string;
-    duration: string;
-    location: string;
-  };
+interface SearchResults {
+  djazairFlights: DjazAirFlight[];
+  classicFlights: FlightResult[];
+  loading: boolean;
+  error: string | null;
   savings: {
-    amount: number;
-    percentage: number;
-    comparedTo: number;
-  };
+    best: number;
+    total: number;
+  } | null;
 }
 
 export default function SearchResultsPage() {
   const searchParams = useSearchParams();
-  const [searchResults, setSearchResults] = useState<{
-    djazairFlights: DjazAirFlight[];
-    classicFlights: FlightResult[];
-    loading: boolean;
-    error: string | null;
-    savings: {
-      best: number;
-      total: number;
-    } | null;
-  }>({
+  const [searchResults, setSearchResults] = useState<SearchResults>({
     djazairFlights: [],
     classicFlights: [],
     loading: true,
@@ -83,78 +37,95 @@ export default function SearchResultsPage() {
   const cabin = searchParams.get("cabin") || "ECONOMY";
 
   useEffect(() => {
-    const searchDjazAir = async () => {
-      try {
-        console.log("🔍 Recherche des vols DjazAir...");
-        
-        const response = await fetch("/api/djazair-flights", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            origin,
-            destination,
-            departureDate: departDate,
-            returnDate,
-            adults,
-            cabin,
-            maxResults: 10,
-            policy: "DZ_ONLY",
-            dzdEurRate: 260
-          })
-        });
+    if (origin && destination && departDate) {
+      searchDjazAir();
+    }
+  }, [origin, destination, departDate, returnDate, adults, children, infants, cabin]);
 
-        const data = await response.json();
+  const searchDjazAir = async () => {
+    try {
+      console.log("🔍 Recherche des vols DjazAir...");
+      
+      const response = await fetch("/api/djazair-flights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          origin,
+          destination,
+          departureDate: departDate,
+          returnDate,
+          adults,
+          children,
+          infants,
+          cabin,
+          maxResults: 10,
+          policy: "DZ_ONLY",
+          dzdEurRate: 260
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.data && data.data.length > 0) {
+        console.log("✅ Vols DjazAir trouvés:", data.data.length);
         
-        if (data.success && data.data && data.data.length > 0) {
-          console.log("✅ Vols DjazAir trouvés:", data.data.length);
-          
-          // Rechercher les vols classiques pour comparaison
-          await searchClassicFlights(data.data);
-        } else {
-          console.log("❌ Aucun vol DjazAir trouvé:", data.error);
-          setSearchResults(prev => ({
-            ...prev,
-            loading: false,
-            error: data.error || "Aucun vol DjazAir trouvé"
-          }));
-        }
-      } catch (error) {
-        console.error("❌ Erreur recherche DjazAir:", error);
+        // Rechercher les vols classiques pour comparaison
+        await searchClassicFlights(data.data);
+      } else {
+        console.log("❌ Aucun vol DjazAir trouvé:", data.error);
         setSearchResults(prev => ({
           ...prev,
           loading: false,
-          error: "Erreur lors de la recherche DjazAir"
+          error: data.error || "Aucun vol DjazAir trouvé"
         }));
       }
-    };
+    } catch (error) {
+      console.error("❌ Erreur recherche DjazAir:", error);
+      setSearchResults(prev => ({
+        ...prev,
+        loading: false,
+        error: "Erreur lors de la recherche DjazAir"
+      }));
+    }
+  };
 
-    const searchClassicFlights = async (djazairFlights: DjazAirFlight[]) => {
-      try {
-        console.log("🔍 Recherche des vols classiques...");
-        
-        const response = await fetch("/api/search", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            origin,
-            destination,
-            departureDate: departDate,
-            returnDate,
-            adults,
-            children,
-            infants,
-            cabin,
-            maxResults: 20
-          })
-        });
+  const searchClassicFlights = async (djazairFlights: DjazAirFlight[]) => {
+    try {
+      console.log("🔍 Recherche des vols classiques...");
+      
+      const response = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          origin,
+          destination,
+          departDate,
+          returnDate,
+          adults,
+          children,
+          infants,
+          cabin
+        })
+      });
 
-        const data = await response.json();
+      const data = await response.json();
+      console.log("🔍 Réponse API classique:", data);
+      
+      if (data.success && data.data) {
+        // L'API retourne {directFlights: [], viaAlgiersFlights: []}
+        const directFlights = data.data.directFlights || [];
+        const viaAlgiersFlights = data.data.viaAlgiersFlights || [];
         
-        if (data.success && data.data && data.data.length > 0) {
-          console.log("✅ Vols classiques trouvés:", data.data.length);
+        // Combiner tous les vols classiques
+        const allClassicFlights = [...directFlights, ...viaAlgiersFlights];
+        
+        if (allClassicFlights.length > 0) {
+          console.log("✅ Vols classiques trouvés:", allClassicFlights.length);
+          console.log("   - Vols directs:", directFlights.length);
+          console.log("   - Vols via Alger:", viaAlgiersFlights.length);
           
           // Calculer les économies
-          const cheapestClassic = Math.min(...data.data.map((f: FlightResult) => f.price.amount));
+          const cheapestClassic = Math.min(...allClassicFlights.map((f: FlightResult) => f.price.amount));
           const cheapestDjazair = Math.min(...djazairFlights.map(f => f.totalPriceEUR));
           
           const bestSavings = cheapestClassic - cheapestDjazair;
@@ -165,7 +136,7 @@ export default function SearchResultsPage() {
 
           setSearchResults({
             djazairFlights,
-            classicFlights: data.data,
+            classicFlights: allClassicFlights,
             loading: false,
             error: null,
             savings: {
@@ -174,7 +145,7 @@ export default function SearchResultsPage() {
             }
           });
         } else {
-          console.log("❌ Aucun vol classique trouvé");
+          console.log("❌ Aucun vol classique trouvé dans la réponse");
           setSearchResults({
             djazairFlights,
             classicFlights: [],
@@ -183,24 +154,27 @@ export default function SearchResultsPage() {
             savings: null
           });
         }
-      } catch (error) {
-        console.error("❌ Erreur recherche classique:", error);
+      } else {
+        console.log("❌ Réponse API invalide:", data);
         setSearchResults({
           djazairFlights,
           classicFlights: [],
           loading: false,
-          error: "Erreur lors de la recherche des vols classiques",
+          error: null,
           savings: null
         });
       }
-    };
-
-    if (origin && destination && departDate) {
-      searchDjazAir();
-    } else {
-      setSearchResults(prev => ({ ...prev, loading: false }));
+    } catch (error) {
+      console.error("❌ Erreur recherche classique:", error);
+      setSearchResults({
+        djazairFlights,
+        classicFlights: [],
+        loading: false,
+        error: "Erreur lors de la recherche des vols classiques",
+        savings: null
+      });
     }
-  }, [origin, destination, departDate, returnDate, adults, children, infants, cabin]);
+  };
 
   const handleBookFlight = (flight: FlightResult | string) => {
     if (typeof flight === "string") {
@@ -277,269 +251,242 @@ export default function SearchResultsPage() {
                   <div className="text-sm text-green-600">Toutes options confondues</div>
                 </div>
               </div>
-              
-              {/* Bouton de comparaison détaillée */}
-              <a 
-                href={`/compare?origin=${origin}&destination=${destination}&departDate=${departDate}&returnDate=${returnDate || ''}&adults=${adults}&cabin=${cabin}`}
-                className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                🔍 Comparaison Détaillée DjazAir vs Classiques
-              </a>
             </div>
           </div>
         )}
 
-        {/* Section DjazAir */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-blue-600 mb-4">
-            ✈️ Solution DjazAir - Escale en Algérie
-          </h2>
-          <p className="text-lg text-gray-600 mb-6">
-            Vols avec escale à Alger pour des économies garanties
-          </p>
-          
-          {searchResults.djazairFlights.length > 0 ? (
-            <div className="space-y-6">
-              {searchResults.djazairFlights.map((flight) => (
-                <div key={flight.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
-                  {/* Header du vol */}
-                  <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-2xl">✈️</span>
-                        <div>
-                          <h3 className="text-xl font-bold">DjazAir - Escale en Algérie</h3>
-                          <p className="text-blue-100">{flight.origin} → {flight.destination}</p>
+        {/* FORCER l'affichage côte à côte avec des styles explicites */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '3rem' }}>
+          {/* Section DjazAir - GAUCHE */}
+          <div style={{ minWidth: '0' }}>
+            <h2 className="text-2xl font-bold text-blue-600 mb-4">
+              ✈️ Solution DjazAir - Escale en Algérie
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Vols avec escale à Alger pour des économies garanties
+            </p>
+            
+            {searchResults.djazairFlights.length > 0 ? (
+              <div className="space-y-4">
+                {searchResults.djazairFlights.slice(0, 3).map((flight) => (
+                  <div key={flight.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    {/* Header du vol */}
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-2xl">✈️</span>
+                          <div>
+                            <h3 className="text-lg font-bold">DjazAir - Escale en Algérie</h3>
+                            <p className="text-blue-100">{flight.origin} → {flight.destination}</p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-3xl font-bold">{flight.totalPriceEUR}€</div>
-                        <div className="text-blue-100 text-sm">
-                          {flight.totalPriceDZD && `${flight.totalPriceDZD.toLocaleString()} DZD`}
+                        <div className="text-right">
+                          <div className="text-2xl font-bold">{flight.totalPriceEUR}€</div>
+                          <div className="text-blue-100 text-sm">
+                            {flight.totalPriceDZD && `${flight.totalPriceDZD.toLocaleString()} DZD`}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Détails du vol */}
-                  <div className="p-6">
-                    <div className="text-center mb-6">
-                      <div className="text-2xl font-bold text-gray-800 mb-2">
-                        {flight.origin} → {flight.destination}
+                    {/* Détails du vol */}
+                    <div className="p-4">
+                      <div className="text-center mb-4">
+                        <div className="text-lg font-bold text-gray-800 mb-1">
+                          {flight.origin} → {flight.destination}
+                        </div>
+                        <div className="text-gray-600">
+                          {new Date(flight.departureDate).toLocaleDateString('fr-FR', { 
+                            day: 'numeric', 
+                            month: 'long', 
+                            year: 'numeric' 
+                          })} • {flight.totalDuration}
+                        </div>
                       </div>
-                      <div className="text-gray-600">
-                        {new Date(flight.departureDate).toLocaleDateString('fr-FR', { 
-                          day: 'numeric', 
-                          month: 'long', 
-                          year: 'numeric' 
-                        })} • {flight.totalDuration}
-                      </div>
-                    </div>
 
-                    {/* Segments */}
-                    <div className="space-y-4">
-                      {flight.segments.map((segment, index) => (
-                        <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="font-semibold text-gray-700">
-                              {index + 1}er segment {index === 0 ? '→ Alger' : 'Alger →'}
-                            </span>
-                            <div className="text-right">
-                              <div className="text-lg font-bold text-blue-600">
+                      {/* Segments */}
+                      <div className="space-y-4">
+                        {flight.segments.map((segment, index) => (
+                          <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="font-semibold text-gray-700">
+                                {index + 1}er segment {index === 0 ? '→ Alger' : 'Alger →'}
+                              </span>
+                              <span className="text-lg font-bold text-blue-600">
                                 {segment.priceEUR.toFixed(2)} {segment.currency}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                              <div>
+                                <strong>Vol:</strong> {segment.airline} {segment.flightNumber}
                               </div>
-                              {segment.priceDZD && segment.currency === "DZD" && (
-                                <div className="text-sm text-gray-500">
-                                  ({segment.priceDZD.toFixed(0)} DZD)
-                                </div>
-                              )}
-                              {segment.priceDZD && segment.currency === "EUR" && (
-                                <div className="text-sm text-gray-500">
-                                  ({segment.priceDZD.toFixed(0)} DZD)
-                                </div>
-                              )}
+                              <div>
+                                <strong>Prix:</strong> {segment.priceEUR.toFixed(2)} {segment.currency}
+                                {segment.priceDZD && (
+                                  <span className="text-gray-500">
+                                    {" "}({segment.priceDZD.toFixed(0)} DZD)
+                                  </span>
+                                )}
+                              </div>
+                              <div>
+                                <strong>Départ:</strong> {new Date(segment.departureTime).toLocaleTimeString('fr-FR', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })} {segment.origin}
+                              </div>
+                              <div>
+                                <strong>Arrivée:</strong> {new Date(segment.arrivalTime).toLocaleTimeString('fr-FR', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })} {segment.destination}
+                              </div>
+                              <div>
+                                <strong>Durée:</strong> {segment.duration}
+                              </div>
+                              <div>
+                                <strong>Devise:</strong> {segment.currency}
+                                {segment.priceDZD && (
+                                  <span className="text-gray-500">
+                                    {" "}(+ {segment.priceDZD.toFixed(0)} DZD local)
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                            <div>
-                              <strong>Vol:</strong> {segment.airline} {segment.flightNumber}
+                        ))}
+                      </div>
+
+                      {/* Escale */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                        <div className="flex items-center justify-center space-x-4">
+                          <span className="text-blue-600">✈️</span>
+                          <div className="text-center">
+                            <div className="font-semibold text-blue-700">
+                              Escale à {flight.layover.airport} ({flight.layover.duration})
                             </div>
-                            <div>
-                              <strong>Prix:</strong> {segment.priceEUR.toFixed(2)} {segment.currency}
-                              {segment.priceDZD && (
-                                <span className="text-gray-500">
-                                  {" "}({segment.priceDZD.toFixed(0)} DZD)
-                                </span>
-                              )}
-                            </div>
-                            <div>
-                              <strong>Départ:</strong> {new Date(segment.departureTime).toLocaleTimeString('fr-FR', { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
-                              })} {segment.origin}
-                            </div>
-                            <div>
-                              <strong>Arrivée:</strong> {new Date(segment.arrivalTime).toLocaleTimeString('fr-FR', { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
-                              })} {segment.destination}
-                            </div>
-                            <div>
-                              <strong>Durée:</strong> {segment.duration}
-                            </div>
-                            <div>
-                              <strong>Devise:</strong> {segment.currency}
-                              {segment.priceDZD && (
-                                <span className="text-gray-500">
-                                  {" "}(+ {segment.priceDZD.toFixed(0)} DZD local)
-                                </span>
-                              )}
-                            </div>
+                            <div className="text-sm text-blue-600">{flight.layover.location}</div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Escale */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                      <div className="flex items-center justify-center space-x-4">
-                        <span className="text-blue-600">✈️</span>
-                        <div className="text-center">
-                          <div className="font-semibold text-blue-700">
-                            Escale à {flight.layover.airport} ({flight.layover.duration})
-                          </div>
-                          <div className="text-sm text-blue-600">{flight.layover.location}</div>
-                        </div>
-                        <span className="text-blue-600">✈️</span>
-                      </div>
-                    </div>
-
-                    {/* Explication des taux de change */}
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
-                      <h4 className="font-semibold text-yellow-700 mb-2">💱 Calcul des taux de change</h4>
-                      <div className="text-sm text-yellow-700 space-y-1">
-                        <div><strong>Taux officiel :</strong> 1 EUR = 150 DZD (utilisé par Amadeus)</div>
-                        <div><strong>Taux parallèle :</strong> 1 EUR = 260 DZD (économies DjazAir)</div>
-                        <div><strong>Note :</strong> Les prix DZD d'Amadeus sont automatiquement convertis au taux officiel</div>
-                      </div>
-                    </div>
-
-                    {/* Horaires totaux */}
-                    <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
-                      <div className="text-center">
-                        <div className="text-sm text-gray-500">Départ</div>
-                        <div className="font-semibold">
-                          {new Date(flight.segments[0].departureTime).toLocaleTimeString('fr-FR', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })} {flight.segments[0].origin}
+                          <span className="text-blue-600">✈️</span>
                         </div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-sm text-gray-500">Arrivée</div>
-                        <div className="font-semibold">
-                          {new Date(flight.segments[1].arrivalTime).toLocaleTimeString('fr-FR', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })} {flight.segments[1].destination}
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Boutons d'action */}
-                    <div className="flex space-x-3 mt-6">
-                      <button 
-                        onClick={() => handleBookFlight(flight.id)}
-                        className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors"
-                      >
-                        🎯 Réserver avec les Compagnies Réelles
-                      </button>
-                      <button 
-                        onClick={() => handleBookFlight(flight.id)}
-                        className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                      >
-                        💰 Voir les Détails DjazAir
-                      </button>
+                      {/* Boutons d'action */}
+                      <div className="flex space-x-3 mt-4">
+                        <button 
+                          onClick={() => handleBookFlight(flight.id)}
+                          className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                        >
+                          🎯 Réserver avec les Compagnies Réelles
+                        </button>
+                        <button 
+                          onClick={() => handleBookFlight(flight.id)}
+                          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                        >
+                          💰 Voir les Détails DjazAir
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-gray-400 text-6xl mb-4">✈️</div>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Aucun vol DjazAir trouvé</h3>
-              <p className="text-gray-500">Aucune combinaison de vols avec escale en Algérie n'est disponible pour cette recherche.</p>
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-white rounded-lg shadow">
+                <div className="text-gray-400 text-6xl mb-4">✈️</div>
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">Aucune solution DjazAir</h3>
+                <p className="text-gray-500">Aucune combinaison de vols avec escale en Algérie disponible.</p>
+              </div>
+            )}
+          </div>
 
-        {/* Section Vols Classiques */}
-        {searchResults.classicFlights.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-700 mb-4">
+          {/* Section Vols Classiques - DROITE */}
+          <div style={{ minWidth: '0' }}>
+            <h2 className="text-2xl font-bold text-gray-700 mb-4">
               🛫 Vols Classiques
             </h2>
-            <p className="text-lg text-gray-600 mb-6">
+            <p className="text-gray-600 mb-4">
               Vols directs et avec escales traditionnels
             </p>
             
-            <div className="grid gap-4">
-              {searchResults.classicFlights.slice(0, 5).map((flight) => (
-                <div key={flight.id} className="bg-white rounded-lg shadow p-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-4">
-                        <div className="text-center">
-                          <div className="font-semibold">
-                            {new Date(flight.departureTime).toLocaleTimeString('fr-FR', { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
+            {/* FORCER l'affichage des vols classiques même s'ils sont vides */}
+            <div className="space-y-4">
+              {searchResults.classicFlights.length > 0 ? (
+                searchResults.classicFlights.slice(0, 5).map((flight) => (
+                  <div key={flight.id} className="bg-white rounded-lg shadow p-4">
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-4 mb-2">
+                          <div className="text-center">
+                            <div className="font-semibold">
+                              {new Date(flight.departureTime).toLocaleTimeString('fr-FR', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </div>
+                            <div className="text-sm text-gray-500">{flight.origin}</div>
                           </div>
-                          <div className="text-sm text-gray-500">{flight.origin}</div>
+                          
+                          <div className="flex-1 text-center">
+                            <div className="text-sm text-gray-500">{flight.duration}</div>
+                            <div className="text-xs text-gray-400">
+                              {flight.stops === 0 ? 'Direct' : `${flight.stops} escale${flight.stops > 1 ? 's' : ''}`}
+                            </div>
+                          </div>
+                          
+                          <div className="text-center">
+                            <div className="font-semibold">
+                              {new Date(flight.arrivalTime).toLocaleTimeString('fr-FR', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </div>
+                            <div className="text-sm text-gray-500">{flight.destination}</div>
+                          </div>
                         </div>
                         
-                        <div className="flex-1 text-center">
-                          <div className="text-sm text-gray-500">{flight.duration}</div>
-                          <div className="text-xs text-gray-400">
-                            {flight.stops === 0 ? 'Direct' : `${flight.stops} escale${flight.stops > 1 ? 's' : ''}`}
-                          </div>
-                        </div>
-                        
-                        <div className="text-center">
-                          <div className="font-semibold">
-                            {new Date(flight.arrivalTime).toLocaleTimeString('fr-FR', { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
-                          </div>
-                          <div className="text-sm text-gray-500">{flight.destination}</div>
+                        <div className="text-sm text-gray-600">
+                          {flight.airline} {flight.flightNumber}
                         </div>
                       </div>
                       
-                      <div className="mt-2 text-sm text-gray-600">
-                        {flight.airline} {flight.flightNumber}
+                      <div className="text-right ml-4">
+                        <div className="text-2xl font-bold text-gray-700">
+                          {flight.price.amount}€
+                        </div>
+                        <button 
+                          onClick={() => handleBookFlight(flight)}
+                          className="bg-gray-600 text-white px-4 py-2 rounded text-sm hover:bg-gray-700"
+                        >
+                          Réserver
+                        </button>
                       </div>
                     </div>
+                  </div>
+                ))
+              ) : (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="text-center">
+                    <div className="text-gray-400 text-4xl mb-3">🔍</div>
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">Recherche en cours...</h3>
+                    <p className="text-gray-500 text-sm mb-4">Nous cherchons des vols classiques pour comparer</p>
                     
-                    <div className="text-right ml-4">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {flight.price.amount}€
-                      </div>
-                      <button 
-                        onClick={() => handleBookFlight(flight)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
-                      >
-                        Réserver
-                      </button>
+                    {/* Debug info */}
+                    <div className="bg-gray-50 p-3 rounded text-xs text-gray-600">
+                      <div><strong>Paramètres de recherche :</strong></div>
+                      <div>De : {origin} → Vers : {destination}</div>
+                      <div>Date : {departDate}</div>
+                      <div>Passagers : {adults} adulte(s)</div>
+                      <div>Classe : {cabin}</div>
+                    </div>
+                    
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-700">
+                      <strong>💡 Conseil :</strong> Si aucun vol classique n'apparaît, essayez de modifier vos critères de recherche ou contactez le support.
                     </div>
                   </div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
-        )}
+        </div>
 
         {/* Informations sur l'API */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
