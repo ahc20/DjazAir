@@ -64,7 +64,15 @@ export default function SearchResultsPage() {
         })
       });
 
+      console.log("🔍 Statut de la réponse:", response.status, response.statusText);
+      
+      if (!response.ok) {
+        console.error("❌ Erreur HTTP:", response.status, response.statusText);
+        throw new Error(`Erreur HTTP: ${response.status} ${response.statusText}`);
+      }
+
       const data = await response.json();
+      console.log("🔍 Réponse API DjazAir:", data);
       
       if (data.success && data.data && data.data.length > 0) {
         console.log("✅ Vols DjazAir trouvés:", data.data.length);
@@ -72,11 +80,13 @@ export default function SearchResultsPage() {
         // Rechercher les vols classiques pour comparaison
         await searchClassicFlights(data.data);
       } else {
-        console.log("❌ Aucun vol DjazAir trouvé:", data.error);
+        console.log("❌ Aucun vol DjazAir trouvé. Réponse complète:", data);
+        const errorMessage = data.error || data.message || "Aucun vol DjazAir trouvé";
+        console.log("❌ Message d'erreur:", errorMessage);
         setSearchResults(prev => ({
           ...prev,
           loading: false,
-          error: data.error || "Aucun vol DjazAir trouvé"
+          error: errorMessage
         }));
       }
     } catch (error) {
@@ -229,7 +239,7 @@ export default function SearchResultsPage() {
                 🚀 Économies DjazAir Détectées !
               </h1>
               <p className="text-lg text-green-600 mb-4">
-                Nous avons trouvé des alternatives moins chères via Alger en utilisant le taux de change parallèle (260 DZD/€)
+                Nous avons trouvé des alternatives moins chères en transitant à Alger
               </p>
               <div className="grid grid-cols-3 gap-6 mb-6">
                 <div className="text-center">
@@ -240,13 +250,13 @@ export default function SearchResultsPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-700">
-                    {searchResults.savings.best}€ Meilleure économie
+                    {searchResults.savings.best.toFixed(2)}€ Meilleure économie
                   </div>
                   <div className="text-sm text-green-600">Comparé au vol direct</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-700">
-                    {searchResults.savings.total}€ Total économies
+                    {searchResults.savings.total.toFixed(2)}€ Total économies
                   </div>
                   <div className="text-sm text-green-600">Toutes options confondues</div>
                 </div>
@@ -260,10 +270,10 @@ export default function SearchResultsPage() {
           {/* Section DjazAir - GAUCHE */}
           <div style={{ minWidth: '0' }}>
             <h2 className="text-2xl font-bold text-blue-600 mb-4">
-              ✈️ Solution DjazAir - Escale en Algérie
+              ✈️ Solution DjazAir - {returnDate ? 'Aller-Retour (AR)' : 'Aller Simple (AS)'} avec Escale en Algérie
             </h2>
             <p className="text-gray-600 mb-4">
-              Vols avec escale à Alger pour des économies garanties
+              {returnDate ? 'Vol aller-retour' : 'Vol aller simple'} avec escale à Alger pour des économies garanties
             </p>
             
             {searchResults.djazairFlights.length > 0 ? (
@@ -306,25 +316,30 @@ export default function SearchResultsPage() {
 
                       {/* Segments */}
                       <div className="space-y-4">
-                        {flight.segments.map((segment, index) => (
-                          <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="font-semibold text-gray-700">
-                                {index + 1}er segment {index === 0 ? '→ Alger' : 'Alger →'}
-                              </span>
-                              <span className="text-lg font-bold text-blue-600">
-                                {segment.priceEUR.toFixed(2)} {segment.currency}
-                              </span>
-                            </div>
+                        {flight.segments.map((segment, index) => {
+                          const isReturnSegment = index >= 2;
+                          const segmentType = isReturnSegment ? 'Retour' : 'Aller';
+                          const segmentNumber = isReturnSegment ? index - 1 : index + 1;
+                          
+                          return (
+                            <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="font-semibold text-gray-700">
+                                  {segmentType} {segmentNumber} : {segment.origin} → {segment.destination}
+                                </span>
+                                <span className="text-lg font-bold text-blue-600">
+                                  {segment.priceEUR.toFixed(2)} EUR
+                                </span>
+                              </div>
                             <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
                               <div>
                                 <strong>Vol:</strong> {segment.airline} {segment.flightNumber}
                               </div>
                               <div>
-                                <strong>Prix:</strong> {segment.priceEUR.toFixed(2)} {segment.currency}
-                                {segment.priceDZD && (
+                                <strong>Prix:</strong> {segment.priceDZD ? `${segment.priceDZD.toFixed(0)} DZD` : `${segment.priceEUR.toFixed(2)} EUR`}
+                                {segment.priceDZD && segment.priceEUR && (
                                   <span className="text-gray-500">
-                                    {" "}({segment.priceDZD.toFixed(0)} DZD)
+                                    {" "}({segment.priceEUR.toFixed(2)} EUR)
                                   </span>
                                 )}
                               </div>
@@ -344,7 +359,7 @@ export default function SearchResultsPage() {
                                 <strong>Durée:</strong> {segment.duration}
                               </div>
                               <div>
-                                <strong>Devise:</strong> {segment.currency}
+                                <strong>Devise:</strong> EUR
                                 {segment.priceDZD && (
                                   <span className="text-gray-500">
                                     {" "}(+ {segment.priceDZD.toFixed(0)} DZD local)
@@ -353,7 +368,8 @@ export default function SearchResultsPage() {
                               </div>
                             </div>
                           </div>
-                        ))}
+                        );
+                        })}
                       </div>
 
                       {/* Escale */}
