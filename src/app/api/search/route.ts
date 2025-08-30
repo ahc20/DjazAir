@@ -1,13 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchFormSchema } from "@/lib/zod";
 import { AmadeusAPI } from "@/server/flightSearch/amadeusAPI";
+import { isValidAirportCode, getAirportDisplayName } from "@/data/airports";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const validatedData = searchFormSchema.parse(body);
 
+    // Validation des codes aéroports
+    if (!isValidAirportCode(validatedData.origin)) {
+      console.log(`❌ Code aéroport origine invalide: ${validatedData.origin}`);
+      return NextResponse.json({
+        success: false,
+        error: `Code aéroport origine invalide: ${validatedData.origin}. Utilisez un code IATA valide (ex: CDG, JFK, LHR).`,
+        data: []
+      });
+    }
+
+    if (!isValidAirportCode(validatedData.destination)) {
+      console.log(`❌ Code aéroport destination invalide: ${validatedData.destination}`);
+      return NextResponse.json({
+        success: false,
+        error: `Code aéroport destination invalide: ${validatedData.destination}. Utilisez un code IATA valide (ex: PEK, DXB, NRT).`,
+        data: []
+      });
+    }
+
     console.log("🔍 Recherche de vols demandée:", validatedData);
+    console.log(`🌍 Origine: ${getAirportDisplayName(validatedData.origin)}`);
+    console.log(`🌍 Destination: ${getAirportDisplayName(validatedData.destination)}`);
 
     // Utiliser directement l'API Amadeus au lieu du UnifiedSearch
     const amadeusAPI = new AmadeusAPI();

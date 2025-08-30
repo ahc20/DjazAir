@@ -188,13 +188,20 @@ export default function SearchResultsPage() {
 
   const handleBookFlight = (flight: FlightResult | string) => {
     if (typeof flight === "string") {
-      // C'est un ID DjazAir, ouvrir les détails
-      console.log("📋 Détails DjazAir:", flight);
-      // Ici vous pouvez implémenter l'ouverture d'un modal avec les détails
+      // C'est un ID DjazAir, stocker les détails et rediriger vers la page de détails
+      const djazairFlight = searchResults.djazairFlights.find(f => f.id === flight);
+      if (djazairFlight) {
+        // Stocker les détails du vol dans le localStorage
+        localStorage.setItem(`djazair-flight-${flight}`, JSON.stringify(djazairFlight));
+        // Rediriger vers la page de détails
+        window.location.href = `/djazair-details/${flight}`;
+      }
     } else {
       // C'est un vol classique, rediriger vers la compagnie
       console.log("✈️ Réserver vol classique:", flight);
       // Ici vous pouvez implémenter la redirection vers la compagnie
+      // Pour l'instant, ouvrir dans un nouvel onglet
+      window.open(`https://www.google.com/search?q=${flight.airline}+${flight.flightNumber}+reservation`, '_blank');
     }
   };
 
@@ -229,50 +236,50 @@ export default function SearchResultsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-gray-50 py-4 lg:py-8">
+      <div className="max-w-7xl mx-auto px-3 lg:px-4">
         {/* Header avec économies */}
         {searchResults.savings && searchResults.savings.best > 0 && (
-          <div className="bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200 rounded-lg p-6 mb-8">
+          <div className="bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200 rounded-lg p-4 lg:p-6 mb-6 lg:mb-8">
             <div className="text-center">
-              <h1 className="text-3xl font-bold text-green-700 mb-2">
+              <h1 className="text-2xl lg:text-3xl font-bold text-green-700 mb-2">
                 🚀 Économies DjazAir Détectées !
               </h1>
-              <p className="text-lg text-green-600 mb-4">
+              <p className="text-base lg:text-lg text-green-600 mb-4">
                 Nous avons trouvé des alternatives moins chères en transitant à Alger
               </p>
-              <div className="grid grid-cols-3 gap-6 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6 mb-4 lg:mb-6">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-700">
+                  <div className="text-xl lg:text-2xl font-bold text-green-700">
                     {searchResults.djazairFlights.length} Options DjazAir
                   </div>
-                  <div className="text-sm text-green-600">Solutions disponibles</div>
+                  <div className="text-xs lg:text-sm text-green-600">Solutions disponibles</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-700">
+                  <div className="text-xl lg:text-2xl font-bold text-green-700">
                     {searchResults.savings.best.toFixed(2)}€ Meilleure économie
                   </div>
-                  <div className="text-sm text-green-600">Comparé au vol direct</div>
+                  <div className="text-xs lg:text-sm text-green-600">Comparé au vol direct</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-700">
+                  <div className="text-xl lg:text-2xl font-bold text-green-700">
                     {searchResults.savings.total.toFixed(2)}€ Total économies
                   </div>
-                  <div className="text-sm text-green-600">Toutes options confondues</div>
+                  <div className="text-xs lg:text-sm text-green-600">Toutes options confondues</div>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* FORCER l'affichage côte à côte avec des styles explicites */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '3rem' }}>
+        {/* Layout responsive : 2 colonnes sur desktop, 1 colonne sur mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 mb-8">
           {/* Section DjazAir - GAUCHE */}
-          <div style={{ minWidth: '0' }}>
-            <h2 className="text-2xl font-bold text-blue-600 mb-4">
+          <div className="min-w-0">
+            <h2 className="text-xl lg:text-2xl font-bold text-blue-600 mb-4">
               ✈️ Solution DjazAir - {returnDate ? 'Aller-Retour (AR)' : 'Aller Simple (AS)'} avec Escale en Algérie
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-sm lg:text-base text-gray-600 mb-4">
               {returnDate ? 'Vol aller-retour' : 'Vol aller simple'} avec escale à Alger pour des économies garanties
             </p>
             
@@ -331,7 +338,7 @@ export default function SearchResultsPage() {
                                   {segment.priceEUR.toFixed(2)} EUR
                                 </span>
                               </div>
-                            <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
                               <div>
                                 <strong>Vol:</strong> {segment.airline} {segment.flightNumber}
                               </div>
@@ -415,11 +422,11 @@ export default function SearchResultsPage() {
           </div>
 
           {/* Section Vols Classiques - DROITE */}
-          <div style={{ minWidth: '0' }}>
-            <h2 className="text-2xl font-bold text-gray-700 mb-4">
+          <div className="min-w-0">
+            <h2 className="text-xl lg:text-2xl font-bold text-gray-700 mb-4">
               🛫 Vols Classiques
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-sm lg:text-base text-gray-600 mb-4">
               Vols directs et avec escales traditionnels
             </p>
             
@@ -428,11 +435,11 @@ export default function SearchResultsPage() {
               {searchResults.classicFlights.length > 0 ? (
                 searchResults.classicFlights.slice(0, 5).map((flight) => (
                   <div key={flight.id} className="bg-white rounded-lg shadow p-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-4 mb-2">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+                      <div className="flex-1 w-full">
+                        <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-2">
                           <div className="text-center">
-                            <div className="font-semibold">
+                            <div className="font-semibold text-lg">
                               {new Date(flight.departureTime).toLocaleTimeString('fr-FR', { 
                                 hour: '2-digit', 
                                 minute: '2-digit' 
@@ -449,7 +456,7 @@ export default function SearchResultsPage() {
                           </div>
                           
                           <div className="text-center">
-                            <div className="font-semibold">
+                            <div className="font-semibold text-lg">
                               {new Date(flight.arrivalTime).toLocaleTimeString('fr-FR', { 
                                 hour: '2-digit', 
                                 minute: '2-digit' 
@@ -459,18 +466,18 @@ export default function SearchResultsPage() {
                           </div>
                         </div>
                         
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-gray-600 text-center sm:text-left">
                           {flight.airline} {flight.flightNumber}
                         </div>
                       </div>
                       
-                      <div className="text-right ml-4">
-                        <div className="text-2xl font-bold text-gray-700">
+                      <div className="text-center sm:text-right w-full sm:w-auto">
+                        <div className="text-xl sm:text-2xl font-bold text-gray-700 mb-2">
                           {flight.price.amount}€
                         </div>
                         <button 
                           onClick={() => handleBookFlight(flight)}
-                          className="bg-gray-600 text-white px-4 py-2 rounded text-sm hover:bg-gray-700"
+                          className="w-full sm:w-auto bg-gray-600 text-white px-4 py-2 rounded text-sm hover:bg-gray-700"
                         >
                           Réserver
                         </button>
@@ -505,9 +512,9 @@ export default function SearchResultsPage() {
         </div>
 
         {/* Informations sur l'API */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-800 mb-3">ℹ️ Informations Techniques</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 lg:p-6">
+          <h3 className="text-base lg:text-lg font-semibold text-blue-800 mb-3">ℹ️ Informations Techniques</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4 text-xs lg:text-sm text-blue-700">
             <div>
               <strong>API DjazAir:</strong> /api/djazair-flights
             </div>
