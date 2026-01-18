@@ -106,45 +106,43 @@ export default function HomePage() {
         {/* Section d'information */}
         <div className="bg-white rounded-lg shadow-sm p-8">
           <h3 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
-            Comment ça fonctionne ?
+            L'approche DjazAir
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h4 className="text-lg font-medium text-gray-900 mb-3">
-                1. Recherche de vols
+                1. Analyse Globale
               </h4>
               <p className="text-gray-600 mb-4">
-                Entrez vos critères de voyage (origine, destination, dates,
-                passagers) et notre système recherche automatiquement les
-                meilleurs prix disponibles.
+                Notre algorithme scanne des milliers de vols en temps réel pour
+                identifier toutes les routes possibles vers votre destination.
               </p>
 
               <h4 className="text-lg font-medium text-gray-900 mb-3">
-                2. Simulation "via Alger"
+                2. L'Opportunité "via Alger"
               </h4>
               <p className="text-gray-600 mb-4">
-                Nous calculons le coût total d'un voyage avec escale à Alger en
-                utilisant des taux de change officiels ou configurés par
-                l'administrateur.
+                Nous détectons si une escale stratégique à Alger permet de
+                réduire drastiquement le coût de votre billet.
               </p>
             </div>
 
             <div>
               <h4 className="text-lg font-medium text-gray-900 mb-3">
-                3. Analyse d'arbitrage
+                3. Économies Garanties
               </h4>
               <p className="text-gray-600 mb-4">
-                Comparez les prix directs avec les options "via Alger" et
-                identifiez les opportunités d'économies selon vos critères.
+                Nous vous montrons clairement la différence de prix entre un vol
+                classique et notre solution optimisée.
               </p>
 
               <h4 className="text-lg font-medium text-gray-900 mb-3">
-                4. Réservation sécurisée
+                4. Réservation Simplifiée
               </h4>
               <p className="text-gray-600">
-                Une fois votre choix fait, vous êtes redirigé vers les sites
-                officiels des compagnies aériennes ou agences de voyage.
+                Une fois votre choix fait, réservez directement auprès des
+                compagnies aériennes en toute sécurité.
               </p>
             </div>
           </div>
@@ -162,10 +160,10 @@ export default function HomePage() {
                 <span className="text-sm font-bold">✓</span>
               </div>
               <div>
-                <h4 className="font-medium mb-1">100% Légal et Transparent</h4>
+                <h4 className="font-medium mb-1">Recherche Approfondie</h4>
                 <p className="text-blue-100 text-sm">
-                  Aucune opération de change, uniquement des simulations
-                  informatiques
+                  Là où les autres s'arrêtent, nous continuons pour trouver des
+                  tarifs cachés.
                 </p>
               </div>
             </div>
@@ -175,9 +173,10 @@ export default function HomePage() {
                 <span className="text-sm font-bold">✓</span>
               </div>
               <div>
-                <h4 className="font-medium mb-1">Taux de Change Officiels</h4>
+                <h4 className="font-medium mb-1">Expertise Locale</h4>
                 <p className="text-blue-100 text-sm">
-                  Utilisation des taux BCE et de sources agréées
+                  Nous utilisons les spécificités du marché algérien à votre
+                  avantage.
                 </p>
               </div>
             </div>
@@ -187,9 +186,10 @@ export default function HomePage() {
                 <span className="text-sm font-bold">✓</span>
               </div>
               <div>
-                <h4 className="font-medium mb-1">Simulations Précises</h4>
+                <h4 className="font-medium mb-1">100% Transparent</h4>
                 <p className="text-blue-100 text-sm">
-                  Calculs détaillés avec prise en compte des risques
+                  Aucun frais caché, nous calculons simplement les meilleures
+                  combinaisons pour vous.
                 </p>
               </div>
             </div>
@@ -199,9 +199,10 @@ export default function HomePage() {
                 <span className="text-sm font-bold">✓</span>
               </div>
               <div>
-                <h4 className="font-medium mb-1">Redirection Sécurisée</h4>
+                <h4 className="font-medium mb-1">Simplicité</h4>
                 <p className="text-blue-100 text-sm">
-                  Accès direct aux canaux officiels de réservation
+                  Une interface claire pour comprendre et réserver sans
+                  complication.
                 </p>
               </div>
             </div>
