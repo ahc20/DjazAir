@@ -92,7 +92,7 @@ export class UnifiedFlightSearchService {
       try {
         console.log("🔍 Recherche DjazAir avec escale en Algérie...");
         const djazairOption = await this.djazairService.getDjazAirOption(params);
-        
+
         if (djazairOption) {
           const unifiedDjazairOption = this.convertDjazAirToUnified(djazairOption);
           viaAlgiersFlights = [unifiedDjazairOption];
@@ -187,14 +187,14 @@ export class UnifiedFlightSearchService {
   ): Promise<AmadeusFlightResult[]> {
     try {
       if (this.amadeusAPI.isAvailable()) {
-        return await this.amadeusAPI.searchFlightsWithFallback(params);
+        return await this.amadeusAPI.searchFlights(params);
       } else {
         console.warn("⚠️ API Amadeus non disponible");
         return [];
       }
     } catch (error) {
       console.warn("⚠️ Erreur Amadeus, utilisation du fallback:", error);
-      return this.amadeusAPI.getFallbackResults(params);
+      return [];
     }
   }
 
@@ -355,10 +355,10 @@ export class UnifiedFlightSearchService {
 
     return bestFlight.savings
       ? {
-          amount: bestFlight.savings.amount,
-          percentage: bestFlight.savings.percentage,
-          flight: bestFlight,
-        }
+        amount: bestFlight.savings.amount,
+        percentage: bestFlight.savings.percentage,
+        flight: bestFlight,
+      }
       : undefined;
   }
 
