@@ -11,7 +11,7 @@ export const searchFormSchema = z
       .length(3)
       .regex(/^[A-Z]{3}$/, "Code IATA invalide"),
     departDate: z.string().min(1, "Date de départ requise"),
-    returnDate: z.string().optional(),
+    returnDate: z.string().nullable().optional(),
     adults: z.number().min(1).max(9, "Entre 1 et 9 adultes"),
     children: z.number().min(0).max(8, "Entre 0 et 8 enfants"),
     infants: z.number().min(0).max(8, "Entre 0 et 8 nourrissons"),

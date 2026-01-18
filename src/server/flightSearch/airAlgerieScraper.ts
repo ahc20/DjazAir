@@ -39,7 +39,7 @@ export interface AirAlgerieFlightResult {
 
 export class AirAlgerieScraper {
   private baseUrl = "https://www.airalgerie.dz";
-  private parallelRate = 260; // Taux parallèle: 1€ = 260 DZD
+  private parallelRate = 280; // Taux parallèle: 1€ = 280 DZD
 
   constructor() {
     // TODO: Implémenter le vrai scraping avec Puppeteer/Playwright

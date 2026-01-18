@@ -24,6 +24,15 @@ export interface AmadeusFlightResult {
     weight?: string;
     details?: string;
   };
+  segments: {
+    origin: string;
+    destination: string;
+    departureTime: string;
+    arrivalTime: string;
+    airline: string;
+    flightNumber: string;
+    duration: string;
+  }[];
 }
 
 export class AmadeusAPI {
@@ -288,6 +297,15 @@ export class AmadeusAPI {
         provider: "Amadeus",
         direct: stops === 0,
         baggage,
+        segments: segments.map((seg: any) => ({
+          origin: seg.departure.iataCode,
+          destination: seg.arrival.iataCode,
+          departureTime: seg.departure.at,
+          arrivalTime: seg.arrival.at,
+          airline: this.getAirlineName(seg.carrierCode),
+          flightNumber: `${seg.carrierCode}${seg.number}`,
+          duration: seg.duration.replace("PT", "").replace("H", "h ").replace("M", "m")
+        }))
       };
     } catch (error) {
       console.warn("Erreur parsing offre Amadeus:", error);
@@ -416,93 +434,4 @@ export class AmadeusAPI {
     return airlines[code] || code;
   }
 
-  /**
-   * Recherche de vols avec fallback vers des données simulées
-   */
-  async searchFlightsWithFallback(
-    params: FlightSearchParams
-  ): Promise<AmadeusFlightResult[]> {
-    try {
-      return await this.searchFlights(params);
-    } catch (error) {
-      console.warn("Amadeus API échouée, utilisation du fallback:", error);
-      return this.getFallbackResults(params);
-    }
-  }
-
-  /**
-   * Résultats de fallback (simulation) quand l'API échoue
-   */
-  public getFallbackResults(params: FlightSearchParams): AmadeusFlightResult[] {
-    console.log("🔄 Utilisation des résultats de fallback Amadeus");
-
-    const basePrices: Record<string, number> = {
-      "CDG-DXB": 354,
-      "CDG-IST": 280,
-      "CDG-CAI": 350,
-      "CDG-BEY": 380,
-      "CDG-AMM": 420,
-      "ORY-DXB": 380,
-      "ORY-IST": 300,
-      "ORY-CAI": 370,
-      "ORY-BEY": 400,
-      "ORY-AMM": 440,
-    };
-
-    const route = `${params.origin}-${params.destination}`;
-    const basePrice = basePrices[route] || 400;
-
-    return [
-      {
-        id: "amadeus-fallback-1",
-        airline: "Air France",
-        airlineCode: "AF",
-        flightNumber: "AF1001",
-        origin: params.origin,
-        destination: params.destination,
-        departureTime: `${params.departureDate}T08:00:00`,
-        arrivalTime: `${params.departureDate}T14:30:00`,
-        duration: "6h 30m",
-        stops: 0,
-        price: {
-          amount: basePrice,
-          currency: "EUR",
-        },
-        aircraft: "Airbus A350-900",
-        cabinClass: params.cabinClass || "Economy",
-        provider: "Amadeus (Fallback)",
-        direct: true,
-        baggage: {
-          included: true,
-          weight: "23kg",
-          details: "Bagage en soute inclus",
-        },
-      },
-      {
-        id: "amadeus-fallback-2",
-        airline: "Emirates",
-        airlineCode: "EK",
-        flightNumber: "EK2001",
-        origin: params.origin,
-        destination: params.destination,
-        departureTime: `${params.departureDate}T10:30:00`,
-        arrivalTime: `${params.departureDate}T17:15:00`,
-        duration: "6h 45m",
-        stops: 0,
-        price: {
-          amount: basePrice * 0.95,
-          currency: "EUR",
-        },
-        aircraft: "Boeing 777-300ER",
-        cabinClass: params.cabinClass || "Economy",
-        provider: "Amadeus (Fallback)",
-        direct: true,
-        baggage: {
-          included: true,
-          weight: "30kg",
-          details: "Bagage en soute + bagage à main inclus",
-        },
-      },
-    ];
-  }
 }

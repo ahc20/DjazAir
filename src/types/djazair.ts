@@ -18,6 +18,17 @@ export interface DjazAirFlight {
     priceEUR: number;
     priceDZD?: number;
     currency: string;
+    leg?: "ALLER" | "RETOUR";
+    stops?: number;  // Nombre d'escales dans ce segment
+    subSegments?: {  // Détails des sous-segments (escales)
+      origin: string;
+      destination: string;
+      airline: string;
+      flightNumber: string;
+      departureTime: string;
+      arrivalTime: string;
+      duration: string;
+    }[];
   }[];
   layover: {
     airport: string;

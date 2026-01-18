@@ -1,0 +1,57 @@
+{
+    "lastUpdated": "2026-01-18T14:10:36.906Z",
+    "deals": [
+        {
+            "id": "deal-cdg-ist",
+            "destination": "Istanbul",
+            "destinationCode": "IST",
+            "origin": "Paris (CDG)",
+            "originCode": "CDG",
+            "image": "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=800&auto=format&fit=crop",
+            "price": 212,
+            "departDate": "2026-02-08",
+            "returnDate": "2026-02-15",
+            "tripType": "AR",
+            "airline": "VF"
+        },
+        {
+            "id": "deal-cdg-cai",
+            "destination": "Le Caire",
+            "destinationCode": "CAI",
+            "origin": "Paris (CDG)",
+            "originCode": "CDG",
+            "image": "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?q=80&w=800&auto=format&fit=crop",
+            "price": 342,
+            "departDate": "2026-02-22",
+            "returnDate": "2026-03-01",
+            "tripType": "AR",
+            "airline": "ITA Airways"
+        },
+        {
+            "id": "deal-cdg-dxb",
+            "destination": "Dubai",
+            "destinationCode": "DXB",
+            "origin": "Paris (CDG)",
+            "originCode": "CDG",
+            "image": "https://images.unsplash.com/photo-1518684079-3c830dcef090?q=80&w=800&auto=format&fit=crop",
+            "price": 406,
+            "departDate": "2026-02-01",
+            "returnDate": "2026-02-08",
+            "tripType": "AR",
+            "airline": "ITA Airways"
+        },
+        {
+            "id": "deal-cdg-amm",
+            "destination": "Amman",
+            "destinationCode": "AMM",
+            "origin": "Paris (CDG)",
+            "originCode": "CDG",
+            "image": "https://images.unsplash.com/photo-1586724237569-f3d0c1dee8c6?q=80&w=800&auto=format&fit=crop",
+            "price": 524,
+            "departDate": "2026-02-01",
+            "returnDate": "2026-02-08",
+            "tripType": "AR",
+            "airline": "Middle East Airlines"
+        }
+    ]
+}

@@ -33,13 +33,13 @@ export async function POST(request: NextRequest) {
 
     // Utiliser directement l'API Amadeus au lieu du UnifiedSearch
     const amadeusAPI = new AmadeusAPI();
-    
+
     try {
       const flights = await amadeusAPI.searchFlights({
         origin: validatedData.origin,
         destination: validatedData.destination,
         departureDate: validatedData.departDate,
-        returnDate: validatedData.returnDate,
+        returnDate: validatedData.returnDate ?? undefined,
         passengers: validatedData.adults,
         cabinClass: validatedData.cabin,
         currency: validatedData.currency,
@@ -61,7 +61,8 @@ export async function POST(request: NextRequest) {
           amount: flight.price.amount,
           currency: flight.price.currency
         },
-        stops: flight.stops || 0
+        stops: flight.stops || 0,
+        segments: flight.segments
       }));
 
       return NextResponse.json({
@@ -74,94 +75,16 @@ export async function POST(request: NextRequest) {
       });
     } catch (amadeusError) {
       console.error("❌ Erreur Amadeus:", amadeusError);
-      
-      // Retourner des vols simulés en cas d'erreur Amadeus
-      const simulatedFlights = [
-        {
-          id: "simulated-1",
-          origin: validatedData.origin,
-          destination: validatedData.destination,
-          departureTime: new Date(validatedData.departDate + "T10:00:00").toISOString(),
-          arrivalTime: new Date(validatedData.departDate + "T16:00:00").toISOString(),
-          duration: "6h 00m",
-          airline: "Air France",
-          flightNumber: "AF123",
-          price: {
-            amount: 386.12,
-            currency: "EUR"
-          },
-          stops: 0
-        },
-        {
-          id: "simulated-2",
-          origin: validatedData.origin,
-          destination: validatedData.destination,
-          departureTime: new Date(validatedData.departDate + "T12:00:00").toISOString(),
-          arrivalTime: new Date(validatedData.departDate + "T01:10:00").toISOString(),
-          duration: "13h 10m",
-          airline: "Saudia",
-          flightNumber: "SV144",
-          price: {
-            amount: 386.12,
-            currency: "EUR"
-          },
-          stops: 1
-        },
-        {
-          id: "simulated-3",
-          origin: validatedData.origin,
-          destination: validatedData.destination,
-          departureTime: new Date(validatedData.departDate + "T15:55:00").toISOString(),
-          arrivalTime: new Date(validatedData.departDate + "T04:35:00").toISOString(),
-          duration: "12h 40m",
-          airline: "Saudia",
-          flightNumber: "SV126",
-          price: {
-            amount: 386.12,
-            currency: "EUR"
-          },
-          stops: 1
-        },
-        {
-          id: "simulated-4",
-          origin: validatedData.origin,
-          destination: validatedData.destination,
-          departureTime: new Date(validatedData.departDate + "T08:30:00").toISOString(),
-          arrivalTime: new Date(validatedData.departDate + "T18:45:00").toISOString(),
-          duration: "10h 15m",
-          airline: "Emirates",
-          flightNumber: "EK071",
-          price: {
-            amount: 412.50,
-            currency: "EUR"
-          },
-          stops: 0
-        },
-        {
-          id: "simulated-5",
-          origin: validatedData.origin,
-          destination: validatedData.destination,
-          departureTime: new Date(validatedData.departDate + "T22:15:00").toISOString(),
-          arrivalTime: new Date(validatedData.departDate + "T08:30:00").toISOString(),
-          duration: "10h 15m",
-          airline: "Qatar Airways",
-          flightNumber: "QR039",
-          price: {
-            amount: 398.75,
-            currency: "EUR"
-          },
-          stops: 1
-        }
-      ];
 
       return NextResponse.json({
-        success: true,
+        success: false,
+        error: `Erreur API Amadeus: ${amadeusError instanceof Error ? amadeusError.message : 'Erreur inconnue'}`,
         data: {
-          directFlights: simulatedFlights,
+          directFlights: [],
           viaAlgiersFlights: []
         },
-        message: `Vols simulés retournés (erreur Amadeus): ${simulatedFlights.length} vols`,
-      });
+        message: "Impossible de récupérer les vols depuis l'API Amadeus",
+      }, { status: 503 });
     }
   } catch (error) {
     console.error("❌ Erreur lors de la recherche:", error);
@@ -210,7 +133,7 @@ export async function GET(request: NextRequest) {
 
     // Utiliser directement l'API Amadeus
     const amadeusAPI = new AmadeusAPI();
-    
+
     try {
       const flights = await amadeusAPI.searchFlights({
         origin,
@@ -247,34 +170,16 @@ export async function GET(request: NextRequest) {
       });
     } catch (amadeusError) {
       console.error("❌ Erreur Amadeus:", amadeusError);
-      
-      // Retourner des vols simulés en cas d'erreur
-      const simulatedFlights = [
-        {
-          id: "simulated-1",
-          origin,
-          destination,
-          departureTime: new Date(date + "T10:00:00").toISOString(),
-          arrivalTime: new Date(date + "T16:00:00").toISOString(),
-          duration: "6h 00m",
-          airline: "Air France",
-          flightNumber: "AF123",
-          price: {
-            amount: 450,
-            currency: "EUR"
-          },
-          stops: 0
-        }
-      ];
 
       return NextResponse.json({
-        success: true,
+        success: false,
+        error: `Erreur API Amadeus: ${amadeusError instanceof Error ? amadeusError.message : 'Erreur inconnue'}`,
         data: {
-          directFlights: simulatedFlights,
+          directFlights: [],
           viaAlgiersFlights: []
         },
-        message: `Vols simulés retournés (erreur Amadeus): ${simulatedFlights.length} vols`,
-      });
+        message: "Impossible de récupérer les vols depuis l'API Amadeus",
+      }, { status: 503 });
     }
   } catch (error) {
     console.error("❌ Erreur lors de la recherche GET:", error);

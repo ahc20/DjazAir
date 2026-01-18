@@ -12,4 +12,13 @@ export interface FlightResult {
     currency: string;
   };
   stops: number;
+  segments?: {
+    origin: string;
+    destination: string;
+    departureTime: string;
+    arrivalTime: string;
+    airline: string;
+    flightNumber: string;
+    duration: string;
+  }[];
 }
