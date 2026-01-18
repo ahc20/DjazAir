@@ -22,7 +22,7 @@ export default function AirportSelector({
   const [suggestions, setSuggestions] = useState<Airport[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -61,7 +61,7 @@ export default function AirportSelector({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setSearchQuery(newValue);
-    
+
     // Si l'input est vidé, réinitialiser la valeur
     if (!newValue) {
       onChange('');
@@ -81,7 +81,7 @@ export default function AirportSelector({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => 
+        setSelectedIndex(prev =>
           prev < suggestions.length - 1 ? prev + 1 : prev
         );
         break;
@@ -115,7 +115,7 @@ export default function AirportSelector({
           {label}
         </label>
       )}
-      
+
       <div className="relative">
         <input
           ref={inputRef}
@@ -132,7 +132,7 @@ export default function AirportSelector({
           `}
           autoComplete="off"
         />
-        
+
         {/* Icône d'avion */}
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
           ✈️
@@ -152,20 +152,18 @@ export default function AirportSelector({
                 ${index === selectedIndex ? 'bg-blue-50' : ''}
               `}
             >
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="font-semibold text-gray-900">
-                    {airport.city} ({airport.code})
+              <div className="flex justify-between items-center group">
+                <div className="flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-bold text-lg text-gray-900">{airport.city}</span>
+                    <span className="text-sm text-gray-500 font-medium">{airport.country}</span>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    {airport.name}
+                  <div className="text-sm text-gray-600 flex items-center gap-1">
+                    <span>{airport.name}</span>
+                    <span className="bg-gray-100 text-gray-600 text-xs px-1.5 py-0.5 rounded font-mono group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors">
+                      {airport.code}
+                    </span>
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {airport.country}, {airport.continent}
-                  </div>
-                </div>
-                <div className="text-xl text-blue-500 font-bold">
-                  {airport.code}
                 </div>
               </div>
             </div>

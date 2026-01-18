@@ -177,14 +177,51 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
             </div>
           </div>
 
+          {/* Choix du type de voyage */}
+          <div className="flex gap-4 p-1 bg-gray-100/80 rounded-lg w-fit">
+            <button
+              type="button"
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-md transition-all",
+                !watch("returnDate")
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              )}
+              onClick={() => setValue("returnDate", "")} // Clear return date -> One Way
+            >
+              Aller simple
+            </button>
+            <button
+              type="button"
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-md transition-all",
+                watch("returnDate") !== ""
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              )}
+              onClick={() => {
+                // Set default return date if picking Round Trip
+                const dep = watch("departDate") ? new Date(watch("departDate")) : new Date();
+                const nextWeek = new Date(dep);
+                nextWeek.setDate(dep.getDate() + 7);
+                setValue("returnDate", nextWeek.toISOString().split('T')[0]);
+              }}
+            >
+              Aller-Retour
+            </button>
+          </div>
+
           {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Date de départ</label>
+            <div className={cn("space-y-2", !watch("returnDate") ? "md:col-span-2" : "")}>
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-gray-500" />
+                Date de départ
+              </label>
               <Input
                 {...register("departDate")}
                 type="date"
-                className={cn(errors.departDate && "border-red-500")}
+                className={cn(errors.departDate && "border-red-500", "h-12 text-lg")}
                 min={new Date().toISOString().split("T")[0]}
               />
               {errors.departDate && (
@@ -194,24 +231,38 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
               )}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Date de retour (optionnel)
-              </label>
-              <Input
-                {...register("returnDate")}
-                type="date"
-                className={cn(errors.returnDate && "border-red-500")}
-                min={
-                  watch("departDate") || new Date().toISOString().split("T")[0]
-                }
-              />
-              {errors.returnDate && (
-                <p className="text-sm text-red-500">
-                  {errors.returnDate.message}
-                </p>
-              )}
-            </div>
+            {/* Input Retour - Visible seulement si une date de retour est définie (mode AR) */}
+            {watch("returnDate") !== "" && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-left-4 duration-300">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  Date de retour
+                </label>
+                <div className="relative">
+                  <Input
+                    {...register("returnDate")}
+                    type="date"
+                    className={cn(errors.returnDate && "border-red-500", "h-12 text-lg")}
+                    min={
+                      watch("departDate") || new Date().toISOString().split("T")[0]
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setValue("returnDate", "")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600"
+                    title="Passer en Aller simple"
+                  >
+                    ×
+                  </button>
+                </div>
+                {errors.returnDate && (
+                  <p className="text-sm text-red-500">
+                    {errors.returnDate.message}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Passagers et Classe */}

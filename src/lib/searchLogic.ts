@@ -195,8 +195,29 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
     console.log(`📊 Segments valides: S1=${validSeg1.length} (directs), S2=${validSeg2.length}, S3=${validSeg3.length}, S4=${validSeg4.length} (directs)`);
 
     const djazairFlights: DjazAirFlight[] = [];
-    const maxCombinations = 5;
+    const maxCombinations = 20; // Augmenté pour trouver plus d'options
     let found = 0;
+
+    // Helper de tri: Privilégier les vols directs, puis DZD éligibles, puis moins chers
+    const smartSort = (segments: any[]) => {
+        return segments.sort((a, b) => {
+            // 1. Privilégier les vols directs (moins d'escales)
+            if ((a.stops || 0) !== (b.stops || 0)) return (a.stops || 0) - (b.stops || 0);
+
+            // 2. Privilégier les compagnies éligibles DZD
+            const aDZD = isDZDEligibleCarrier(a.airlineCode || "");
+            const bDZD = isDZDEligibleCarrier(b.airlineCode || "");
+            if (aDZD && !bDZD) return -1;
+            if (!aDZD && bDZD) return 1;
+
+            // 3. Sinon trier par prix
+            return a.price.amount - b.price.amount;
+        });
+    };
+
+    // Appliquer le tri intelligent aux segments "flexibles" (S2 et S3)
+    smartSort(validSeg2);
+    if (isRoundTrip) smartSort(validSeg3);
 
     // Combinaison des segments ALLER
     for (const s1 of validSeg1) {
@@ -258,10 +279,24 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
 
                 if (validReturnCombos.length === 0) continue; // Pas de retour valide
 
-                // Prendre le meilleur retour (le moins cher)
-                const bestReturn = validReturnCombos.sort((a, b) =>
-                    (a.s3.price.amount + a.s4.price.amount) - (b.s3.price.amount + b.s4.price.amount)
-                )[0];
+                // Prendre le meilleur retour (Direct > DZD > Prix)
+                const bestReturn = validReturnCombos.sort((a, b) => {
+                    // 1. Privilégier les vols directs sur S3 (Destination -> ALG)
+                    const stopsA = a.s3.stops || 0;
+                    const stopsB = b.s3.stops || 0;
+                    if (stopsA !== stopsB) return stopsA - stopsB;
+
+                    // 2. Privilégier les compagnies éligibles DZD sur S3 (ex: Air Algérie)
+                    const aDZD = isDZDEligibleCarrier(a.s3.airlineCode || "");
+                    const bDZD = isDZDEligibleCarrier(b.s3.airlineCode || "");
+                    if (aDZD && !bDZD) return -1;
+                    if (!aDZD && bDZD) return 1;
+
+                    // 3. Sinon trier par prix total du retour
+                    const priceA = a.s3.price.amount + a.s4.price.amount;
+                    const priceB = b.s3.price.amount + b.s4.price.amount;
+                    return priceA - priceB;
+                })[0];
                 // Prix RETOUR - DZD seulement pour compagnies éligibles
                 const price3 = calculateDjazAirPrice(bestReturn.s3.price.amount, params.dzdEurRate, true, bestReturn.s3.airlineCode);
                 const price4 = calculateDjazAirPrice(bestReturn.s4.price.amount, params.dzdEurRate, true, bestReturn.s4.airlineCode);
