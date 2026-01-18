@@ -170,14 +170,29 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
         return [];
     }
 
-    // Filtrage basique (destination/origine correctes)
-    // Note: on ne filtre plus par compagnies car l'API Amadeus retourne des données test
-    const validSeg1 = seg1Results.filter(f => f.destination === "ALG");
-    const validSeg2 = seg2Results.filter(f => f.origin === "ALG");
-    const validSeg3 = isRoundTrip ? seg3Results.filter(f => f.destination === "ALG") : [];
-    const validSeg4 = isRoundTrip ? seg4Results.filter(f => f.origin === "ALG") : [];
+    // Filtrage des segments
+    // RÈGLE DJAZAIR: Les segments France ↔ Algérie doivent être DIRECTS
+    // Les segments Algérie ↔ Destination finale peuvent avoir des escales
 
-    console.log(`📊 Segments valides: S1=${validSeg1.length}, S2=${validSeg2.length}, S3=${validSeg3.length}, S4=${validSeg4.length}`);
+    // S1 (France → ALG): DIRECT uniquement - filtre stops === 0
+    const validSeg1 = seg1Results.filter(f =>
+        f.destination === "ALG" &&
+        (f.stops === 0 || !f.segments || f.segments.length <= 1)
+    );
+
+    // S2 (ALG → Destination): escales autorisées
+    const validSeg2 = seg2Results.filter(f => f.origin === "ALG");
+
+    // S3 (Destination → ALG): escales autorisées  
+    const validSeg3 = isRoundTrip ? seg3Results.filter(f => f.destination === "ALG") : [];
+
+    // S4 (ALG → France): DIRECT uniquement - filtre stops === 0
+    const validSeg4 = isRoundTrip ? seg4Results.filter(f =>
+        f.origin === "ALG" &&
+        (f.stops === 0 || !f.segments || f.segments.length <= 1)
+    ) : [];
+
+    console.log(`📊 Segments valides: S1=${validSeg1.length} (directs), S2=${validSeg2.length}, S3=${validSeg3.length}, S4=${validSeg4.length} (directs)`);
 
     const djazairFlights: DjazAirFlight[] = [];
     const maxCombinations = 5;
