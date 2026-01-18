@@ -47,8 +47,30 @@ export async function POST(request: NextRequest) {
 
       console.log(`✅ Vols trouvés via Amadeus: ${flights.length}`);
 
+      // DÉDUPLICATION: Filtrer les doublons exacts (mêmes segments, mêmes horaires, même prix)
+      const uniqueFlights = flights.reduce((acc: any[], current) => {
+        // Créer une clé unique basée sur les numéros de vol et le prix
+        const segmentsKey = current.segments?.map((seg: any) =>
+          seg.subSegments?.map((s: any) => `${s.airline}${s.flightNumber}-${s.departureTime}`).join('|')
+        ).join('||');
+
+        const key = `${segmentsKey}-${current.price.amount}`;
+
+        if (!acc.find(item => {
+          const itemKey = item.segments?.map((seg: any) =>
+            seg.subSegments?.map((s: any) => `${s.airline}${s.flightNumber}-${s.departureTime}`).join('|')
+          ).join('||') + `-${item.price.amount}`;
+          return itemKey === key;
+        })) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
+
+      console.log(`✅ Vols uniques après déduplication: ${uniqueFlights.length}`);
+
       // Convertir le format Amadeus en format FlightResult
-      const directFlights = flights.map((flight, index) => ({
+      const directFlights = uniqueFlights.map((flight, index) => ({
         id: `amadeus-${index}`,
         origin: flight.origin,
         destination: flight.destination,

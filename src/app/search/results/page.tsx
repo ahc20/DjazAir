@@ -622,31 +622,77 @@ export default function SearchResultsPage() {
                                       const diffMs = departure.getTime() - arrival.getTime();
                                       const hours = Math.floor(diffMs / (1000 * 60 * 60));
                                       const mins = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                                      return `${hours}h ${mins}m`;
+                                      return { text: `${hours}h ${mins}m`, ms: diffMs };
                                     };
 
-                                    // Calculer la durée totale
-                                    const firstDeparture = new Date(segment.subSegments[0].departureTime);
-                                    const lastArrival = new Date(segment.subSegments[segment.subSegments.length - 1].arrivalTime);
-                                    const totalMs = lastArrival.getTime() - firstDeparture.getTime();
-                                    const totalHours = Math.floor(totalMs / (1000 * 60 * 60));
-                                    const totalMins = Math.round((totalMs % (1000 * 60 * 60)) / (1000 * 60));
+                                    // Parser une durée texte (ex: "5h", "3h 40m", "PT5H30M") en minutes
+                                    const parseDuration = (durationStr: string): number => {
+                                      if (!durationStr) return 0;
+                                      // Format ISO 8601: PT5H30M
+                                      if (durationStr.startsWith('PT')) {
+                                        const hMatch = durationStr.match(/(\d+)H/);
+                                        const mMatch = durationStr.match(/(\d+)M/);
+                                        return (hMatch ? parseInt(hMatch[1]) * 60 : 0) + (mMatch ? parseInt(mMatch[1]) : 0);
+                                      }
+                                      // Format "5h 30m" ou "5h"
+                                      const hMatch = durationStr.match(/(\d+)h/);
+                                      const mMatch = durationStr.match(/(\d+)m/);
+                                      return (hMatch ? parseInt(hMatch[1]) * 60 : 0) + (mMatch ? parseInt(mMatch[1]) : 0);
+                                    };
+
+                                    // Calculer le temps de vol total (depuis les durées API)
+                                    let totalFlightMins = 0;
+                                    segment.subSegments!.forEach((subSeg: any) => {
+                                      totalFlightMins += parseDuration(subSeg.duration);
+                                    });
+
+                                    // Calculer le temps d'escale (différence entre arrivée et prochain départ)
+                                    let totalLayoverMins = 0;
+                                    segment.subSegments!.forEach((subSeg: any, idx: number) => {
+                                      if (idx < segment.subSegments!.length - 1) {
+                                        const arr = new Date(subSeg.arrivalTime);
+                                        const nextDep = new Date(segment.subSegments![idx + 1].departureTime);
+                                        const layoverMs = nextDep.getTime() - arr.getTime();
+                                        totalLayoverMins += Math.round(layoverMs / (1000 * 60));
+                                      }
+                                    });
+
+                                    // Durée totale = temps de vol + temps d'escale
+                                    const grandTotalMins = totalFlightMins + totalLayoverMins;
+                                    const totalHours = Math.floor(grandTotalMins / 60);
+                                    const totalMins = grandTotalMins % 60;
                                     const totalDuration = `${totalHours}h ${totalMins}m`;
+
+                                    // Formatage du temps de vol et d'escale
+                                    const flightHours = Math.floor(totalFlightMins / 60);
+                                    const flightMins = totalFlightMins % 60;
+                                    const flightText = `${flightHours}h ${flightMins}m`;
+
+                                    const layoverHours = Math.floor(totalLayoverMins / 60);
+                                    const layoverMins = totalLayoverMins % 60;
+                                    const layoverText = `${layoverHours}h ${layoverMins}m`;
 
                                     return (
                                       <div className="mt-3 mb-3 bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                        {/* En-tête avec durée totale */}
-                                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
+                                        {/* En-tête avec durée totale et décomposition */}
+                                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 pb-2 border-b border-gray-200 gap-2">
                                           <div className="text-xs font-semibold text-gray-600">
-                                            📍 Détail du trajet ({segment.subSegments.length} segments)
+                                            📍 Détail du trajet ({segment.subSegments!.length} segments)
                                           </div>
-                                          <div className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded">
-                                            Durée totale: {totalDuration}
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <div className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded">
+                                              🕐 Durée totale: {totalDuration}
+                                            </div>
+                                            {totalLayoverMins > 0 && (
+                                              <div className="bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded">
+                                                (dont {layoverText} d'escale)
+                                              </div>
+                                            )}
                                           </div>
                                         </div>
 
                                         <div className="space-y-3">
-                                          {segment.subSegments.map((subSeg: any, subIdx: number) => {
+                                          {segment.subSegments!.map((subSeg: any, subIdx: number) => {
                                             const originCity = getAirportInfo(subSeg.origin)?.city || subSeg.origin;
                                             const destCity = getAirportInfo(subSeg.destination)?.city || subSeg.destination;
                                             const depTime = new Date(subSeg.departureTime);
@@ -703,7 +749,7 @@ export default function SearchResultsPage() {
                                                 </div>
 
                                                 {/* Temps d'escale entre les segments */}
-                                                {subIdx < segment.subSegments.length - 1 && (
+                                                {subIdx < segment.subSegments!.length - 1 && (
                                                   <div className="flex items-center justify-center py-2">
                                                     <div className="flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2 rounded-full border border-amber-200">
                                                       <span>🛬</span>
@@ -711,7 +757,7 @@ export default function SearchResultsPage() {
                                                         Escale à {getAirportInfo(subSeg.destination)?.city || subSeg.destination}
                                                       </span>
                                                       <span className="bg-amber-200 text-amber-800 px-2 py-0.5 rounded text-xs font-bold">
-                                                        {calculateLayoverTime(subSeg.arrivalTime, segment.subSegments[subIdx + 1].departureTime)}
+                                                        {calculateLayoverTime(subSeg.arrivalTime, segment.subSegments![subIdx + 1].departureTime).text}
                                                       </span>
                                                       <span>🛫</span>
                                                     </div>

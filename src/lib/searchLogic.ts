@@ -356,7 +356,28 @@ export async function searchClassicTrip(params: SearchParams): Promise<any[]> {
     };
 
     const results = await callAmadeusWithRetry(amadeusAPI, searchParams);
-    return results.sort((a, b) => a.price.amount - b.price.amount);
+
+    // DÉDUPLICATION: Filtrer les doublons exacts (mêmes segments, mêmes horaires, même prix)
+    const uniqueResults = results.reduce((acc: any[], current) => {
+        // Créer une clé unique basée sur les numéros de vol et le prix
+        const segmentsKey = current.segments?.map((seg: any) =>
+            seg.subSegments?.map((s: any) => `${s.airline}${s.flightNumber}-${s.departureTime}`).join('|')
+        ).join('||');
+
+        const key = `${segmentsKey}-${current.price.amount}`;
+
+        if (!acc.find(item => {
+            const itemKey = item.segments?.map((seg: any) =>
+                seg.subSegments?.map((s: any) => `${s.airline}${s.flightNumber}-${s.departureTime}`).join('|')
+            ).join('||') + `-${item.price.amount}`;
+            return itemKey === key;
+        })) {
+            acc.push(current);
+        }
+        return acc;
+    }, []);
+
+    return uniqueResults.sort((a, b) => a.price.amount - b.price.amount);
 }
 
 /**
