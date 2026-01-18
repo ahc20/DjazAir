@@ -614,35 +614,116 @@ export default function SearchResultsPage() {
                                   </div>
 
                                   {/* Détails des escales si multi-segments */}
-                                  {segment.subSegments && segment.subSegments.length > 1 && (
-                                    <div className="mt-3 mb-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                      <div className="text-xs font-semibold text-gray-500 mb-2">📍 Détail du trajet ({segment.subSegments.length} segments) :</div>
-                                      <div className="space-y-2">
-                                        {segment.subSegments.map((subSeg: any, subIdx: number) => {
-                                          const originCity = getAirportInfo(subSeg.origin)?.city || subSeg.origin;
-                                          const destCity = getAirportInfo(subSeg.destination)?.city || subSeg.destination;
-                                          return (
-                                            <div key={subIdx} className="flex items-center justify-between text-sm">
-                                              <div className="flex items-center gap-2">
-                                                <span className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-600">{subIdx + 1}</span>
-                                                <span className="font-medium">{subSeg.origin} <span className="text-gray-500 font-normal">({originCity})</span> → {subSeg.destination} <span className="text-gray-500 font-normal">({destCity})</span></span>
-                                              </div>
-                                              <div className="text-gray-500 text-xs">
-                                                {subSeg.airline} {subSeg.flightNumber} • {subSeg.duration}
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                      {/* Escale intermédiaire */}
-                                      {segment.subSegments.length === 2 && (
-                                        <div className="mt-2 pt-2 border-t border-gray-200 text-xs text-amber-700 flex items-center gap-1">
-                                          <span>🛬</span>
-                                          <span>Escale à {getAirportInfo(segment.subSegments[0].destination)?.city || segment.subSegments[0].destination}</span>
+                                  {segment.subSegments && segment.subSegments.length > 1 && (() => {
+                                    // Calculer le temps d'escale entre les segments
+                                    const calculateLayoverTime = (arrivalTime: string, departureTime: string) => {
+                                      const arrival = new Date(arrivalTime);
+                                      const departure = new Date(departureTime);
+                                      const diffMs = departure.getTime() - arrival.getTime();
+                                      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                                      const mins = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                                      return `${hours}h ${mins}m`;
+                                    };
+
+                                    // Calculer la durée totale
+                                    const firstDeparture = new Date(segment.subSegments[0].departureTime);
+                                    const lastArrival = new Date(segment.subSegments[segment.subSegments.length - 1].arrivalTime);
+                                    const totalMs = lastArrival.getTime() - firstDeparture.getTime();
+                                    const totalHours = Math.floor(totalMs / (1000 * 60 * 60));
+                                    const totalMins = Math.round((totalMs % (1000 * 60 * 60)) / (1000 * 60));
+                                    const totalDuration = `${totalHours}h ${totalMins}m`;
+
+                                    return (
+                                      <div className="mt-3 mb-3 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                        {/* En-tête avec durée totale */}
+                                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
+                                          <div className="text-xs font-semibold text-gray-600">
+                                            📍 Détail du trajet ({segment.subSegments.length} segments)
+                                          </div>
+                                          <div className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded">
+                                            Durée totale: {totalDuration}
+                                          </div>
                                         </div>
-                                      )}
-                                    </div>
-                                  )}
+
+                                        <div className="space-y-3">
+                                          {segment.subSegments.map((subSeg: any, subIdx: number) => {
+                                            const originCity = getAirportInfo(subSeg.origin)?.city || subSeg.origin;
+                                            const destCity = getAirportInfo(subSeg.destination)?.city || subSeg.destination;
+                                            const depTime = new Date(subSeg.departureTime);
+                                            const arrTime = new Date(subSeg.arrivalTime);
+                                            const isNextDay = arrTime.getDate() !== depTime.getDate();
+
+                                            return (
+                                              <div key={subIdx}>
+                                                {/* Segment de vol */}
+                                                <div className="bg-white rounded-lg p-3 border border-gray-100">
+                                                  <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center gap-2">
+                                                      <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">✈️</span>
+                                                      <span className="font-semibold text-gray-700">Vol {subIdx + 1}: {subSeg.airline} {subSeg.flightNumber}</span>
+                                                    </div>
+                                                    <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
+                                                      {subSeg.duration}
+                                                    </span>
+                                                  </div>
+
+                                                  <div className="flex items-center justify-between text-sm">
+                                                    {/* Départ */}
+                                                    <div className="text-center">
+                                                      <div className="font-bold text-gray-800">
+                                                        {depTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                      </div>
+                                                      <div className="text-xs text-gray-500">{subSeg.origin} ({originCity})</div>
+                                                      <div className="text-xs text-gray-400">
+                                                        {depTime.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                                                      </div>
+                                                    </div>
+
+                                                    {/* Flèche */}
+                                                    <div className="flex-1 mx-3">
+                                                      <div className="flex items-center">
+                                                        <div className="h-px flex-1 bg-gray-300"></div>
+                                                        <span className="px-2 text-gray-400">→</span>
+                                                        <div className="h-px flex-1 bg-gray-300"></div>
+                                                      </div>
+                                                    </div>
+
+                                                    {/* Arrivée */}
+                                                    <div className="text-center">
+                                                      <div className="font-bold text-gray-800">
+                                                        {arrTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                        {isNextDay && <span className="text-orange-500 text-xs ml-1">+1j</span>}
+                                                      </div>
+                                                      <div className="text-xs text-gray-500">{subSeg.destination} ({destCity})</div>
+                                                      <div className="text-xs text-gray-400">
+                                                        {arrTime.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+
+                                                {/* Temps d'escale entre les segments */}
+                                                {subIdx < segment.subSegments.length - 1 && (
+                                                  <div className="flex items-center justify-center py-2">
+                                                    <div className="flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2 rounded-full border border-amber-200">
+                                                      <span>🛬</span>
+                                                      <span className="font-medium text-sm">
+                                                        Escale à {getAirportInfo(subSeg.destination)?.city || subSeg.destination}
+                                                      </span>
+                                                      <span className="bg-amber-200 text-amber-800 px-2 py-0.5 rounded text-xs font-bold">
+                                                        {calculateLayoverTime(subSeg.arrivalTime, segment.subSegments[subIdx + 1].departureTime)}
+                                                      </span>
+                                                      <span>🛫</span>
+                                                    </div>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
 
                                   {/* Infos bagages et devise */}
                                   <div className="flex items-center justify-between text-sm text-gray-600">
