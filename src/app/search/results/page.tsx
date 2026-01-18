@@ -618,18 +618,29 @@ export default function SearchResultsPage() {
                                     <div className="mt-3 mb-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
                                       <div className="text-xs font-semibold text-gray-500 mb-2">📍 Détail du trajet ({segment.subSegments.length} segments) :</div>
                                       <div className="space-y-2">
-                                        {segment.subSegments.map((subSeg: any, subIdx: number) => (
-                                          <div key={subIdx} className="flex items-center justify-between text-sm">
-                                            <div className="flex items-center gap-2">
-                                              <span className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-600">{subIdx + 1}</span>
-                                              <span className="font-medium">{subSeg.origin} → {subSeg.destination}</span>
+                                        {segment.subSegments.map((subSeg: any, subIdx: number) => {
+                                          const originCity = getAirportInfo(subSeg.origin)?.city || subSeg.origin;
+                                          const destCity = getAirportInfo(subSeg.destination)?.city || subSeg.destination;
+                                          return (
+                                            <div key={subIdx} className="flex items-center justify-between text-sm">
+                                              <div className="flex items-center gap-2">
+                                                <span className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-600">{subIdx + 1}</span>
+                                                <span className="font-medium">{subSeg.origin} <span className="text-gray-500 font-normal">({originCity})</span> → {subSeg.destination} <span className="text-gray-500 font-normal">({destCity})</span></span>
+                                              </div>
+                                              <div className="text-gray-500 text-xs">
+                                                {subSeg.airline} {subSeg.flightNumber} • {subSeg.duration}
+                                              </div>
                                             </div>
-                                            <div className="text-gray-500 text-xs">
-                                              {subSeg.airline} {subSeg.flightNumber} • {subSeg.duration}
-                                            </div>
-                                          </div>
-                                        ))}
+                                          );
+                                        })}
                                       </div>
+                                      {/* Escale intermédiaire */}
+                                      {segment.subSegments.length === 2 && (
+                                        <div className="mt-2 pt-2 border-t border-gray-200 text-xs text-amber-700 flex items-center gap-1">
+                                          <span>🛬</span>
+                                          <span>Escale à {getAirportInfo(segment.subSegments[0].destination)?.city || segment.subSegments[0].destination}</span>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
 
