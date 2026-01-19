@@ -973,9 +973,9 @@ export default function SearchResultsPage() {
               ) : (
                 <div className="bg-white rounded-lg shadow p-6">
                   <div className="text-center">
-                    <div className="text-gray-400 text-4xl mb-3">🔍</div>
-                    <h3 className="text-lg font-semibold text-gray-600 mb-2">Recherche en cours...</h3>
-                    <p className="text-gray-500 text-sm mb-4">Nous cherchons des vols classiques pour comparer</p>
+                    <div className="text-gray-400 text-4xl mb-3">❌</div>
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">Aucun vol classique trouvé</h3>
+                    <p className="text-gray-500 text-sm mb-4">L'API n'a retourné aucun vol pour cette recherche.</p>
 
                     {/* Debug info */}
                     <div className="bg-gray-50 p-3 rounded text-xs text-gray-600">

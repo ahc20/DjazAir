@@ -10,10 +10,13 @@ import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { searchFormSchema, type SearchFormData } from "@/lib/zod";
 import {
-  getAirportSuggestions,
-  formatAirportOption,
-  type AirportCode,
-} from "@/lib/iata";
+  searchAirports as getAirportSuggestions,
+  getAirportDisplayName as formatAirportOption,
+  type Airport,
+} from "@/data/airports";
+
+// Adapter le type pour compatibilité
+type AirportCode = string;
 import { cn } from "@/lib/utils";
 
 interface SearchFormProps {
@@ -22,9 +25,9 @@ interface SearchFormProps {
 }
 
 export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
-  const [originSuggestions, setOriginSuggestions] = useState<AirportCode[]>([]);
+  const [originSuggestions, setOriginSuggestions] = useState<Airport[]>([]);
   const [destinationSuggestions, setDestinationSuggestions] = useState<
-    AirportCode[]
+    Airport[]
   >([]);
   const [showOriginSuggestions, setShowOriginSuggestions] = useState(false);
   const [showDestinationSuggestions, setShowDestinationSuggestions] =
@@ -71,12 +74,12 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
     }
   };
 
-  const selectOrigin = (code: AirportCode) => {
+  const selectOrigin = (code: string) => {
     setValue("origin", code);
     setShowOriginSuggestions(false);
   };
 
-  const selectDestination = (code: AirportCode) => {
+  const selectDestination = (code: string) => {
     setValue("destination", code);
     setShowDestinationSuggestions(false);
   };
@@ -102,7 +105,7 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
               <div className="relative">
                 <Input
                   {...register("origin")}
-                  placeholder="CDG, LHR, FRA..."
+                  placeholder="Ville (Paris) ou Aéroport (CDG)..."
                   className={cn(errors.origin && "border-red-500")}
                   onChange={(e) => handleOriginChange(e.target.value)}
                   onFocus={() =>
@@ -116,14 +119,21 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
                 />
                 {showOriginSuggestions && originSuggestions.length > 0 && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {originSuggestions.map((code) => (
+                    {originSuggestions.map((airport) => (
                       <button
-                        key={code}
+                        key={airport.code}
                         type="button"
-                        className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-                        onClick={() => selectOrigin(code)}
+                        className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none border-b border-gray-50 last:border-0"
+                        onClick={() => selectOrigin(airport.code)}
                       >
-                        {formatAirportOption(code)}
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-900">
+                            {airport.city} ({airport.code})
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {airport.name} - {airport.country}
+                          </span>
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -141,7 +151,7 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
               <div className="relative">
                 <Input
                   {...register("destination")}
-                  placeholder="DXB, BKK, SIN..."
+                  placeholder="Ville (Alger) ou Aéroport (ALG)..."
                   className={cn(errors.destination && "border-red-500")}
                   onChange={(e) => handleDestinationChange(e.target.value)}
                   onFocus={() =>
@@ -156,14 +166,21 @@ export function SearchForm({ onSubmit, isLoading = false }: SearchFormProps) {
                 {showDestinationSuggestions &&
                   destinationSuggestions.length > 0 && (
                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                      {destinationSuggestions.map((code) => (
+                      {destinationSuggestions.map((airport) => (
                         <button
-                          key={code}
+                          key={airport.code}
                           type="button"
-                          className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-                          onClick={() => selectDestination(code)}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none border-b border-gray-50 last:border-0"
+                          onClick={() => selectDestination(airport.code)}
                         >
-                          {formatAirportOption(code)}
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-900">
+                              {airport.city} ({airport.code})
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {airport.name} - {airport.country}
+                            </span>
+                          </div>
                         </button>
                       ))}
                     </div>

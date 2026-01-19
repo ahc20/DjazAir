@@ -56,6 +56,12 @@ export const AIRPORTS: Record<string, Airport> = {
   "TMR": { code: "TMR", name: "Aguenar - Hadj Bey Akhamok", city: "Tamanrasset", country: "Algérie", continent: "Afrique" },
   "CBH": { code: "CBH", name: "Boudghene Ben Ali Lotfi", city: "Béchar", country: "Algérie", continent: "Afrique" },
   "ELU": { code: "ELU", name: "Guemar", city: "El Oued", country: "Algérie", continent: "Afrique" },
+  "DJG": { code: "DJG", name: "Tiska", city: "Djanet", country: "Algérie", continent: "Afrique" },
+  "GHA": { code: "GHA", name: "Noumérat - Moufdi Zakaria", city: "Ghardaïa", country: "Algérie", continent: "Afrique" },
+  "INZ": { code: "INZ", name: "In Salah", city: "In Salah", country: "Algérie", continent: "Afrique" },
+  "IAM": { code: "IAM", name: "In Amenas", city: "In Amenas", country: "Algérie", continent: "Afrique" },
+  "TMX": { code: "TMX", name: "Timimoun", city: "Timimoun", country: "Algérie", continent: "Afrique" },
+  "AZR": { code: "AZR", name: "Touat-Cheikh Sidi Mohamed Belkebir", city: "Adrar", country: "Algérie", continent: "Afrique" },
 
   // CHINE & ASIE
   "PEK": { code: "PEK", name: "Beijing Capital", city: "Pékin", country: "Chine", continent: "Asie" },

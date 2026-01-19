@@ -1,4 +1,5 @@
 import { AmadeusAPI } from "@/server/flightSearch/amadeusAPI";
+import { getDuffelAPI } from "@/server/flightAPI/duffelAPI";
 import { DjazAirFlight } from "@/types/djazair";
 
 export interface SearchParams {
@@ -403,7 +404,25 @@ export async function searchClassicTrip(params: SearchParams): Promise<any[]> {
         currency: "EUR"
     };
 
-    const results = await callAmadeusWithRetry(amadeusAPI, searchParams);
+    let results = await callAmadeusWithRetry(amadeusAPI, searchParams);
+
+    // FALLBACK: Si Amadeus ne retourne rien, essayer Duffel
+    if (results.length === 0) {
+        console.log("⚠️ Amadeus vide, tentative Duffel...");
+        const duffelAPI = getDuffelAPI();
+        if (duffelAPI.isAvailable()) {
+            results = await duffelAPI.searchFlights({
+                origin: params.origin,
+                destination: params.destination,
+                departureDate: params.departureDate,
+                returnDate: params.returnDate,
+                passengers: params.adults,
+                cabinClass: params.cabin,
+                currency: "EUR"
+            });
+            console.log(`🔄 Duffel: ${results.length} résultats`);
+        }
+    }
 
     // DÉDUPLICATION: Filtrer les doublons exacts (mêmes segments, mêmes horaires, même prix)
     const uniqueResults = results.reduce((acc: any[], current) => {
@@ -412,12 +431,12 @@ export async function searchClassicTrip(params: SearchParams): Promise<any[]> {
             seg.subSegments?.map((s: any) => `${s.airline}${s.flightNumber}-${s.departureTime}`).join('|')
         ).join('||');
 
-        const key = `${segmentsKey}-${current.price.amount}`;
+        const key = `${segmentsKey}-${current.price?.amount || current.price}`;
 
         if (!acc.find(item => {
             const itemKey = item.segments?.map((seg: any) =>
                 seg.subSegments?.map((s: any) => `${s.airline}${s.flightNumber}-${s.departureTime}`).join('|')
-            ).join('||') + `-${item.price.amount}`;
+            ).join('||') + `-${item.price?.amount || item.price}`;
             return itemKey === key;
         })) {
             acc.push(current);
@@ -425,7 +444,105 @@ export async function searchClassicTrip(params: SearchParams): Promise<any[]> {
         return acc;
     }, []);
 
-    return uniqueResults.sort((a, b) => a.price.amount - b.price.amount);
+    return uniqueResults.sort((a, b) => (a.price?.amount || a.price) - (b.price?.amount || b.price));
+}
+
+/**
+ * Génère une option Classique synthétique (Air Algérie) pour le Fallback
+ * Imite la structure AmadeusFlightResult pour l'affichage
+ */
+function generateSyntheticClassicOption(params: SearchParams): any {
+    // Dates simulées réalistes
+    const departureDate = new Date(params.departureDate);
+    const leg1Dep = new Date(departureDate);
+    leg1Dep.setHours(12, 50, 0, 0); // 12h50 Paris (horaire classique AH)
+
+    // Arrivée ALG (+2h15)
+    const leg1Arr = new Date(leg1Dep.getTime() + 2.25 * 3600 * 1000);
+
+    // Escale à Alger (3h30 - réaliste pour le sud)
+    const leg2Dep = new Date(leg1Arr.getTime() + 3.5 * 3600 * 1000);
+
+    // Arrivée Destination (ex: Djanet ~2h15 de vol)
+    // Distance approx ou fixe pour le sud
+    const leg2DurationAuth = 2.25 * 3600 * 1000;
+    const leg2Arr = new Date(leg2Dep.getTime() + leg2DurationAuth);
+
+    // Prix réaliste "Classique" (cher, sans optimisation)
+    // Ex: Paris-Djanet classique tourne autour de 400-600€
+    const basePrice = 450;
+    const price = params.returnDate ? basePrice * 1.8 : basePrice;
+
+    // Construction de l'objet résultat style Amadeus
+    const segments = [
+        {
+            origin: params.origin,
+            destination: params.destination, // "Global" segment info derived? No, checking format
+            departureTime: leg1Dep.toISOString(),
+            arrivalTime: leg2Arr.toISOString(),
+            airline: "Air Algérie",
+            flightNumber: "AH1000",
+            duration: "8h 00m" // Total approx
+        }
+    ];
+
+    // Note: Le frontend attend souvent une structure nested 'segments' ou 'itineraries'
+    // Mais ici on renvoie le format "flat" transformé par AmadeusAPI ou le format raw?
+    // AmadeusAPI.parseFlightResults renvoie AmadeusFlightResult.
+    // Structure:
+    /*
+      {
+        id: string,
+        price: { amount, currency },
+        segments: [ { origin, destination, departureTime, ... }, ... ]
+      }
+    */
+
+    return {
+        id: `classic-synth-${Date.now()}`,
+        airline: "Air Algérie",
+        airlineCode: "AH",
+        flightNumber: "AH1000/AH6000",
+        origin: params.origin,
+        destination: params.destination,
+        departureTime: leg1Dep.toISOString(),
+        arrivalTime: leg2Arr.toISOString(),
+        duration: "8h 00m",
+        stops: 1,
+        price: {
+            amount: price,
+            currency: "EUR"
+        },
+        aircraft: "737-800",
+        cabinClass: params.cabin || "Economy",
+        provider: "Amadeus (Simulated)",
+        direct: false,
+        baggage: {
+            included: true,
+            weight: "23kg",
+            details: "1 Bagage inclus"
+        },
+        segments: [
+            {
+                origin: params.origin,
+                destination: "ALG",
+                departureTime: leg1Dep.toISOString(),
+                arrivalTime: leg1Arr.toISOString(),
+                airline: "Air Algérie",
+                flightNumber: "AH1000",
+                duration: "2h 15m"
+            },
+            {
+                origin: "ALG",
+                destination: params.destination,
+                departureTime: leg2Dep.toISOString(),
+                arrivalTime: leg2Arr.toISOString(),
+                airline: "Air Algérie",
+                flightNumber: "AH6292", // Vol typique vers le sud
+                duration: "2h 15m"
+            }
+        ]
+    };
 }
 
 /**
@@ -443,19 +560,31 @@ function addDays(dateStr: string, days: number): string {
 function generateSyntheticDjazAirOption(params: SearchParams): DjazAirFlight {
     console.log("⚠️ Génération d'une option synthétique pour:", params);
 
+    // Estimation basique de la durée selon la région (Code IATA)
+    const isLongHaul = (code: string) => ["JFK", "NYC", "YUL", "PEK", "DXB", "JNB", "NRT"].includes(code);
+    const getDurationMs = (code: string) => isLongHaul(code) ? 8 * 3600 * 1000 : 2.5 * 3600 * 1000;
+    const getDurationStr = (code: string) => {
+        if (["PEK", "NRT"].includes(code)) return "10h 00m"; // Even longer for Asia
+        if (isLongHaul(code)) return "8h 00m";
+        return "2h 30m";
+    };
+
+    const leg1DurationMs = getDurationMs(params.origin); // Origin -> ALG
+    const leg2DurationMs = getDurationMs(params.destination); // ALG -> Dest
+
     // Dates simulées réalistes
     const departureDate = new Date(params.departureDate);
     const toAlgiersDep = new Date(departureDate);
     toAlgiersDep.setHours(11, 30, 0, 0); // 11h30
 
-    // Arrivée ALG (+2h30 env depuis Europe)
-    const toAlgiersArr = new Date(toAlgiersDep.getTime() + 2.5 * 3600 * 1000);
+    // Arrivée ALG
+    const toAlgiersArr = new Date(toAlgiersDep.getTime() + leg1DurationMs);
 
     // Escale 4h
     const fromAlgiersDep = new Date(toAlgiersArr.getTime() + 4 * 3600 * 1000);
 
-    // Arrivée Destination (approx 7h de vol ex: Dubai)
-    const fromAlgiersArr = new Date(fromAlgiersDep.getTime() + 7 * 3600 * 1000);
+    // Arrivée Destination
+    const fromAlgiersArr = new Date(fromAlgiersDep.getTime() + leg2DurationMs);
 
     // Distances approx pour pricing
     const distances: Record<string, number> = {
@@ -476,7 +605,7 @@ function generateSyntheticDjazAirOption(params: SearchParams): DjazAirFlight {
             flightNumber: "AH1001",
             departureTime: toAlgiersDep.toISOString(),
             arrivalTime: toAlgiersArr.toISOString(),
-            duration: "2h 30m",
+            duration: getDurationStr(params.origin),
             priceEUR: Math.round(priceEUR * 0.3),
             currency: "EUR",
             leg: "ALLER",
@@ -489,7 +618,7 @@ function generateSyntheticDjazAirOption(params: SearchParams): DjazAirFlight {
             flightNumber: "AH2002",
             departureTime: fromAlgiersDep.toISOString(),
             arrivalTime: fromAlgiersArr.toISOString(),
-            duration: "7h 00m",
+            duration: getDurationStr(params.destination),
             priceEUR: Math.round(priceEUR * 0.7), // Sera affiché en DZD converti
             priceDZD: Math.round(priceEUR * 0.7 * 150), // Prix officiel DZD
             currency: "DZD",
@@ -643,17 +772,11 @@ export async function searchDjazAirTripWithFallback(params: SearchParams): Promi
     // Vraiment aucun vol trouvé sur aucune date proche
     console.log("❌ Aucun vol DjazAir disponible sur aucune date proche");
 
-    // === DERNIER RECOURS : GÉNÉRATION SYNTHÉTIQUE ===
-    // Pour garantir que l'utilisateur voit toujours une "Solution DjazAir"
-    // (Demande critique: "je dois trouver un vol automatiquement")
-    const syntheticFlight = generateSyntheticDjazAirOption(params);
-    console.log("✅ Vol synthétique généré en dernier recours");
-
     return {
-        flights: [syntheticFlight],
+        flights: [],
         actualDepartureDate: params.departureDate,
         actualReturnDate: params.returnDate,
         isAlternativeDate: false,
-        message: "Simulation basée sur les horaires habituels (Disponibilité temps réel limitée)"
+        message: "Aucun vol disponible pour ces dates (Amadeus API limitation)."
     };
 }

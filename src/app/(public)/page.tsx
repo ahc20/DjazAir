@@ -64,146 +64,49 @@ export default function HomePage() {
           {/* Section Meilleures Offres */}
           <BestDeals />
 
-          {/* Section des fonctionnalités */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-stone-100 hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-6 transform rotate-3 hover:rotate-6 transition-transform">
-                <Plane className="h-8 w-8 text-emerald-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Recherche en Temps Réel
-              </h3>
-              <p className="text-gray-600">
-                Obtenez les prix les plus récents directement depuis Amadeus
-              </p>
-            </div>
-
-            <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-stone-100 hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-6 transform -rotate-3 hover:-rotate-6 transition-transform">
-                <TrendingUp className="h-8 w-8 text-amber-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Prix Transparents
-              </h3>
-              <p className="text-gray-600">
-                Comparez facilement les offres avec toutes les informations
-                détaillées
-              </p>
-            </div>
-
-            <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-stone-100 hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6 transform rotate-3 hover:rotate-6 transition-transform">
-                <Globe className="h-8 w-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Redirection Officielle
-              </h3>
-              <p className="text-gray-600">
-                Accédez directement aux sites officiels pour vos réservations
-              </p>
-            </div>
-          </div>
-
-          {/* Section d'information */}
-          <div className="bg-white rounded-lg shadow-sm p-8">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
-              L'approche DjazAir
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-3">
-                  1. Analyse Globale
-                </h4>
-                <p className="text-gray-600 mb-4">
-                  Notre algorithme scanne des milliers de vols en temps réel pour
-                  identifier toutes les routes possibles vers votre destination.
-                </p>
-
-                <h4 className="text-lg font-medium text-gray-900 mb-3">
-                  2. L'Opportunité "via Alger"
-                </h4>
-                <p className="text-gray-600 mb-4">
-                  Nous détectons si une escale stratégique à Alger permet de
-                  réduire drastiquement le coût de votre billet.
+          {/* Section "Pourquoi DjazAir ?" simplifiée et percutante */}
+          <div className="py-16 md:py-24 bg-stone-50 border-t border-stone-200 mt-16 rounded-3xl mx-4 md:mx-0">
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-5xl font-extrabold text-emerald-950 mb-6 tracking-tight">
+                  Le Secret du Hub d'Alger 🇩🇿
+                </h2>
+                <p className="text-lg md:text-xl text-stone-600 max-w-3xl mx-auto leading-relaxed">
+                  Profitez de la position stratégique d'Alger comme carrefour entre l'Europe, l'Afrique et l'Asie pour voyager à des tarifs imbattables.
                 </p>
               </div>
 
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-3">
-                  3. Économies Garanties
-                </h4>
-                <p className="text-gray-600 mb-4">
-                  Nous vous montrons clairement la différence de prix entre un vol
-                  classique et notre solution optimisée.
-                </p>
-
-                <h4 className="text-lg font-medium text-gray-900 mb-3">
-                  4. Réservation Simplifiée
-                </h4>
-                <p className="text-gray-600">
-                  Une fois votre choix fait, réservez directement auprès des
-                  compagnies aériennes en toute sécurité.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Section des avantages */}
-          <div className="mt-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg p-8 text-white">
-            <h3 className="text-2xl font-semibold mb-6 text-center">
-              Pourquoi choisir {APP_NAME} ?
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <span className="text-sm font-bold">✓</span>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-1">Recherche Approfondie</h4>
-                  <p className="text-blue-100 text-sm">
-                    Là où les autres s'arrêtent, nous continuons pour trouver des
-                    tarifs cachés.
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+                {/* Point 1 : Le Hub Stratégique */}
+                <div className="flex flex-col items-center group">
+                  <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-md border border-stone-100 group-hover:scale-110 transition-transform duration-300">
+                    <Globe className="w-10 h-10 text-emerald-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-emerald-950 mb-3">Un Carrefour Mondial</h3>
+                  <p className="text-stone-600 px-4">
+                    Alger connecte l'Europe au reste du monde. Une simple escale vous ouvre les portes de l'Asie et de l'Afrique.
                   </p>
                 </div>
-              </div>
 
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <span className="text-sm font-bold">✓</span>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-1">Expertise Locale</h4>
-                  <p className="text-blue-100 text-sm">
-                    Nous utilisons les spécificités du marché algérien à votre
-                    avantage.
+                {/* Point 2 : Prix Cassés */}
+                <div className="flex flex-col items-center group">
+                  <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-md border border-stone-100 group-hover:scale-110 transition-transform duration-300">
+                    <TrendingUp className="w-10 h-10 text-red-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-emerald-950 mb-3">Jusqu'à -60% d'Économie</h3>
+                  <p className="text-stone-600 px-4">
+                    En passant par Alger, bénéficiez de tarifs exceptionnels souvent inaccessibles via les vols directs classiques.
                   </p>
                 </div>
-              </div>
 
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <span className="text-sm font-bold">✓</span>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-1">100% Transparent</h4>
-                  <p className="text-blue-100 text-sm">
-                    Aucun frais caché, nous calculons simplement les meilleures
-                    combinaisons pour vous.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <span className="text-sm font-bold">✓</span>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-1">Simplicité</h4>
-                  <p className="text-blue-100 text-sm">
-                    Une interface claire pour comprendre et réserver sans
-                    complication.
+                {/* Point 3 : Authenticité */}
+                <div className="flex flex-col items-center group">
+                  <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-md border border-stone-100 group-hover:scale-110 transition-transform duration-300">
+                    <Plane className="w-10 h-10 text-amber-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-emerald-950 mb-3">L'Astuce Voyageur</h3>
+                  <p className="text-stone-600 px-4">
+                    Rejoignez les milliers de voyageurs malins qui ont compris qu'un petit détour par Alger finance leurs prochaines vacances.
                   </p>
                 </div>
               </div>
