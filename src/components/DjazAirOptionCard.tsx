@@ -67,7 +67,7 @@ export function DjazAirOptionCard({ option, onBook }: DjazAirOptionCardProps) {
   const createFlightSegments = (): FlightSegment[] => {
     const departureDate = new Date(option.departureTime);
     const formattedDate = departureDate.toISOString().split('T')[0];
-    
+
     return [
       {
         origin: option.origin,
@@ -98,7 +98,7 @@ export function DjazAirOptionCard({ option, onBook }: DjazAirOptionCardProps) {
             </div>
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent className="p-6">
           {/* Route principale */}
           <div className="text-center mb-6">
@@ -211,28 +211,21 @@ export function DjazAirOptionCard({ option, onBook }: DjazAirOptionCardProps) {
             </div>
           </div>
 
-          {/* Boutons d'action */}
-          <div className="space-y-3">
-            <Button
-              onClick={handleBookWithAirlines}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 text-lg rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105"
-            >
-              🎯 Réserver avec les Compagnies Réelles
-            </Button>
-            
+          {/* Bouton d'action unique */}
+          <div className="mt-4">
             <Button
               onClick={() => onBook(option.id)}
-              variant="outline"
-              className="w-full border-green-500 text-green-600 hover:bg-green-50 font-bold py-3"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 text-lg rounded-xl shadow-lg transform transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
             >
-              💰 Voir les Détails DjazAir
+              <span>📋</span>
+              <span>Voir les détails & Réserver</span>
             </Button>
           </div>
 
           {/* Note importante */}
           <div className="text-center mt-4">
             <div className="text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded">
-              💡 <strong>DjazAir</strong> vous redirige vers les sites officiels des compagnies aériennes 
+              💡 <strong>DjazAir</strong> vous redirige vers les sites officiels des compagnies aériennes
               pour réserver vos vols avec escale en Algérie.
             </div>
           </div>

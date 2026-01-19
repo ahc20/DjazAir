@@ -18,6 +18,10 @@ export interface DjazAirFlight {
     priceEUR: number;
     priceDZD?: number;
     currency: string;
+    baggage?: {
+      included: boolean;
+      weight?: string;
+    };
     leg?: "ALLER" | "RETOUR";
     stops?: number;  // Nombre d'escales dans ce segment
     subSegments?: {  // Détails des sous-segments (escales)

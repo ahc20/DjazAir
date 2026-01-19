@@ -9,23 +9,24 @@ export interface Airport {
   city: string;
   country: string;
   continent: string;
+  isCity?: boolean;
 }
 
 export const AIRPORTS: Record<string, Airport> = {
   // VILLES (Code Métropolitain / Multi-aéroports)
-  "PAR": { code: "PAR", name: "Tous les aéroports", city: "Paris", country: "France", continent: "Europe" },
-  "LON": { code: "LON", name: "Tous les aéroports", city: "Londres", country: "Royaume-Uni", continent: "Europe" },
-  "NYC": { code: "NYC", name: "Tous les aéroports", city: "New York", country: "États-Unis", continent: "Amérique du Nord" },
-  "TYO": { code: "TYO", name: "Tous les aéroports", city: "Tokyo", country: "Japon", continent: "Asie" },
-  "BJS": { code: "BJS", name: "Tous les aéroports", city: "Pékin", country: "Chine", continent: "Asie" },
-  "WAS": { code: "WAS", name: "Tous les aéroports", city: "Washington", country: "États-Unis", continent: "Amérique du Nord" },
-  "YTO": { code: "YTO", name: "Tous les aéroports", city: "Toronto", country: "Canada", continent: "Amérique du Nord" },
-  "YMQ": { code: "YMQ", name: "Tous les aéroports", city: "Montréal", country: "Canada", continent: "Amérique du Nord" },
-  "MOW": { code: "MOW", name: "Tous les aéroports", city: "Moscou", country: "Russie", continent: "Europe" },
-  "BER": { code: "BER", name: "Tous les aéroports", city: "Berlin", country: "Allemagne", continent: "Europe" },
-  "ROM": { code: "ROM", name: "Tous les aéroports", city: "Rome", country: "Italie", continent: "Europe" },
-  "MIL": { code: "MIL", name: "Tous les aéroports", city: "Milan", country: "Italie", continent: "Europe" },
-  "IST": { code: "IST", name: "Tous les aéroports", city: "Istanbul", country: "Turquie", continent: "Europe" },
+  "PAR": { code: "PAR", name: "Tous les aéroports", city: "Paris", country: "France", continent: "Europe", isCity: true },
+  "LON": { code: "LON", name: "Tous les aéroports", city: "Londres", country: "Royaume-Uni", continent: "Europe", isCity: true },
+  "NYC": { code: "NYC", name: "Tous les aéroports", city: "New York", country: "États-Unis", continent: "Amérique du Nord", isCity: true },
+  "TYO": { code: "TYO", name: "Tous les aéroports", city: "Tokyo", country: "Japon", continent: "Asie", isCity: true },
+  "BJS": { code: "BJS", name: "Tous les aéroports", city: "Pékin", country: "Chine", continent: "Asie", isCity: true },
+  "WAS": { code: "WAS", name: "Tous les aéroports", city: "Washington", country: "États-Unis", continent: "Amérique du Nord", isCity: true },
+  "YTO": { code: "YTO", name: "Tous les aéroports", city: "Toronto", country: "Canada", continent: "Amérique du Nord", isCity: true },
+  "YMQ": { code: "YMQ", name: "Tous les aéroports", city: "Montréal", country: "Canada", continent: "Amérique du Nord", isCity: true },
+  "MOW": { code: "MOW", name: "Tous les aéroports", city: "Moscou", country: "Russie", continent: "Europe", isCity: true },
+  "BER": { code: "BER", name: "Tous les aéroports", city: "Berlin", country: "Allemagne", continent: "Europe", isCity: true },
+  "ROM": { code: "ROM", name: "Tous les aéroports", city: "Rome", country: "Italie", continent: "Europe", isCity: true },
+  "MIL": { code: "MIL", name: "Tous les aéroports", city: "Milan", country: "Italie", continent: "Europe", isCity: true },
+  "IST": { code: "IST", name: "Tous les aéroports", city: "Istanbul", country: "Turquie", continent: "Europe", isCity: true },
 
   // FRANCE
   "CDG": { code: "CDG", name: "Charles de Gaulle", city: "Paris", country: "France", continent: "Europe" },
@@ -218,6 +219,10 @@ export function searchAirports(query: string): Airport[] {
     airport.city.toLowerCase().includes(lowerQuery) ||
     airport.country.toLowerCase().includes(lowerQuery)
   ).sort((a, b) => {
+    // 0. PRIORITÉ ABSOLUE : Codes Villes (isCity)
+    if (a.isCity && !b.isCity) return -1;
+    if (!a.isCity && b.isCity) return 1;
+
     // 1. Exact City Match
     if (a.city.toLowerCase() === lowerQuery && b.city.toLowerCase() !== lowerQuery) return -1;
     if (b.city.toLowerCase() === lowerQuery && a.city.toLowerCase() !== lowerQuery) return 1;

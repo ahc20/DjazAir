@@ -157,9 +157,16 @@ export default function AirportSelector({
                   <div className="flex items-baseline gap-2">
                     <span className="font-bold text-lg text-gray-900">{airport.city}</span>
                     <span className="text-sm text-gray-500 font-medium">{airport.country}</span>
+                    {airport.isCity && (
+                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-semibold">
+                        TOUS LES AÉROPORTS
+                      </span>
+                    )}
                   </div>
                   <div className="text-sm text-gray-600 flex items-center gap-1">
-                    <span>{airport.name}</span>
+                    <span className={airport.isCity ? "font-semibold text-blue-700" : ""}>
+                      {airport.isCity ? "🏙️ " : "✈️ "}{airport.name}
+                    </span>
                     <span className="bg-gray-100 text-gray-600 text-xs px-1.5 py-0.5 rounded font-mono group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors">
                       {airport.code}
                     </span>

@@ -282,8 +282,20 @@ export default function SearchResultsPage() {
       // C'est un ID DjazAir, stocker les détails et rediriger vers la page de détails
       const djazairFlight = searchResults.djazairFlights.find(f => f.id === flight);
       if (djazairFlight) {
-        // Stocker les détails du vol dans le localStorage
-        localStorage.setItem(`djazair-flight-${flight}`, JSON.stringify(djazairFlight));
+        // Calculer le prix classique le moins cher pour comparaison
+        const cheapestClassicPrice = searchResults.classicFlights.length > 0
+          ? Math.min(...searchResults.classicFlights.map(f => typeof f.price === 'object' ? f.price.amount : f.price))
+          : null;
+
+        // Stocker les détails du vol avec le prix classique de référence
+        const flightWithComparison = {
+          ...djazairFlight,
+          classicPriceReference: cheapestClassicPrice,
+          actualSavings: cheapestClassicPrice
+            ? cheapestClassicPrice - djazairFlight.totalPriceEUR
+            : null
+        };
+        localStorage.setItem(`djazair-flight-${flight}`, JSON.stringify(flightWithComparison));
         // Rediriger vers la page de détails
         window.location.href = `/djazair-details/${flight}`;
       }
@@ -801,19 +813,14 @@ export default function SearchResultsPage() {
                           </div>
                         </div>
 
-                        {/* Boutons d'action */}
-                        <div className="flex space-x-3 mt-4">
+                        {/* Bouton d'action unique */}
+                        <div className="mt-4">
                           <button
                             onClick={() => handleBookFlight(flight.id)}
-                            className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-bold hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center gap-2"
                           >
-                            🎯 Réserver avec les Compagnies Réelles
-                          </button>
-                          <button
-                            onClick={() => handleBookFlight(flight.id)}
-                            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                          >
-                            💰 Voir les Détails DjazAir
+                            <span>📋</span>
+                            <span>Voir les détails & Réserver</span>
                           </button>
                         </div>
                       </div>

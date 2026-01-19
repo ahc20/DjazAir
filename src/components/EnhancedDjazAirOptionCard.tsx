@@ -196,8 +196,8 @@ export function EnhancedDjazAirOptionCard({
 
                                     <div
                                         className={`bg-white rounded-lg border-2 p-4 ${isFromAlgeria
-                                                ? "border-green-300 bg-gradient-to-r from-green-50 to-white"
-                                                : "border-gray-200"
+                                            ? "border-green-300 bg-gradient-to-r from-green-50 to-white"
+                                            : "border-gray-200"
                                             }`}
                                     >
                                         {/* En-tête du segment */}
@@ -384,22 +384,15 @@ export function EnhancedDjazAirOptionCard({
                         </div>
                     </div>
 
-                    {/* Boutons d'action */}
-                    <div className="space-y-3">
-                        <Button
-                            onClick={handleBookWithAirlines}
-                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 text-lg rounded-xl shadow-lg transform transition-all duration-200 hover:scale-[1.02] hover:shadow-xl"
-                        >
-                            ✈️ Réserver avec les Compagnies Aériennes
-                        </Button>
-
+                    {/* Bouton d'action unique */}
+                    <div className="mt-4">
                         {onBook && (
                             <Button
                                 onClick={() => onBook(option.id)}
-                                variant="outline"
-                                className="w-full border-2 border-green-500 text-green-600 hover:bg-green-50 font-semibold py-3 rounded-xl"
+                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 text-lg rounded-xl shadow-lg transform transition-all duration-200 hover:scale-[1.02] hover:shadow-xl flex items-center justify-center gap-2"
                             >
-                                📋 Voir tous les détails
+                                <span>📋</span>
+                                <span>Voir les détails & Réserver</span>
                             </Button>
                         )}
                     </div>
