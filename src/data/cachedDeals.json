@@ -1,57 +1,57 @@
 {
-    "lastUpdated": "2026-01-18T14:10:36.906Z",
+    "lastUpdated": "2026-01-19T18:00:00.000Z",
     "deals": [
         {
-            "id": "deal-cdg-ist",
-            "destination": "Istanbul",
-            "destinationCode": "IST",
+            "id": "deal-cdg-pek",
+            "destination": "Pékin",
+            "destinationCode": "PEK",
             "origin": "Paris (CDG)",
             "originCode": "CDG",
-            "image": "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=800&auto=format&fit=crop",
-            "price": 212,
-            "departDate": "2026-02-08",
-            "returnDate": "2026-02-15",
+            "image": "https://images.unsplash.com/photo-1547981609-4b6bfe5052a7?q=80&w=800&auto=format&fit=crop",
+            "price": 445,
+            "departDate": "2026-03-10",
+            "returnDate": "2026-03-24",
             "tripType": "AR",
-            "airline": "VF"
+            "airline": "Air Algérie"
         },
         {
-            "id": "deal-cdg-cai",
-            "destination": "Le Caire",
-            "destinationCode": "CAI",
+            "id": "deal-cdg-yul",
+            "destination": "Montréal",
+            "destinationCode": "YUL",
             "origin": "Paris (CDG)",
             "originCode": "CDG",
-            "image": "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?q=80&w=800&auto=format&fit=crop",
-            "price": 342,
-            "departDate": "2026-02-22",
-            "returnDate": "2026-03-01",
+            "image": "https://images.unsplash.com/photo-1519178555425-5000e3673061?q=80&w=800&auto=format&fit=crop",
+            "price": 489,
+            "departDate": "2026-03-15",
+            "returnDate": "2026-03-29",
             "tripType": "AR",
-            "airline": "ITA Airways"
+            "airline": "Air Algérie"
         },
         {
-            "id": "deal-cdg-dxb",
-            "destination": "Dubai",
-            "destinationCode": "DXB",
+            "id": "deal-cdg-djg",
+            "destination": "Djanet (Sahara)",
+            "destinationCode": "DJG",
             "origin": "Paris (CDG)",
             "originCode": "CDG",
-            "image": "https://images.unsplash.com/photo-1518684079-3c830dcef090?q=80&w=800&auto=format&fit=crop",
-            "price": 406,
-            "departDate": "2026-02-01",
-            "returnDate": "2026-02-08",
+            "image": "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?q=80&w=800&auto=format&fit=crop",
+            "price": 185,
+            "departDate": "2026-02-10",
+            "returnDate": "2026-02-17",
             "tripType": "AR",
-            "airline": "ITA Airways"
+            "airline": "Air Algérie"
         },
         {
-            "id": "deal-cdg-amm",
-            "destination": "Amman",
-            "destinationCode": "AMM",
+            "id": "deal-cdg-jnb",
+            "destination": "Johannesburg",
+            "destinationCode": "JNB",
             "origin": "Paris (CDG)",
             "originCode": "CDG",
-            "image": "https://images.unsplash.com/photo-1586724237569-f3d0c1dee8c6?q=80&w=800&auto=format&fit=crop",
-            "price": 524,
-            "departDate": "2026-02-01",
-            "returnDate": "2026-02-08",
+            "image": "https://images.unsplash.com/photo-1577948000111-9c9707350942?q=80&w=800&auto=format&fit=crop",
+            "price": 530,
+            "departDate": "2026-03-05",
+            "returnDate": "2026-03-19",
             "tripType": "AR",
-            "airline": "Middle East Airlines"
+            "airline": "Air Algérie"
         }
     ]
 }
