@@ -440,8 +440,8 @@ function addDays(dateStr: string, days: number): string {
 /**
  * Génère une option DjazAir synthétique (Fallback) pour garantir un résultat
  */
+/* FONCTION SYNTHÉTIQUE DÉSACTIVÉE - Uniquement vrais vols API
 function generateSyntheticDjazAirOption(params: SearchParams): DjazAirFlight {
-    console.log("⚠️ Génération d'une option synthétique pour:", params);
 
     // Dates simulées réalistes
     const departureDate = new Date(params.departureDate);
@@ -577,6 +577,7 @@ function generateSyntheticDjazAirOption(params: SearchParams): DjazAirFlight {
         }
     };
 }
+FIN FONCTION SYNTHÉTIQUE DÉSACTIVÉE */
 
 /**
  * Recherche avec FALLBACK sur dates proches
@@ -643,17 +644,12 @@ export async function searchDjazAirTripWithFallback(params: SearchParams): Promi
     // Vraiment aucun vol trouvé sur aucune date proche
     console.log("❌ Aucun vol DjazAir disponible sur aucune date proche");
 
-    // === DERNIER RECOURS : GÉNÉRATION SYNTHÉTIQUE ===
-    // Pour garantir que l'utilisateur voit toujours une "Solution DjazAir"
-    // (Demande critique: "je dois trouver un vol automatiquement")
-    const syntheticFlight = generateSyntheticDjazAirOption(params);
-    console.log("✅ Vol synthétique généré en dernier recours");
-
+    // PAS de génération synthétique - uniquement des vrais vols API
     return {
-        flights: [syntheticFlight],
+        flights: [],
         actualDepartureDate: params.departureDate,
         actualReturnDate: params.returnDate,
         isAlternativeDate: false,
-        message: "Simulation basée sur les horaires habituels (Disponibilité temps réel limitée)"
+        message: "Aucun vol via Alger disponible pour ces dates"
     };
 }
