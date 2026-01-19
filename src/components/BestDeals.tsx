@@ -67,16 +67,18 @@ export function BestDeals() {
     return (
         <div className="mb-16">
             {/* Header */}
-            <div className="text-center mb-8">
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-full px-4 py-2 mb-4">
-                    <Sparkles className="w-5 h-5" />
-                    <span className="font-medium">Destinations Populaires</span>
+            {/* Header */}
+            <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-800 border border-emerald-100 rounded-full px-4 py-1.5 mb-6 shadow-sm">
+                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                    <span className="font-semibold text-sm tracking-wide uppercase">Pépites du moment</span>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                <h2 className="text-3xl md:text-5xl font-bold text-emerald-950 mb-4 tracking-tight">
                     Vols à partir de {lowestPrice}€
                 </h2>
-                <p className="text-gray-600 text-lg">
-                    Aller-Retour • Comparez et économisez via Alger
+                <p className="text-stone-600 text-lg max-w-2xl mx-auto">
+                    Nos meilleures trouvailles pour voyager moins cher en passant par Alger.
+                    <span className="block mt-1 text-sm text-stone-500 font-medium">Prix constatés en temps réel</span>
                 </p>
             </div>
 

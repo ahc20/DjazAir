@@ -266,7 +266,14 @@ export class AmadeusAPI {
       const arrivalTime = lastSegment.arrival.at;
 
       // Calcul de la durée
-      const duration = this.calculateDuration(departureTime, arrivalTime);
+      // UTILISER LA DURÉE DE L'API (ISO 8601 PTxxHxxM) QUI EST CORRECTE (Gère les fuseaux)
+      // Au lieu du calcul manuel qui échoue sur les fuseaux horaires différents
+      let duration = "Durée non disponible";
+      if (offer.itineraries[0].duration) {
+        duration = offer.itineraries[0].duration.replace("PT", "").replace("H", "h ").replace("M", "m");
+      } else {
+        duration = this.calculateDuration(departureTime, arrivalTime);
+      }
 
       // Calcul du nombre d'escales
       const stops = segments.length - 1;
