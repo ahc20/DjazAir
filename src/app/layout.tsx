@@ -6,31 +6,37 @@ import { APP_NAME } from "@/lib/constants";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: `${APP_NAME} - Simulateur d'Arbitrage Aérien`,
+  title: `${APP_NAME} - Vos vols moins cher en passant par l'Algérie`,
   description:
-    'Comparez les prix des vols directs avec des simulations "via Alger" pour identifier les meilleures opportunités d\'économies. Application 100% légale et informative.',
+    "Économisez jusqu'à 60% sur vos vols internationaux en passant par Alger. Comparez les prix et trouvez les meilleures opportunités.",
   keywords:
-    "arbitrage aérien, vols via Alger, comparaison prix, économies voyages, simulation vols",
+    "vols pas cher, vols via Alger, économies voyages, comparaison prix, Algérie hub aérien",
   authors: [{ name: `${APP_NAME} Team` }],
   creator: APP_NAME,
   publisher: APP_NAME,
   robots: "index, follow",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
-    title: `${APP_NAME} - Simulateur d'Arbitrage Aérien`,
+    title: `${APP_NAME} - Vos vols moins cher en passant par l'Algérie`,
     description:
-      'Comparez les prix des vols directs avec des simulations "via Alger" pour identifier les meilleures opportunités d\'économies.',
+      "Économisez jusqu'à 60% sur vos vols internationaux en passant par Alger.",
     type: "website",
     locale: "fr_FR",
     siteName: APP_NAME,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${APP_NAME} - Simulateur d'Arbitrage Aérien`,
+    title: `${APP_NAME} - Vos vols moins cher en passant par l'Algérie`,
     description:
-      'Comparez les prix des vols directs avec des simulations "via Alger" pour identifier les meilleures opportunités d\'économies.',
+      "Économisez jusqu'à 60% sur vos vols internationaux en passant par Alger.",
   },
   viewport: "width=device-width, initial-scale=1",
-  themeColor: "#2563eb",
+  themeColor: "#047857",
   manifest: "/manifest.json",
 };
 
