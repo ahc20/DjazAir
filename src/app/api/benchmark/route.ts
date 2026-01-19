@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { googleFlightsScraper } from '@/server/scrapers/googleFlightsDZDScraper';
 import { AmadeusAPI } from '@/server/flightSearch/amadeusAPI';
 
-const amadeus = new AmadeusAPI(
-    process.env.AMADEUS_CLIENT_ID || '',
-    process.env.AMADEUS_CLIENT_SECRET || ''
-);
+// Force dynamic rendering - prevents static generation timeout
+export const dynamic = 'force-dynamic';
+
+const amadeus = new AmadeusAPI();
 
 const DESTINATIONS = [
     { code: 'PEK', name: 'Pékin' },
