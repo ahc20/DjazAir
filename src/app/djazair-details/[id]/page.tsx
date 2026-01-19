@@ -42,23 +42,57 @@ export default function DjazAirDetailsPage() {
     }
   }, [params.id, router]);
 
+  const [verifiedSegments, setVerifiedSegments] = useState<Record<string, { priceDZD: number; priceEUR: number }>>({});
+
+  // Calculate total price dynamically
+  const displayedTotalPrice = React.useMemo(() => {
+    if (!flight) return 0;
+    return flight.segments.reduce((total, segment, index) => {
+      const verified = verifiedSegments[index];
+      return total + (verified ? verified.priceEUR : segment.priceEUR);
+    }, 0);
+  }, [flight, verifiedSegments]);
+
   const checkRealPrice = async (flightData: DjazAirFlightWithComparison) => {
     setCheckingPrice(true);
     try {
-      const res = await fetch('/api/check-real-price', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          origin: flightData.origin,
-          destination: flightData.destination,
-          departureDate: flightData.departureDate,
-          returnDate: flightData.returnDate
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setRealPriceData(data.data);
+      // Find segments that need verification (DZD segments)
+      // Usually segments departing from or arriving at ALG depending on direction, AND priced in DZD
+      // For simplicity in this iteration: Verify the segment that has priceDZD or is the "long leg" from ALG
+
+      const dzdSegmentIndex = flightData.segments.findIndex(s => s.currency === 'DZD' || s.priceDZD);
+
+      if (dzdSegmentIndex !== -1) {
+        const segment = flightData.segments[dzdSegmentIndex];
+        const res = await fetch('/api/check-real-price', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            origin: segment.origin,
+            destination: segment.destination,
+            departureDate: segment.departureTime,
+            // No return date for single segment check usually, unless it's a RT ticket
+            // If it's part of a RT loop, we might need to check RT price?
+            // For "4 reservations separated", we check One-Way usually.
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setVerifiedSegments(prev => ({
+            ...prev,
+            [dzdSegmentIndex]: data.data
+          }));
+          // Set realPriceData purely for the badge logic, but value comes from displayedTotalPrice
+          setRealPriceData({
+            priceDZD: data.data.priceDZD,
+            priceEUR: data.data.priceEUR // This is just the segment price, don't use as total
+          });
+        }
+      } else {
+        // Fallback: if no specific DZD segment marked, maybe try the whole route if it was a simple search
+        // But for consistent addition, we should probably stick to segment logic.
       }
+
     } catch (error) {
       console.error("Error checking real price", error);
     } finally {
@@ -228,10 +262,21 @@ export default function DjazAirDetailsPage() {
         currentAirlineCode === nextAirlineCode &&
         current.destination === next.origin &&
         current.origin === next.destination) {
-        groupedSegments.push({ type: 'round-trip', outbound: current, inbound: next, airlineCode: currentAirlineCode });
+        groupedSegments.push({
+          type: 'round-trip',
+          outbound: current,
+          inbound: next,
+          airlineCode: currentAirlineCode,
+          originalIndex: i
+        });
         i++;
       } else {
-        groupedSegments.push({ type: 'one-way', segment: current, airlineCode: currentAirlineCode });
+        groupedSegments.push({
+          type: 'one-way',
+          segment: current,
+          airlineCode: currentAirlineCode,
+          originalIndex: i
+        });
       }
     }
   }
@@ -276,14 +321,14 @@ export default function DjazAirDetailsPage() {
                   {realPriceData && <span className="text-xs bg-green-500 text-white px-1 rounded font-bold">Vérifié ✅</span>}
                 </div>
                 <div className="text-4xl font-bold">
-                  {realPriceData ? realPriceData.priceEUR : flight.totalPriceEUR}€
+                  {displayedTotalPrice.toFixed(2)}€
                 </div>
-                {realPriceData ? (
+                {Object.keys(verifiedSegments).length > 0 ? (
                   <div className="text-green-300 font-bold text-sm bg-green-900/30 px-2 py-1 rounded inline-block mt-1">
-                    Prix DZD: {realPriceData.priceDZD.toLocaleString()} DZD
+                    Prix DZD vérifié pour le tronçon principal
                     {flight.classicPriceReference && (
                       <span className="block text-xs mt-1 text-green-200">
-                        Économie réelle: {(flight.classicPriceReference - realPriceData.priceEUR).toFixed(0)}€
+                        Économie réelle: {(flight.classicPriceReference - displayedTotalPrice).toFixed(0)}€
                       </span>
                     )}
                   </div>
@@ -551,10 +596,18 @@ export default function DjazAirDetailsPage() {
                       {/* Action Réserver */}
                       <div className="flex flex-col justify-center items-end border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6 min-w-[200px]">
                         <div className="text-right mb-4">
-                          <div className="text-sm text-gray-500">Prix estimé</div>
-                          <div className="text-2xl font-bold text-blue-600">{segment.priceEUR.toFixed(2)}€</div>
-                          {segment.priceDZD && (
-                            <div className="text-xs text-green-600 font-medium">~{segment.priceDZD.toLocaleString()} DZD</div>
+                          <div className="text-sm text-gray-500">
+                            {verifiedSegments[group.originalIndex] ? 'Prix Vérifié ✅' : 'Prix estimé'}
+                          </div>
+                          <div className="text-2xl font-bold text-blue-600">
+                            {verifiedSegments[group.originalIndex]
+                              ? verifiedSegments[group.originalIndex].priceEUR.toFixed(2)
+                              : segment.priceEUR.toFixed(2)}€
+                          </div>
+                          {(verifiedSegments[group.originalIndex]?.priceDZD || segment.priceDZD) && (
+                            <div className="text-xs text-green-600 font-medium">
+                              ~{(verifiedSegments[group.originalIndex]?.priceDZD || segment.priceDZD).toLocaleString()} DZD
+                            </div>
                           )}
                         </div>
                         <button
