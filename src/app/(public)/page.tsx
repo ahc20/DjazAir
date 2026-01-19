@@ -47,12 +47,8 @@ export default function HomePage() {
         {/* Section hero */}
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Trouvez les meilleurs prix de vols
+            Trouvez les meilleurs prix de vols, en passant par l'Algérie
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Recherchez et comparez les prix des vols en temps réel via Amadeus
-            pour obtenir les meilleures offres disponibles.
-          </p>
         </div>
 
         {/* Formulaire de recherche */}

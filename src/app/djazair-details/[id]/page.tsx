@@ -324,14 +324,13 @@ export default function DjazAirDetailsPage() {
                   {displayedTotalPrice.toFixed(2)}€
                 </div>
                 {Object.keys(verifiedSegments).length > 0 ? (
-                  <div className="text-green-300 font-bold text-sm bg-green-900/30 px-2 py-1 rounded inline-block mt-1">
-                    Prix DZD vérifié pour le tronçon principal
-                    {flight.classicPriceReference && (
-                      <span className="block text-xs mt-1 text-green-200">
+                  (flight.classicPriceReference && (flight.classicPriceReference - displayedTotalPrice) > 0) ? (
+                    <div className="text-green-300 font-bold text-sm bg-green-900/30 px-2 py-1 rounded inline-block mt-1">
+                      <span className="block text-xs text-green-200">
                         Économie réelle: {(flight.classicPriceReference - displayedTotalPrice).toFixed(0)}€
                       </span>
-                    )}
-                  </div>
+                    </div>
+                  ) : null
                 ) : (
                   flight.actualSavings !== null && flight.actualSavings !== undefined ? (
                     flight.actualSavings > 0 ? (
