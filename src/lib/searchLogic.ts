@@ -1,4 +1,5 @@
 import { AmadeusAPI } from "@/server/flightSearch/amadeusAPI";
+import { KayakAPI } from "@/server/flightAPI/kayakAPI";
 import { DjazAirFlight } from "@/types/djazair";
 
 export interface SearchParams {
@@ -61,6 +62,46 @@ async function callAmadeusWithRetry(amadeusAPI: AmadeusAPI, searchParams: any, m
     return [];
 }
 
+// Helper pour appeler les APIs (Amadeus + Kayak fallback)
+async function callFlightAPIWithFallback(
+    amadeusAPI: AmadeusAPI,
+    kayakAPI: KayakAPI,
+    searchParams: any
+): Promise<any[]> {
+    // 1. Essayer Amadeus d'abord
+    console.log(`🔍 [Amadeus] Recherche ${searchParams.origin} → ${searchParams.destination}`);
+    const amadeusResults = await callAmadeusWithRetry(amadeusAPI, searchParams);
+
+    if (amadeusResults.length > 0) {
+        console.log(`✅ [Amadeus] ${amadeusResults.length} résultats trouvés`);
+        return amadeusResults;
+    }
+
+    // 2. Si Amadeus échoue, essayer Kayak
+    if (kayakAPI.isAvailable()) {
+        try {
+            console.log(`🔍 [Kayak] Fallback - Recherche ${searchParams.origin} → ${searchParams.destination}`);
+            const kayakResults = await kayakAPI.searchFlights({
+                origin: searchParams.origin,
+                destination: searchParams.destination,
+                departureDate: searchParams.departureDate,
+                passengers: searchParams.passengers,
+                cabinClass: searchParams.cabinClass?.toLowerCase()
+            });
+
+            if (kayakResults.length > 0) {
+                console.log(`✅ [Kayak] ${kayakResults.length} résultats trouvés`);
+                return kayakResults;
+            }
+        } catch (error) {
+            console.error("❌ [Kayak] Erreur:", error);
+        }
+    }
+
+    console.log(`⚠️ Aucun résultat trouvé (Amadeus + Kayak)`);
+    return [];
+}
+
 // Helper pour calculer le prix DjazAir
 // Applique le taux DZD seulement aux compagnies qui vendent en dinars
 function calculateDjazAirPrice(
@@ -99,15 +140,18 @@ function formatDuration(ms: number): string {
 /**
  * Recherche les vols optimisés DjazAir (Multi-leg via Alger)
  * Supporte Aller Simple (AS) et Aller-Retour (AR)
+ * Utilise Amadeus en priorité, Kayak en fallback
  */
 export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFlight[]> {
     const amadeusAPI = new AmadeusAPI();
-    if (!amadeusAPI.isAvailable()) {
-        throw new Error("Amadeus API unavailable");
+    const kayakAPI = new KayakAPI();
+
+    if (!amadeusAPI.isAvailable() && !kayakAPI.isAvailable()) {
+        throw new Error("Aucune API de vol disponible (Amadeus et Kayak indisponibles)");
     }
 
     const isRoundTrip = !!params.returnDate;
-    console.log(`🔍 Recherche ${isRoundTrip ? 'ALLER-RETOUR (AR)' : 'ALLER SIMPLE (AS)'}`);
+    console.log(`🔍 Recherche ${isRoundTrip ? 'ALLER-RETOUR (AR)' : 'ALLER SIMPLE (AS)'} [Amadeus + Kayak fallback]`);
 
     // === ALLER ===
     // Segment 1: Origin -> ALG
@@ -130,10 +174,10 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
         currency: "EUR"
     };
 
-    // Recherche parallèle des segments ALLER
+    // Recherche parallèle des segments ALLER (avec fallback Kayak)
     const searchPromises: Promise<any[]>[] = [
-        callAmadeusWithRetry(amadeusAPI, seg1Params),
-        callAmadeusWithRetry(amadeusAPI, seg2Params)
+        callFlightAPIWithFallback(amadeusAPI, kayakAPI, seg1Params),
+        callFlightAPIWithFallback(amadeusAPI, kayakAPI, seg2Params)
     ];
 
     // === RETOUR (si AR) ===
@@ -159,8 +203,8 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
         };
 
         searchPromises.push(
-            callAmadeusWithRetry(amadeusAPI, seg3Params),
-            callAmadeusWithRetry(amadeusAPI, seg4Params)
+            callFlightAPIWithFallback(amadeusAPI, kayakAPI, seg3Params),
+            callFlightAPIWithFallback(amadeusAPI, kayakAPI, seg4Params)
         );
     }
 
