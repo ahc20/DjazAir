@@ -300,7 +300,8 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
                     duration: s1.duration, priceEUR: price1.priceEUR, currency: "EUR", leg: "ALLER",
                     stops: s1.stops || 0,
                     subSegments: s1.segments || [],
-                    baggage: s1.baggage
+                    baggage: s1.baggage,
+                    bookingUrl: s1.bookingUrl
                 },
                 {
                     origin: s2.origin, destination: s2.destination,
@@ -312,7 +313,8 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
                     leg: "ALLER",
                     stops: s2.stops || 0,
                     subSegments: s2.segments || [],
-                    baggage: s2.baggage
+                    baggage: s2.baggage,
+                    bookingUrl: s2.bookingUrl
                 }
             ];
 
@@ -370,7 +372,8 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
                         leg: "RETOUR",
                         stops: bestReturn.s3.stops || 0,
                         subSegments: bestReturn.s3.segments || [],
-                        baggage: bestReturn.s3.baggage
+                        baggage: bestReturn.s3.baggage,
+                        bookingUrl: bestReturn.s3.bookingUrl
                     },
                     {
                         origin: bestReturn.s4.origin, destination: bestReturn.s4.destination,
@@ -382,7 +385,8 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
                         leg: "RETOUR",
                         stops: bestReturn.s4.stops || 0,
                         subSegments: bestReturn.s4.segments || [], // Détails des escales (ex: ALG→IST→CDG)
-                        baggage: bestReturn.s4.baggage
+                        baggage: bestReturn.s4.baggage,
+                        bookingUrl: bestReturn.s4.bookingUrl
                     }
                 );
 

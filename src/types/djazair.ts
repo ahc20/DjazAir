@@ -24,6 +24,7 @@ export interface DjazAirFlight {
     };
     leg?: "ALLER" | "RETOUR";
     stops?: number;  // Nombre d'escales dans ce segment
+    bookingUrl?: string; // Lien de réservation pour ce segment via Kayak/Partenaire
     subSegments?: {  // Détails des sous-segments (escales)
       origin: string;
       destination: string;
@@ -44,4 +45,5 @@ export interface DjazAirFlight {
     percentage: number;
     comparedTo: number;
   };
+  bookingUrl?: string;
 }

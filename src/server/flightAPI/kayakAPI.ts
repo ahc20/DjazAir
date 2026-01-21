@@ -18,6 +18,7 @@ interface KayakFlight {
     price: string;
     aircraft?: string;
     stopovers: number;
+    deep_link?: string;
     segments?: KayakSegment[];
 }
 
@@ -183,6 +184,7 @@ export class KayakAPI {
                     details: 'Vérifier sur le site de la compagnie',
                 },
                 segments: segments,
+                bookingUrl: flight.deep_link,
             };
         });
     }

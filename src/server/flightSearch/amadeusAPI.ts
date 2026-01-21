@@ -33,6 +33,7 @@ export interface AmadeusFlightResult {
     flightNumber: string;
     duration: string;
   }[];
+  bookingUrl?: string;
 }
 
 export class AmadeusAPI {
