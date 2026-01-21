@@ -11,6 +11,7 @@ import {
   type FlightSegment as RedirectSegment
 } from "@/lib/airlineRedirects";
 import { getAirlineLogo, getAirlineName } from "@/data/airlineLogos";
+import { DjazAirLogo } from "@/components/ui/DjazAirLogo";
 import Image from "next/image";
 
 // Extended type with comparison data
@@ -233,10 +234,10 @@ export default function DjazAirDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">🔍 Chargement des détails...</p>
+          <div className="animate-spin rounded-full h-24 w-24 border-4 border-emerald-600 border-t-transparent mx-auto mb-6"></div>
+          <p className="text-xl font-semibold text-emerald-900">🔍 Chargement des détails...</p>
         </div>
       </div>
     );
@@ -282,21 +283,29 @@ export default function DjazAirDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 lg:py-8">
-      <div className="max-w-4xl mx-auto px-3 lg:px-4">
-        {/* Navigation */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center text-blue-600 hover:text-blue-800 mb-6 font-medium transition-colors"
-        >
-          <span className="mr-2">←</span> Retour aux résultats
-        </button>
+    <div className="min-h-screen bg-stone-50">
+      {/* Header cohérent avec la homepage */}
+      <header className="bg-white/80 backdrop-blur-md border-b border-stone-100 sticky top-0 z-50">
+        <div className="max-w-4xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+              <DjazAirLogo className="h-8 w-8" />
+              <span className="font-bold text-emerald-900 text-lg">DjazAir</span>
+            </a>
+            <button
+              onClick={() => router.back()}
+              className="text-sm text-stone-600 hover:text-emerald-600 font-medium transition-colors"
+            >
+              ← Retour
+            </button>
+          </div>
+        </div>
+      </header>
 
-
-
+      <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header Principal */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8 border border-blue-100">
-          <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6 text-white">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8 border border-stone-100">
+          <div className="bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-800 p-6 text-white">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <div className="flex items-center gap-2 text-blue-100 mb-1">
@@ -353,15 +362,15 @@ export default function DjazAirDetailsPage() {
           </div>
 
           {/* Actions rapides */}
-          <div className="p-4 bg-blue-50 border-b border-blue-100 flex flex-col sm:flex-row gap-3 items-center justify-between">
-            <div className="flex items-center gap-2 text-blue-800 text-sm">
+          <div className="p-4 bg-emerald-50 border-b border-emerald-100 flex flex-col sm:flex-row gap-3 items-center justify-between">
+            <div className="flex items-center gap-2 text-emerald-800 text-sm">
               <span className="text-xl">💡</span>
               <span>Ce voyage se compose de <strong>{flight.segments.length} réservations séparées</strong></span>
             </div>
             <button
               onClick={handleBookAll}
               disabled={isOpening}
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all transform hover:scale-105 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all transform hover:scale-105 flex items-center justify-center gap-2"
             >
               {isOpening ? (
                 <>
@@ -378,7 +387,7 @@ export default function DjazAirDetailsPage() {
 
         {/* Liste des Vols à Réserver */}
         <div className="space-y-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+          <h2 className="text-xl font-extrabold text-stone-800 flex items-center gap-2 tracking-tight">
             <span>🎫</span>
             <span>Vols à Réserver ({flight.segments.length})</span>
           </h2>
@@ -500,17 +509,17 @@ export default function DjazAirDetailsPage() {
                     </div>
 
                     {/* Action - Consolidated */}
-                    <div className="mt-6 flex items-center justify-between bg-gray-50 p-4 rounded-xl">
+                    <div className="mt-6 flex items-center justify-between bg-stone-50 p-4 rounded-xl">
                       <div className="text-left">
-                        <div className="text-sm text-gray-500">Prix total estimé</div>
-                        <div className="text-2xl font-bold text-blue-600">{(outbound.priceEUR + inbound.priceEUR).toFixed(2)}€</div>
+                        <div className="text-sm text-stone-500">Prix total estimé</div>
+                        <div className="text-2xl font-bold text-emerald-600">{(outbound.priceEUR + inbound.priceEUR).toFixed(2)}€</div>
                         {(outbound.priceDZD && inbound.priceDZD) && (
-                          <div className="text-xs text-green-600 font-medium">~{(outbound.priceDZD + inbound.priceDZD).toLocaleString()} DZD</div>
+                          <div className="text-xs text-emerald-600 font-medium">~{(outbound.priceDZD + inbound.priceDZD).toLocaleString()} DZD</div>
                         )}
                       </div>
                       <button
                         onClick={() => window.open(generateRoundTripUrl(), '_blank')}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow transition-colors flex items-center gap-2"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl shadow transition-colors flex items-center gap-2"
                       >
                         <span>🔄</span> Réserver l'Aller-Retour
                       </button>
@@ -526,7 +535,7 @@ export default function DjazAirDetailsPage() {
               const isReturn = segment.leg === "RETOUR"; // Naive check, mainly for display
 
               return (
-                <div key={`group-${index}`} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
+                <div key={`group-${index}`} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-stone-100 hover:shadow-xl transition-shadow">
                   <div className="p-6">
                     <div className="flex flex-col md:flex-row justify-between gap-6">
                       {/* Info Vol */}
@@ -593,18 +602,18 @@ export default function DjazAirDetailsPage() {
                       </div>
 
                       {/* Action Réserver */}
-                      <div className="flex flex-col justify-center items-end border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6 min-w-[200px]">
+                      <div className="flex flex-col justify-center items-end border-t md:border-t-0 md:border-l border-stone-100 pt-4 md:pt-0 md:pl-6 min-w-[200px]">
                         <div className="text-right mb-4">
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-stone-500">
                             {verifiedSegments[group.originalIndex] ? 'Prix Vérifié ✅' : 'Prix estimé'}
                           </div>
-                          <div className="text-2xl font-bold text-blue-600">
+                          <div className="text-2xl font-bold text-emerald-600">
                             {verifiedSegments[group.originalIndex]
                               ? verifiedSegments[group.originalIndex].priceEUR.toFixed(2)
                               : segment.priceEUR.toFixed(2)}€
                           </div>
                           {(verifiedSegments[group.originalIndex]?.priceDZD || segment.priceDZD) && (
-                            <div className="text-xs text-green-600 font-medium">
+                            <div className="text-xs text-emerald-600 font-medium">
                               ~{(verifiedSegments[group.originalIndex]?.priceDZD || segment.priceDZD).toLocaleString()} DZD
                             </div>
                           )}
@@ -614,7 +623,7 @@ export default function DjazAirDetailsPage() {
                             const bookingUrl = generateBookingUrl(segment);
                             window.open(bookingUrl, '_blank');
                           }}
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2"
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition-colors flex items-center justify-center gap-2"
                         >
                           <span>↗</span> Réserver ce vol
                         </button>
@@ -637,7 +646,7 @@ export default function DjazAirDetailsPage() {
               <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
                 <div className="text-white/60 text-sm mb-1">Coût Total (DjazAir)</div>
                 <div className="text-3xl font-bold text-white">{flight.totalPriceEUR.toFixed(2)}€</div>
-                <div className="text-xs text-white/50 mt-1">Via Alger avec taux parallèle</div>
+                <div className="text-xs text-white/50 mt-1">Via Alger • Payable en Dinar</div>
               </div>
               <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
                 <div className="text-white/60 text-sm mb-1">Vol Classique le moins cher</div>

@@ -220,7 +220,7 @@ export function EnhancedDjazAirOptionCard({
                                                 </div>
                                                 <div>
                                                     <div className="font-semibold text-gray-800">
-                                                        {segment.airline}
+                                                        {getAirlineName(segment.airlineCode || segment.airline)}
                                                     </div>
                                                     <div className="text-sm text-gray-500">
                                                         Vol {segment.flightNumber}
@@ -357,8 +357,7 @@ export function EnhancedDjazAirOptionCard({
                                     <strong className="text-green-700">{PARALLEL_RATE} DZD</strong>
                                 </li>
                                 <li>
-                                    • En convertissant vos € au taux parallèle, vous payez moins
-                                    cher !
+                                    • En payant en Dinar, vous bénéficiez d'un meilleur taux
                                 </li>
                             </ul>
                         </div>

@@ -101,6 +101,17 @@ export const airlineNames: Record<string, string> = {
     "5O": "ASL Airlines France",
     "50": "ASL Airlines France", // Alias
     TO: "Transavia France",
+    PC: "Pegasus Airlines",
+    SN: "Brussels Airlines",
+    TP: "TAP Portugal",
+    V7: "Volotea",
+    VY: "Vueling",
+    X3: "TUI fly",
+    TB: "TUI fly Belgium",
+    SF: "Tassili Airlines",
+    XY: "Flynas",
+    BJ: "Nouvelair",
+    XK: "Air Corsica",
 };
 
 /**

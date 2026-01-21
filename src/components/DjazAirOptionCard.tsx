@@ -189,7 +189,7 @@ export function DjazAirOptionCard({ option, onBook }: DjazAirOptionCardProps) {
               </div>
               {option.price.originalDZD && (
                 <div className="text-sm text-green-600">
-                  {option.price.originalDZD.toLocaleString()} DZD (taux parallèle)
+                  {option.price.originalDZD.toLocaleString()} DZD
                 </div>
               )}
             </div>

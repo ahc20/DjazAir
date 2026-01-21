@@ -6,6 +6,7 @@ import { FlightResult } from "@/types/flight";
 import { DjazAirFlight } from "@/types/djazair";
 import { getAirlineLogo, getAirlineName } from "@/data/airlineLogos";
 import { getAirportInfo } from "@/data/airports";
+import { DjazAirLogo } from "@/components/ui/DjazAirLogo";
 import Image from "next/image";
 
 // Interface pour l'analyse Gemini
@@ -310,11 +311,11 @@ export default function SearchResultsPage() {
 
   if (searchResults.loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">🔍 Recherche des vols DjazAir...</p>
-          <p className="text-sm text-gray-500 mt-2">Recherche en cours via l'API Amadeus</p>
+          <div className="animate-spin rounded-full h-24 w-24 border-4 border-emerald-600 border-t-transparent mx-auto mb-6"></div>
+          <p className="text-xl font-semibold text-emerald-900">🔍 Recherche des vols DjazAir...</p>
+          <p className="text-sm text-stone-500 mt-2">Analyse des meilleures options via Alger</p>
         </div>
       </div>
     );
@@ -322,16 +323,16 @@ export default function SearchResultsPage() {
 
   if (searchResults.error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-2xl shadow-xl border border-stone-100">
           <div className="text-red-500 text-6xl mb-4">❌</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Erreur de recherche</h1>
-          <p className="text-gray-600 mb-4">{searchResults.error}</p>
+          <h1 className="text-2xl font-bold text-stone-800 mb-2">Erreur de recherche</h1>
+          <p className="text-stone-600 mb-6">{searchResults.error}</p>
           <button
             onClick={() => window.history.back()}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors"
           >
-            Retour
+            ← Retour
           </button>
         </div>
       </div>
@@ -339,8 +340,25 @@ export default function SearchResultsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 lg:py-8">
-      <div className="max-w-7xl mx-auto px-3 lg:px-4">
+    <div className="min-h-screen bg-stone-50">
+      {/* Header cohérent avec la homepage */}
+      <header className="bg-white/80 backdrop-blur-md border-b border-stone-100 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+              <DjazAirLogo className="h-8 w-8" />
+              <span className="font-bold text-emerald-900 text-lg">DjazAir</span>
+            </a>
+            <div className="text-sm text-stone-600">
+              <span className="font-semibold">{origin}</span>
+              <span className="mx-2">→</span>
+              <span className="font-semibold">{destination}</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Bannière Date Alternative */}
         {searchResults.isAlternativeDate && searchResults.alternativeDateMessage && (
           <div className="mb-4 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl p-4 shadow-lg">
@@ -442,11 +460,11 @@ export default function SearchResultsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 mb-8">
           {/* Section DjazAir - GAUCHE */}
           <div className="min-w-0">
-            <h2 className="text-xl lg:text-2xl font-bold text-blue-600 mb-4">
-              ✈️ Solution DjazAir - {returnDate ? 'Aller-Retour (AR)' : 'Aller Simple (AS)'} avec Escale en Algérie
+            <h2 className="text-xl lg:text-2xl font-extrabold text-emerald-900 mb-2 tracking-tight">
+              ✈️ Solution DjazAir {returnDate ? '(Aller-Retour)' : '(Aller Simple)'}
             </h2>
-            <p className="text-sm lg:text-base text-gray-600 mb-4">
-              {returnDate ? 'Vol aller-retour' : 'Vol aller simple'} avec escale à Alger pour des économies garanties
+            <p className="text-sm lg:text-base text-stone-600 mb-6">
+              Escale à Alger pour des économies garanties
             </p>
 
             {/* Calcul et Affichage Dynamique DjazAir */}
@@ -454,26 +472,36 @@ export default function SearchResultsPage() {
               const bestClassicPrice = searchResults.classicFlights.length > 0
                 ? Math.min(...searchResults.classicFlights.map(f => f.price.amount))
                 : Infinity;
-              const bestDjazAirPrice = searchResults.djazairFlights.length > 0
-                ? searchResults.djazairFlights[0].totalPriceEUR
+
+              // Déduplication des vols DjazAir (par prix et segments)
+              const uniqueFlights = searchResults.djazairFlights.filter((flight, index, self) =>
+                index === self.findIndex(f =>
+                  f.totalPriceEUR === flight.totalPriceEUR &&
+                  f.segments.length === flight.segments.length &&
+                  f.segments[0]?.flightNumber === flight.segments[0]?.flightNumber
+                )
+              );
+
+              const bestDjazAirPrice = uniqueFlights.length > 0
+                ? uniqueFlights[0].totalPriceEUR
                 : Infinity;
               const isCheaper = bestDjazAirPrice < bestClassicPrice;
               const priceDiff = bestDjazAirPrice - bestClassicPrice;
 
-              return searchResults.djazairFlights.length > 0 ? (
+              return uniqueFlights.length > 0 ? (
                 <div className="space-y-4">
-                  {searchResults.djazairFlights.slice(0, 3).map((flight) => (
-                    <div key={flight.id} className={`bg-white rounded-lg shadow-lg overflow-hidden border-2 ${isCheaper ? 'border-green-500' : 'border-gray-200'}`}>
+                  {uniqueFlights.slice(0, 3).map((flight) => (
+                    <div key={flight.id} className={`bg-white rounded-2xl shadow-lg overflow-hidden border ${isCheaper ? 'border-emerald-200' : 'border-stone-200'}`}>
                       {/* Header du vol */}
-                      <div className={`p-4 text-white ${isCheaper ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-gray-700 to-gray-800'}`}>
+                      <div className={`p-4 text-white ${isCheaper ? 'bg-gradient-to-r from-emerald-600 to-emerald-700' : 'bg-gradient-to-r from-stone-700 to-stone-800'}`}>
                         <div className="flex justify-between items-center">
                           <div className="flex items-center space-x-3">
                             <span className="text-2xl">{isCheaper ? '🎉' : '✈️'}</span>
                             <div>
                               <h3 className="text-lg font-bold">
-                                {isCheaper ? 'DjazAir - Meilleure Offre !' : 'DjazAir - Option Flexible'}
+                                {isCheaper ? 'Meilleure Offre !' : 'Option Flexible'}
                               </h3>
-                              <p className={isCheaper ? "text-green-100" : "text-gray-300"}>
+                              <p className={isCheaper ? "text-emerald-100" : "text-stone-300"}>
                                 {flight.origin} → {flight.destination}
                               </p>
                             </div>
@@ -481,12 +509,12 @@ export default function SearchResultsPage() {
                           <div className="text-right">
                             <div className="text-2xl font-bold">{flight.totalPriceEUR}€</div>
                             {isCheaper ? (
-                              <div className="text-green-100 text-sm font-bold animate-pulse">
-                                Économie: {(bestClassicPrice - flight.totalPriceEUR).toFixed(2)}€
+                              <div className="text-emerald-100 text-sm font-bold">
+                                -{(bestClassicPrice - flight.totalPriceEUR).toFixed(0)}€ économie
                               </div>
                             ) : (
-                              <div className="text-orange-300 text-xs font-medium">
-                                +{priceDiff.toFixed(2)}€ vs Classique
+                              <div className="text-amber-200 text-xs font-medium">
+                                +{priceDiff.toFixed(0)}€ vs Classique
                               </div>
                             )}
                           </div>
@@ -516,8 +544,10 @@ export default function SearchResultsPage() {
                             const segmentLegLabel = segment.leg || (isReturnSegment ? 'RETOUR' : 'ALLER');
                             const isFromAlgeria = segment.origin === 'ALG';
 
-                            // Extraire le code compagnie du numéro de vol
-                            const airlineCode = segment.flightNumber.substring(0, 2);
+                            // Extraire le code compagnie du numéro de vol (2-3 premiers caractères)
+                            let airlineCode = segment.flightNumber.substring(0, 2).toUpperCase();
+                            // Cas spécial : 50 -> 5O (ASL Airlines France)
+                            if (airlineCode === '50') airlineCode = '5O';
                             const logoUrl = getAirlineLogo(airlineCode);
 
                             // Afficher séparateur entre ALLER et RETOUR
@@ -570,7 +600,7 @@ export default function SearchResultsPage() {
                                       </div>
                                       <div>
                                         <div className="font-semibold text-gray-800">
-                                          {segment.airline}
+                                          {getAirlineName(airlineCode)}
                                         </div>
                                         <div className="text-sm text-gray-500">
                                           Vol {segment.flightNumber}
@@ -578,17 +608,17 @@ export default function SearchResultsPage() {
                                       </div>
                                     </div>
                                     <div className="text-right">
-                                      <div className="font-bold text-lg text-blue-600">
+                                      <div className="font-bold text-lg text-emerald-600">
                                         {segment.priceEUR.toFixed(2)}€
                                       </div>
                                       {segment.priceDZD && (
-                                        <div className="text-sm text-green-600">
+                                        <div className="text-sm text-emerald-600">
                                           {segment.priceDZD.toLocaleString()} DZD
                                         </div>
                                       )}
                                       {isFromAlgeria && (
-                                        <div className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded font-medium mt-1">
-                                          💰 Taux parallèle
+                                        <div className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium mt-1">
+                                          💰 Payable en Dinar
                                         </div>
                                       )}
                                     </div>
@@ -783,12 +813,8 @@ export default function SearchResultsPage() {
                                     );
                                   })()}
 
-                                  {/* Infos bagages et devise */}
-                                  <div className="flex items-center justify-between text-sm text-gray-600">
-                                    <div className="flex items-center gap-2">
-                                      <span>🧳</span>
-                                      <span>Bagage inclus: 23kg soute</span>
-                                    </div>
+                                  {/* Infos devise (sans mention bagages) */}
+                                  <div className="flex items-center justify-end text-sm text-stone-500">
                                     <div>
                                       Devise: <span className="font-medium">{segment.currency || 'EUR'}</span>
                                     </div>
@@ -872,10 +898,10 @@ export default function SearchResultsPage() {
 
           {/* Section Vols Classiques - DROITE */}
           <div className="min-w-0">
-            <h2 className="text-xl lg:text-2xl font-bold text-gray-700 mb-4">
+            <h2 className="text-xl lg:text-2xl font-extrabold text-stone-800 mb-2 tracking-tight">
               🛫 Vols Classiques
             </h2>
-            <p className="text-sm lg:text-base text-gray-600 mb-4">
+            <p className="text-sm lg:text-base text-stone-600 mb-6">
               Vols directs et avec escales traditionnels
             </p>
 
@@ -883,7 +909,7 @@ export default function SearchResultsPage() {
             <div className="space-y-4">
               {searchResults.classicFlights.length > 0 ? (
                 searchResults.classicFlights.slice(0, 5).map((flight) => (
-                  <div key={flight.id} className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
+                  <div key={flight.id} className="bg-white rounded-2xl shadow-md border border-stone-100 p-4 hover:shadow-lg transition-shadow">
                     {/* En-tête du vol (Résumé) */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-4 border-b border-gray-100">
                       <div className="flex items-center space-x-3">
