@@ -969,11 +969,25 @@ export default function SearchResultsPage() {
                             </div>
 
                             {/* Affichage de l'escale si ce n'est pas le dernier segment */}
-                            {idx < (flight.segments?.length || 0) - 1 && (
-                              <div className="my-2 p-1.5 bg-orange-50 text-orange-700 text-xs rounded border border-orange-100 inline-block">
-                                ⏳ Escale à {segment.destination}
-                              </div>
-                            )}
+                            {idx < (flight.segments?.length || 0) - 1 && (() => {
+                              // Calculer la durée de l'escale
+                              const nextSegment = flight.segments?.[idx + 1];
+                              let layoverDuration = '';
+                              if (nextSegment) {
+                                const arrivalTime = new Date(segment.arrivalTime).getTime();
+                                const nextDepartureTime = new Date(nextSegment.departureTime).getTime();
+                                const diffMs = nextDepartureTime - arrivalTime;
+                                const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                                const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                                layoverDuration = hours > 0 ? `${hours}h${minutes > 0 ? minutes + 'm' : ''}` : `${minutes}m`;
+                              }
+                              const cityName = getAirportInfo(segment.destination)?.city || segment.destination;
+                              return (
+                                <div className="my-2 p-1.5 bg-orange-50 text-orange-700 text-xs rounded border border-orange-100 inline-block">
+                                  ⏳ Escale à {cityName} {layoverDuration && <span className="font-semibold">({layoverDuration})</span>}
+                                </div>
+                              );
+                            })()}
                           </div>
                         ))}
                       </div>
@@ -1022,24 +1036,7 @@ export default function SearchResultsPage() {
           </div>
         </div>
 
-        {/* Informations sur l'API */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 lg:p-6">
-          <h3 className="text-base lg:text-lg font-semibold text-blue-800 mb-3">ℹ️ Informations Techniques</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4 text-xs lg:text-sm text-blue-700">
-            <div>
-              <strong>API DjazAir:</strong> /api/djazair-flights
-            </div>
-            <div>
-              <strong>Source des données:</strong> API Amadeus
-            </div>
-            <div>
-              <strong>Logique:</strong> Recherche en deux segments via ALG
-            </div>
-            <div>
-              <strong>Devises:</strong> EUR (origine) + DZD (Algérie)
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   );
