@@ -1,67 +1,68 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-const RECIPIENT_EMAIL = "djazair.booking.online@gmail.com";
+const RECIPIENT_EMAIL = "ahcene201@hotmail.fr"; // Email vérifié sur Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Type pour les données de la demande
 interface QuoteRequestBody {
-    fullName: string;
-    email: string;
-    phone: string;
-    comment?: string;
-    flight: {
+  fullName: string;
+  email: string;
+  phone: string;
+  comment?: string;
+  flight: {
+    origin: string;
+    destination: string;
+    departDate: string;
+    returnDate?: string;
+    adults: number;
+    children: number;
+    infants: number;
+    estimatedPrice: number;
+    flightDetails?: {
+      segments: Array<{
+        airline: string;
+        flightNumber: string;
         origin: string;
         destination: string;
-        departDate: string;
-        returnDate?: string;
-        adults: number;
-        children: number;
-        infants: number;
-        estimatedPrice: number;
-        flightDetails?: {
-            segments: Array<{
-                airline: string;
-                flightNumber: string;
-                origin: string;
-                destination: string;
-                departureTime: string;
-                arrivalTime: string;
-            }>;
-        };
+        departureTime: string;
+        arrivalTime: string;
+      }>;
     };
+  };
 }
 
 // Formater la date
 function formatDate(dateStr: string): string {
-    if (!dateStr) return "Non spécifié";
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("fr-FR", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
+  if (!dateStr) return "Non spécifié";
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }
 
 // Générer le template email HTML
 function generateEmailHTML(data: QuoteRequestBody): string {
-    const { fullName, email, phone, comment, flight } = data;
+  const { fullName, email, phone, comment, flight } = data;
 
-    const segmentsHTML = flight.flightDetails?.segments
-        ? flight.flightDetails.segments
-            .map(
-                (seg) => `
+  const segmentsHTML = flight.flightDetails?.segments
+    ? flight.flightDetails.segments
+      .map(
+        (seg) => `
           <tr style="border-bottom: 1px solid #e5e7eb;">
             <td style="padding: 8px;">${seg.airline} ${seg.flightNumber}</td>
             <td style="padding: 8px;">${seg.origin} → ${seg.destination}</td>
             <td style="padding: 8px;">${new Date(seg.departureTime).toLocaleString("fr-FR")}</td>
           </tr>
         `
-            )
-            .join("")
-        : "<tr><td colspan='3' style='padding: 8px; color: #6b7280;'>Détails non disponibles</td></tr>";
+      )
+      .join("")
+    : "<tr><td colspan='3' style='padding: 8px; color: #6b7280;'>Détails non disponibles</td></tr>";
 
-    return `
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -187,9 +188,9 @@ function generateEmailHTML(data: QuoteRequestBody): string {
 
 // Générer le template email texte (fallback)
 function generateEmailText(data: QuoteRequestBody): string {
-    const { fullName, email, phone, comment, flight } = data;
+  const { fullName, email, phone, comment, flight } = data;
 
-    return `
+  return `
 📋 NOUVELLE DEMANDE DE DEVIS DJAZAIR
 =====================================
 
@@ -219,79 +220,69 @@ Demande envoyée depuis DjazAir • ${new Date().toLocaleString("fr-FR")}
 }
 
 export async function POST(request: NextRequest) {
-    try {
-        const body: QuoteRequestBody = await request.json();
+  try {
+    const body: QuoteRequestBody = await request.json();
 
-        // Validation des champs requis
-        if (!body.fullName || !body.email || !body.phone || !body.flight) {
-            return NextResponse.json(
-                { success: false, message: "Champs requis manquants" },
-                { status: 400 }
-            );
-        }
-
-        // Validation email basique
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(body.email)) {
-            return NextResponse.json(
-                { success: false, message: "Email invalide" },
-                { status: 400 }
-            );
-        }
-
-        // Configuration du transporteur email
-        // Option 1: Gmail avec App Password
-        // Pour utiliser Gmail, créez un "App Password" dans les paramètres de sécurité Google
-        const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST || "smtp.gmail.com",
-            port: parseInt(process.env.SMTP_PORT || "587"),
-            secure: false, // true pour 465, false pour les autres ports
-            auth: {
-                user: process.env.SMTP_USER || process.env.EMAIL_USER,
-                pass: process.env.SMTP_PASSWORD || process.env.EMAIL_PASSWORD,
-            },
-        });
-
-        // Si pas de configuration SMTP, simuler l'envoi (mode dev)
-        if (!process.env.SMTP_USER && !process.env.EMAIL_USER) {
-            console.log("⚠️ Mode développement: Email non envoyé (pas de configuration SMTP)");
-            console.log("📧 Contenu de l'email:");
-            console.log(generateEmailText(body));
-
-            // En mode dev, on simule un succès
-            return NextResponse.json({
-                success: true,
-                message: "Demande enregistrée (mode développement)",
-                debug: { recipient: RECIPIENT_EMAIL }
-            });
-        }
-
-        // Envoyer l'email
-        const mailOptions = {
-            from: `"DjazAir" <${process.env.SMTP_USER || process.env.EMAIL_USER}>`,
-            to: RECIPIENT_EMAIL,
-            replyTo: body.email,
-            subject: `🛫 Nouvelle Demande DjazAir: ${body.flight.origin} → ${body.flight.destination}`,
-            text: generateEmailText(body),
-            html: generateEmailHTML(body),
-        };
-
-        await transporter.sendMail(mailOptions);
-
-        console.log(`✅ Email envoyé à ${RECIPIENT_EMAIL} pour ${body.fullName}`);
-
-        return NextResponse.json({
-            success: true,
-            message: "Votre demande a bien été envoyée !",
-        });
-    } catch (error) {
-        console.error("❌ Erreur envoi email:", error);
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Erreur lors de l'envoi. Veuillez réessayer.",
-            },
-            { status: 500 }
-        );
+    // Validation des champs requis
+    if (!body.fullName || !body.email || !body.phone || !body.flight) {
+      return NextResponse.json(
+        { success: false, message: "Champs requis manquants" },
+        { status: 400 }
+      );
     }
+
+    // Validation email basique
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(body.email)) {
+      return NextResponse.json(
+        { success: false, message: "Email invalide" },
+        { status: 400 }
+      );
+    }
+
+    // Vérifier la clé API Resend
+    if (!process.env.RESEND_API_KEY) {
+      console.log("⚠️ Mode développement: Email non envoyé (pas de clé Resend)");
+      console.log("📧 Contenu de l'email:");
+      console.log(generateEmailText(body));
+      return NextResponse.json({
+        success: true,
+        message: "Demande enregistrée (mode développement)",
+      });
+    }
+
+    // Envoyer l'email via Resend
+    const { data, error } = await resend.emails.send({
+      from: "DjazAir <onboarding@resend.dev>",
+      to: [RECIPIENT_EMAIL],
+      replyTo: body.email,
+      subject: `🛫 Nouvelle Demande DjazAir: ${body.flight.origin} → ${body.flight.destination}`,
+      html: generateEmailHTML(body),
+      text: generateEmailText(body),
+    });
+
+    if (error) {
+      console.error("❌ Erreur Resend:", error);
+      return NextResponse.json(
+        { success: false, message: "Erreur lors de l'envoi. Veuillez réessayer." },
+        { status: 500 }
+      );
+    }
+
+    console.log(`✅ Email envoyé via Resend (ID: ${data?.id}) à ${RECIPIENT_EMAIL}`);
+
+    return NextResponse.json({
+      success: true,
+      message: "Votre demande a bien été envoyée !",
+    });
+  } catch (error) {
+    console.error("❌ Erreur envoi email:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Erreur lors de l'envoi. Veuillez réessayer.",
+      },
+      { status: 500 }
+    );
+  }
 }
