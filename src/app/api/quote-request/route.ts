@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const RECIPIENT_EMAIL = "ahcene201@hotmail.fr"; // Email vérifié sur Resend
+const RECIPIENT_EMAIL = "djazair.booking.online@gmail.com";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Type pour les données de la demande
