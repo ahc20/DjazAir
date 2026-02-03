@@ -7,6 +7,7 @@ import { DjazAirFlight } from "@/types/djazair";
 import { getAirlineLogo, getAirlineName } from "@/data/airlineLogos";
 import { getAirportInfo } from "@/data/airports";
 import { DjazAirLogo } from "@/components/ui/DjazAirLogo";
+import { QuoteRequestModal, QuoteRequestData } from "@/components/QuoteRequestModal";
 import Image from "next/image";
 
 // Interface pour l'analyse Gemini
@@ -49,6 +50,10 @@ export default function SearchResultsPage() {
     aiLoading: false,
     savings: null
   });
+
+  // État pour la modale de demande de devis
+  const [quoteModalOpen, setQuoteModalOpen] = useState(false);
+  const [selectedFlightData, setSelectedFlightData] = useState<QuoteRequestData | null>(null);
 
   // Extraction des paramètres de recherche
   const origin = searchParams.get("origin");
@@ -280,31 +285,36 @@ export default function SearchResultsPage() {
 
   const handleBookFlight = (flight: FlightResult | string) => {
     if (typeof flight === "string") {
-      // C'est un ID DjazAir, stocker les détails et rediriger vers la page de détails
+      // C'est un ID DjazAir - ouvrir la modale de demande de devis
       const djazairFlight = searchResults.djazairFlights.find(f => f.id === flight);
       if (djazairFlight) {
-        // Calculer le prix classique le moins cher pour comparaison
-        const cheapestClassicPrice = searchResults.classicFlights.length > 0
-          ? Math.min(...searchResults.classicFlights.map(f => typeof f.price === 'object' ? f.price.amount : f.price))
-          : null;
-
-        // Stocker les détails du vol avec le prix classique de référence
-        const flightWithComparison = {
-          ...djazairFlight,
-          classicPriceReference: cheapestClassicPrice,
-          actualSavings: cheapestClassicPrice
-            ? cheapestClassicPrice - djazairFlight.totalPriceEUR
-            : null
+        // Préparer les données pour la modale
+        const quoteData: QuoteRequestData = {
+          origin: origin || djazairFlight.origin,
+          destination: destination || djazairFlight.destination,
+          departDate: departDate || djazairFlight.departureDate,
+          returnDate: returnDate || djazairFlight.returnDate,
+          adults: adults,
+          children: children,
+          infants: infants,
+          estimatedPrice: djazairFlight.totalPriceEUR,
+          flightDetails: {
+            segments: djazairFlight.segments.map(seg => ({
+              airline: seg.airline,
+              flightNumber: seg.flightNumber,
+              origin: seg.origin,
+              destination: seg.destination,
+              departureTime: seg.departureTime,
+              arrivalTime: seg.arrivalTime,
+            })),
+          },
         };
-        localStorage.setItem(`djazair-flight-${flight}`, JSON.stringify(flightWithComparison));
-        // Rediriger vers la page de détails
-        window.location.href = `/djazair-details/${flight}`;
+        setSelectedFlightData(quoteData);
+        setQuoteModalOpen(true);
       }
     } else {
       // C'est un vol classique, rediriger vers la compagnie
       console.log("✈️ Réserver vol classique:", flight);
-      // Ici vous pouvez implémenter la redirection vers la compagnie
-      // Pour l'instant, ouvrir dans un nouvel onglet
       window.open(`https://www.google.com/search?q=${flight.airline}+${flight.flightNumber}+reservation`, '_blank');
     }
   };
@@ -1063,6 +1073,18 @@ export default function SearchResultsPage() {
 
 
       </div >
+
+      {/* Modal de demande de devis */}
+      {selectedFlightData && (
+        <QuoteRequestModal
+          isOpen={quoteModalOpen}
+          onClose={() => {
+            setQuoteModalOpen(false);
+            setSelectedFlightData(null);
+          }}
+          flightData={selectedFlightData}
+        />
+      )}
     </div >
   );
 }
