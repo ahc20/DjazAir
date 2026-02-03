@@ -75,8 +75,8 @@ function generateEmailHTML(data: QuoteRequestBody): string {
     .section { background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e5e7eb; }
     .section-title { font-weight: 600; color: #059669; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
     .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
-    .info-label { color: #6b7280; }
-    .info-value { font-weight: 500; }
+    .info-label { color: #6b7280; margin-right: 8px; }
+    .info-value { font-weight: 500; text-align: right; }
     .price { font-size: 24px; font-weight: 700; color: #059669; }
     table { width: 100%; border-collapse: collapse; }
     th { text-align: left; padding: 8px; background: #f3f4f6; color: #374151; }
@@ -94,15 +94,15 @@ function generateEmailHTML(data: QuoteRequestBody): string {
       <div class="section">
         <div class="section-title">👤 Informations Client</div>
         <div class="info-row">
-          <span class="info-label">Nom</span>
+          <span class="info-label">Nom :</span>
           <span class="info-value">${fullName}</span>
         </div>
         <div class="info-row">
-          <span class="info-label">Email</span>
+          <span class="info-label">Email :</span>
           <span class="info-value"><a href="mailto:${email}" style="color: #059669;">${email}</a></span>
         </div>
         <div class="info-row">
-          <span class="info-label">Téléphone</span>
+          <span class="info-label">Téléphone :</span>
           <span class="info-value"><a href="tel:${phone}" style="color: #059669;">${phone}</a></span>
         </div>
       </div>
@@ -111,26 +111,26 @@ function generateEmailHTML(data: QuoteRequestBody): string {
       <div class="section">
         <div class="section-title">✈️ Détails du Trajet</div>
         <div class="info-row">
-          <span class="info-label">Trajet</span>
+          <span class="info-label">Trajet :</span>
           <span class="info-value" style="font-weight: 600;">${flight.origin} → ${flight.destination}</span>
         </div>
         <div class="info-row">
-          <span class="info-label">Date départ</span>
+          <span class="info-label">Date départ :</span>
           <span class="info-value">${formatDate(flight.departDate)}</span>
         </div>
         ${flight.returnDate ? `
         <div class="info-row">
-          <span class="info-label">Date retour</span>
+          <span class="info-label">Date retour :</span>
           <span class="info-value">${formatDate(flight.returnDate)}</span>
         </div>
         ` : `
         <div class="info-row">
-          <span class="info-label">Type</span>
+          <span class="info-label">Type :</span>
           <span class="info-value">Aller simple</span>
         </div>
         `}
         <div class="info-row">
-          <span class="info-label">Passagers</span>
+          <span class="info-label">Passagers :</span>
           <span class="info-value">
             ${flight.adults} adulte${flight.adults > 1 ? "s" : ""}
             ${flight.children > 0 ? `, ${flight.children} enfant${flight.children > 1 ? "s" : ""}` : ""}
