@@ -511,13 +511,20 @@ export default function SearchResultsPage() {
                     <div key={flight.id} className={`bg-white rounded-2xl shadow-lg overflow-hidden border ${isCheaper ? 'border-emerald-200' : 'border-stone-200'}`}>
                       {/* Header du vol */}
                       <div className={`p-4 text-white ${isCheaper ? 'bg-gradient-to-r from-emerald-600 to-emerald-700' : 'bg-gradient-to-r from-stone-700 to-stone-800'}`}>
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-start">
                           <div className="flex items-center space-x-3">
                             <span className="text-2xl">{isCheaper ? '🎉' : '✈️'}</span>
                             <div>
-                              <h3 className="text-lg font-bold">
-                                {isCheaper ? 'Meilleure Offre !' : 'Option Flexible'}
-                              </h3>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-lg font-bold">
+                                  {isCheaper ? 'Meilleure Offre !' : 'Option Flexible'}
+                                </h3>
+                                {flight.exchangeRateSource && (
+                                  <span className="bg-white/20 backdrop-blur-sm text-[10px] px-2 py-0.5 rounded-full border border-white/30">
+                                    Taux: {flight.exchangeRateSource}
+                                  </span>
+                                )}
+                              </div>
                               <p className={isCheaper ? "text-emerald-100" : "text-stone-300"}>
                                 {flight.origin} → {flight.destination}
                               </p>
@@ -536,6 +543,11 @@ export default function SearchResultsPage() {
                             ) : (
                               <div className="text-amber-200 text-xs font-medium">
                                 +{priceDiff.toFixed(0)}€ vs Classique
+                              </div>
+                            )}
+                            {flight.exchangeRate && (
+                              <div className="text-[10px] text-white/60 mt-1">
+                                1€ = {flight.exchangeRate} DZD
                               </div>
                             )}
                           </div>
@@ -633,8 +645,15 @@ export default function SearchResultsPage() {
                                         {segment.priceEUR.toFixed(2)}€
                                       </div>
                                       {segment.priceDZD && (
-                                        <div className="text-sm text-emerald-600">
-                                          {segment.priceDZD.toLocaleString()} DZD
+                                        <div className="flex flex-col items-end">
+                                          <div className="text-sm text-emerald-600 font-semibold">
+                                            {segment.priceDZD.toLocaleString()} DZD
+                                          </div>
+                                          {segment.source && (
+                                            <div className="text-[10px] text-stone-400">
+                                              Source: {segment.source}
+                                            </div>
+                                          )}
                                         </div>
                                       )}
                                       {isFromAlgeria && (
@@ -874,14 +893,24 @@ export default function SearchResultsPage() {
                           </div>
                         </div>
 
+                        {/* Info Paiement Dinar */}
+                        <div className="mt-4 bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+                          <h4 className="font-bold text-emerald-900 text-sm mb-2 flex items-center gap-2">
+                            <span>💳</span> Comment payer en Dinar ?
+                          </h4>
+                          <p className="text-xs text-emerald-800 leading-relaxed">
+                            Les segments au départ de l'Algérie sont facturés en DZD. Vous pouvez économiser <strong>~40%</strong> en payant via un contact en Algérie ou une carte locale au taux parallèle ({flight.exchangeRate} DZD/€).
+                          </p>
+                        </div>
+
                         {/* Bouton d'action unique */}
                         <div className="mt-4">
                           <button
                             onClick={() => handleBookFlight(flight.id)}
-                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-bold hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center gap-2"
+                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-bold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                           >
                             <span>📋</span>
-                            <span>Voir les détails & Réserver</span>
+                            <span>Obtenir un devis personnalisé</span>
                           </button>
                         </div>
                       </div>

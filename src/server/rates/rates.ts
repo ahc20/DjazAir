@@ -91,9 +91,55 @@ export class ExchangeRateService {
   }
 
   /**
+   * Récupère le taux parallèle EUR → DZD depuis forexalgerie.com
+   */
+  async getParallelRateFromForexAlgerie(): Promise<ExchangeRateResult> {
+    try {
+      console.log("🌍 Récupération du taux parallèle depuis forexalgerie.com...");
+      const response = await fetch("http://www.forexalgerie.com/connect/updateExchange.php", {
+        method: "POST",
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Referer': 'http://www.forexalgerie.com/',
+          'Origin': 'http://www.forexalgerie.com'
+        },
+        body: "afous=moh!12!"
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (Array.isArray(data) && data.length > 0) {
+        const entry = data[0];
+        const buyRate = parseFloat(entry.eur_buy);
+        const sellRate = parseFloat(entry.eur_sell);
+        const averageRate = (buyRate + sellRate) / 2;
+
+        console.log(`✅ Taux récupéré (AJAX): Buy=${buyRate}, Sell=${sellRate}, Avg=${averageRate}`);
+
+        return {
+          rate: averageRate,
+          source: "forexalgerie.com",
+          timestamp: new Date(),
+          isOfficial: false,
+        };
+      }
+
+      throw new Error("Format JSON invalide ou vide");
+    } catch (error) {
+      console.error("❌ Erreur récupération taux parallèle:", error);
+      return this.getCustomRate(); // Fallback sur le taux custom
+    }
+  }
+
+  /**
    * Sélectionne le taux approprié selon le mode demandé
    */
-  async selectRate(mode: ExchangeRateMode): Promise<ExchangeRateResult> {
+  async selectRate(mode: ExchangeRateMode | 'parallel'): Promise<ExchangeRateResult> {
     switch (mode) {
       case "official":
         return await this.getOfficialRateEURtoDZD();
@@ -101,24 +147,28 @@ export class ExchangeRateService {
       case "custom":
         return await this.getCustomRate();
 
+      case "parallel" as any:
+        return await this.getParallelRateFromForexAlgerie();
+
       default:
-        throw new Error(`Mode de taux invalide: ${mode}`);
+        // Si le mode n'est pas reconnu, on essaie quand même le parallèle par défaut pour DjazAir
+        return await this.getParallelRateFromForexAlgerie();
     }
   }
 
   /**
-   * Récupère les deux taux pour comparaison
+   * Récupère les deux taux principaux pour comparaison
    */
   async getBothRates(): Promise<{
     official: ExchangeRateResult;
-    custom: ExchangeRateResult;
+    parallel: ExchangeRateResult;
   }> {
-    const [official, custom] = await Promise.all([
+    const [official, parallel] = await Promise.all([
       this.getOfficialRateEURtoDZD(),
-      this.getCustomRate(),
+      this.getParallelRateFromForexAlgerie(),
     ]);
 
-    return { official, custom };
+    return { official, parallel };
   }
 
   /**

@@ -137,14 +137,29 @@ function formatDuration(ms: number): string {
     return `${hours}h ${mins}m`;
 }
 
+import { VolzScraper } from "@/server/flightAPI/volzScraper";
+import { ExchangeRateService } from "@/server/rates/rates";
+
 /**
  * Recherche les vols optimisés DjazAir (Multi-leg via Alger)
  * Supporte Aller Simple (AS) et Aller-Retour (AR)
- * Utilise Amadeus en priorité, Kayak en fallback
+ * Utilise Volz.app pour les prix réels en DZD si disponible
  */
 export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFlight[]> {
     const amadeusAPI = new AmadeusAPI();
     const kayakAPI = new KayakAPI();
+    const volzScraper = new VolzScraper();
+    const rateService = new ExchangeRateService();
+
+    // 1. Récupérer le vrai taux parallèle si non fourni ou si on veut écraser avec le frais
+    let currentParallelRate = params.dzdEurRate;
+    try {
+        const rateResult = await rateService.getParallelRateFromForexAlgerie();
+        currentParallelRate = rateResult.rate;
+        console.log(`💱 Taux Parallèle Utilisé: ${currentParallelRate} (Source: ${rateResult.source})`);
+    } catch (e) {
+        console.warn("⚠️ Impossible de récupérer le taux en temps réel, utilisation du taux fourni.");
+    }
 
     if (!amadeusAPI.isAvailable() && !kayakAPI.isAvailable()) {
         throw new Error("Aucune API de vol disponible (Amadeus et Kayak indisponibles)");
@@ -208,8 +223,37 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
         );
     }
 
-    const results = await Promise.all(searchPromises);
-    const [seg1Results, seg2Results, seg3Results, seg4Results] = results;
+    // === VOLZ (Prix réels DZD) ===
+    const volzPromise = volzScraper.searchFlights({
+        origin: "ALG",
+        destination: params.destination,
+        departureDate: params.departureDate,
+        returnDate: params.returnDate,
+        passengers: params.adults,
+        cabinClass: params.cabin
+    });
+
+    const results = await Promise.all([...searchPromises, volzPromise]);
+
+    // Extraction des résultats selon OW ou RT
+    const seg1Results = results[0] as any[];
+    const seg2Results = results[1] as any[];
+    let seg3Results: any[] = [];
+    let seg4Results: any[] = [];
+    let volzResults: any;
+
+    if (isRoundTrip) {
+        seg3Results = results[2] as any[];
+        seg4Results = results[3] as any[];
+        volzResults = results[4];
+    } else {
+        volzResults = results[2];
+    }
+
+    // Enrichir seg2 avec les prix réels Volz si correspondance trouvée
+    if (volzResults && volzResults.success && volzResults.data) {
+        console.log(`📊 Volz a trouvé ${volzResults.data.length} offres Algérie ↔ ${params.destination}`);
+    }
 
     // Vérification segments ALLER
     if (!seg1Results?.length || !seg2Results?.length) {
@@ -228,19 +272,19 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
     // Les segments Algérie ↔ Destination finale peuvent avoir des escales
 
     // S1 (France → ALG): DIRECT uniquement - filtre stops === 0
-    const validSeg1 = seg1Results.filter(f =>
+    const validSeg1 = seg1Results.filter((f: any) =>
         f.destination === "ALG" &&
         (f.stops === 0 || !f.segments || f.segments.length <= 1)
     );
 
     // S2 (ALG → Destination): escales autorisées
-    const validSeg2 = seg2Results.filter(f => f.origin === "ALG");
+    const validSeg2 = seg2Results.filter((f: any) => f.origin === "ALG");
 
     // S3 (Destination → ALG): escales autorisées  
-    const validSeg3 = isRoundTrip ? seg3Results.filter(f => f.destination === "ALG") : [];
+    const validSeg3 = isRoundTrip ? seg3Results.filter((f: any) => f.destination === "ALG") : [];
 
     // S4 (ALG → France): DIRECT uniquement - filtre stops === 0
-    const validSeg4 = isRoundTrip ? seg4Results.filter(f =>
+    const validSeg4 = isRoundTrip ? seg4Results.filter((f: any) =>
         f.origin === "ALG" &&
         (f.stops === 0 || !f.segments || f.segments.length <= 1)
     ) : [];
@@ -286,12 +330,31 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
 
             // Prix ALLER
             // s1: depuis origine (non-ALG), toujours EUR
-            const price1 = calculateDjazAirPrice(s1.price.amount, params.dzdEurRate, false, s1.airlineCode);
-            // s2: depuis ALG, DZD seulement si compagnie éligible
-            const price2 = calculateDjazAirPrice(s2.price.amount, params.dzdEurRate, true, s2.airlineCode);
+            const price1 = calculateDjazAirPrice(s1.price.amount, currentParallelRate, false, s1.airlineCode);
+
+            // s2: depuis ALG, essayer de trouver un prix réel Volz
+            let price2: any = null;
+            if (volzResults && volzResults.success && volzResults.data) {
+                const volzMatch = volzResults.data.find((v: any) =>
+                    v.airlineCode === s2.airlineCode &&
+                    Math.abs(new Date(v.flights[0].departureTime).getTime() - new Date(s2.departureTime).getTime()) < 3600000
+                );
+                if (volzMatch) {
+                    price2 = {
+                        priceEUR: volzMatch.totalPrice.amount / currentParallelRate,
+                        priceDZD: volzMatch.totalPrice.amount,
+                        isDZDEligible: true,
+                        source: "Volz.app"
+                    };
+                }
+            }
+
+            if (!price2) {
+                price2 = calculateDjazAirPrice(s2.price.amount, currentParallelRate, true, s2.airlineCode);
+            }
 
             let totalPriceEUR = price1.priceEUR + price2.priceEUR;
-            let totalPriceDZD = (price1.priceDZD || Math.round(price1.priceEUR * params.dzdEurRate)) + (price2.priceDZD || 0);
+            let totalPriceDZD = (price1.priceDZD || Math.round(price1.priceEUR * currentParallelRate)) + (price2.priceDZD || 0);
             let segments: any[] = [
                 {
                     origin: s1.origin, destination: s1.destination,
@@ -314,7 +377,8 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
                     stops: s2.stops || 0,
                     subSegments: s2.segments || [],
                     baggage: s2.baggage,
-                    bookingUrl: s2.bookingUrl
+                    bookingUrl: s2.bookingUrl,
+                    source: price2.source
                 }
             ];
 
@@ -355,8 +419,27 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
                     return priceA - priceB;
                 })[0];
                 // Prix RETOUR - DZD seulement pour compagnies éligibles
-                const price3 = calculateDjazAirPrice(bestReturn.s3.price.amount, params.dzdEurRate, true, bestReturn.s3.airlineCode);
-                const price4 = calculateDjazAirPrice(bestReturn.s4.price.amount, params.dzdEurRate, true, bestReturn.s4.airlineCode);
+                let price3: any = null;
+                if (volzResults.success && volzResults.data) {
+                    const volzMatch = volzResults.data.find((v: any) =>
+                        v.airlineCode === bestReturn.s3.airlineCode &&
+                        Math.abs(new Date(v.flights[0].departureTime).getTime() - new Date(bestReturn.s3.departureTime).getTime()) < 3600000
+                    );
+                    if (volzMatch) {
+                        price3 = {
+                            priceEUR: volzMatch.totalPrice.amount / currentParallelRate,
+                            priceDZD: volzMatch.totalPrice.amount,
+                            isDZDEligible: true,
+                            source: "Volz.app"
+                        };
+                    }
+                }
+
+                if (!price3) {
+                    price3 = calculateDjazAirPrice(bestReturn.s3.price.amount, currentParallelRate, true, bestReturn.s3.airlineCode);
+                }
+
+                const price4 = calculateDjazAirPrice(bestReturn.s4.price.amount, currentParallelRate, true, bestReturn.s4.airlineCode);
 
                 totalPriceEUR += price3.priceEUR + price4.priceEUR;
                 totalPriceDZD += (price3.priceDZD || 0) + (price4.priceDZD || 0);
@@ -373,7 +456,8 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
                         stops: bestReturn.s3.stops || 0,
                         subSegments: bestReturn.s3.segments || [],
                         baggage: bestReturn.s3.baggage,
-                        bookingUrl: bestReturn.s3.bookingUrl
+                        bookingUrl: bestReturn.s3.bookingUrl,
+                        source: price3.source
                     },
                     {
                         origin: bestReturn.s4.origin, destination: bestReturn.s4.destination,
@@ -397,9 +481,13 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
             const outboundDuration = new Date(s2.arrivalTime).getTime() - new Date(s1.departureTime).getTime();
 
             // Calcul économies vs prix normal
+            // Récupérer le taux officiel pour une comparaison honnête
+            const officialRateResult = await rateService.getOfficialRateEURtoDZD();
+            const officialRate = officialRateResult.rate;
+
             const normalPrice = segments.reduce((sum, seg) => {
                 const origPrice = seg.currency === "DZD" && seg.priceDZD
-                    ? seg.priceDZD / 150  // Retour au prix EUR original
+                    ? seg.priceDZD / officialRate  // Retour au prix EUR original (offficiel)
                     : seg.priceEUR;
                 return sum + origPrice;
             }, 0);
@@ -424,7 +512,9 @@ export async function searchDjazAirTrip(params: SearchParams): Promise<DjazAirFl
                     amount: Number(savings.toFixed(2)),
                     percentage: Math.round((savings / normalPrice) * 100),
                     comparedTo: Number(normalPrice.toFixed(2))
-                }
+                },
+                exchangeRateSource: "ForexAlgérie.com",
+                exchangeRate: currentParallelRate
             });
 
             found++;

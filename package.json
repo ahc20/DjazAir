@@ -17,7 +17,9 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "test:forex": "tsx scripts/test-flight-data.ts",
+    "test:volz": "tsx scripts/test-flight-data.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",

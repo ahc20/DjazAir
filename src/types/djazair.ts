@@ -25,6 +25,7 @@ export interface DjazAirFlight {
     leg?: "ALLER" | "RETOUR";
     stops?: number;  // Nombre d'escales dans ce segment
     bookingUrl?: string; // Lien de réservation pour ce segment via Kayak/Partenaire
+    source?: string; // Source du prix (ex: Volz.app)
     subSegments?: {  // Détails des sous-segments (escales)
       origin: string;
       destination: string;
@@ -46,4 +47,6 @@ export interface DjazAirFlight {
     comparedTo: number;
   };
   bookingUrl?: string;
+  exchangeRateSource?: string;
+  exchangeRate?: number;
 }
